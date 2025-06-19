@@ -121,8 +121,8 @@
 }
 
 html {
-  --scroll-behavior: smooth!important;
-  scroll-behavior: smooth!important;
+  --scroll-behavior: smooth !important;
+  scroll-behavior: smooth !important;
 }
 
 @layer base {
@@ -158,4 +158,22 @@ html {
   .nav a {
     @apply font-medium hover:text-primary transition text-sm lg:text-base;
   }
+}
+
+/* Animaciones de spinner */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner-animation {
+  animation: spin 1s linear infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }

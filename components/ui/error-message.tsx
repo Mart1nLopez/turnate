@@ -1,4 +1,4 @@
-import { IconAlertCircle, IconX } from '@tabler/icons-react';
+import { TbAlertCircle, TbX } from 'react-icons/tb';
 
 interface ErrorMessageProps {
   message: string;
@@ -21,13 +21,13 @@ export default function ErrorMessage({ message, onDismiss, className = '', varia
   return (
     <div className={`border px-4 py-3 rounded-lg ${variantClasses[variant]} ${className}`}>
       <div className="flex items-start">
-        <IconAlertCircle className={`w-5 h-5 ${iconColor[variant]} mt-0.5 flex-shrink-0`} />
+        <TbAlertCircle className={`w-5 h-5 ${iconColor[variant]} mt-0.5 flex-shrink-0`} />
         <div className="ml-3 flex-1">
           <p className="text-sm">{message}</p>
         </div>
         {onDismiss && (
           <button onClick={onDismiss} className={`ml-3 ${iconColor[variant]} hover:opacity-70 transition-opacity`}>
-            <IconX className="w-4 h-4" />
+            <TbX className="w-4 h-4" />
           </button>
         )}
       </div>

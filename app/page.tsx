@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Calendar, Clock, Globe, Users, BarChart3 } from 'lucide-react';
+import { LuCalendar, LuClock, LuGlobe, LuUsers, LuTrendingUp } from 'react-icons/lu';
 import Footer from '@/components/home/Footer';
 import TestimonialCard from '@/components/home/TestimonialCard';
 
@@ -94,7 +94,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-card p-6 rounded-xl shadow-md hover:shadow-lg transition">
               <div className="bg-accent p-3 size-12 flex items-center justify-center rounded-lg mb-4">
-                <Clock className="h-6 w-6 text-primary" />
+                <LuClock className="h-6 w-6 text-primary" />
               </div>
               <h3 className="text-xl font-bold mb-2">Gestión de disponibilidad</h3>
               <p className="text-muted-foreground">
@@ -104,7 +104,7 @@ export default function LandingPage() {
 
             <div className="bg-card p-6 rounded-xl shadow-md hover:shadow-lg transition">
               <div className="bg-accent p-3 size-12 flex items-center justify-center rounded-lg mb-4">
-                <Globe className="h-6 w-6 text-primary" />
+                <LuGlobe className="h-6 w-6 text-primary" />
               </div>
               <h3 className="text-xl font-bold mb-2">Página personalizada</h3>
               <p className="text-muted-foreground">
@@ -114,7 +114,7 @@ export default function LandingPage() {
 
             <div className="bg-card p-6 rounded-xl shadow-md hover:shadow-lg transition">
               <div className="bg-accent p-3 size-12 flex items-center justify-center rounded-lg mb-4">
-                <Calendar className="h-6 w-6 text-primary" />
+                <LuCalendar className="h-6 w-6 text-primary" />
               </div>
               <h3 className="text-xl font-bold mb-2">Agendamiento online</h3>
               <p className="text-muted-foreground">
@@ -135,7 +135,7 @@ export default function LandingPage() {
               </h2>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
-                  <Calendar className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
+                  <LuCalendar className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
                   <div>
                     <span className="font-semibold">Recordatorios automáticos</span>
                     <p className="text-muted-foreground text-sm">
@@ -144,7 +144,7 @@ export default function LandingPage() {
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Users className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
+                  <LuUsers className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
                   <div>
                     <span className="font-semibold">Historial de clientes</span>
                     <p className="text-muted-foreground text-sm">
@@ -153,7 +153,7 @@ export default function LandingPage() {
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <BarChart3 className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
+                  <LuTrendingUp className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
                   <div>
                     <span className="font-semibold">Estadísticas y reportes</span>
                     <p className="text-muted-foreground text-sm">

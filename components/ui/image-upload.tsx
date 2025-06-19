@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { IconUpload, IconX, IconPhoto, IconLoader2 } from '@tabler/icons-react';
+import { TbUpload, TbX, TbPhoto, TbLoader2 } from 'react-icons/tb';
 import { Button } from '@/components/ui/button';
 import { StorageService, validateImageFile, createImagePreview } from '@/lib/storage';
 import Image from 'next/image';
@@ -204,7 +204,7 @@ export default function ImageUpload({
           className="hidden"
         />
 
-        <IconPhoto className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <TbPhoto className="w-12 h-12 text-gray-400 mx-auto mb-4" />
 
         <div className="space-y-2">
           <p className="text-sm text-gray-600">
@@ -241,16 +241,16 @@ export default function ImageUpload({
                 {/* Overlay de estado */}
                 {(image.uploading || image.uploaded || image.error) && (
                   <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    {image.uploading && <IconLoader2 className="w-6 h-6 text-white animate-spin" />}
+                    {image.uploading && <TbLoader2 className="w-6 h-6 text-white animate-spin" />}
                     {image.uploaded && (
                       <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                        <IconUpload className="w-4 h-4 text-white" />
+                        <TbUpload className="w-4 h-4 text-white" />
                       </div>
                     )}
                     {image.error && (
                       <div className="text-center">
                         <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-1">
-                          <IconX className="w-4 h-4 text-white" />
+                          <TbX className="w-4 h-4 text-white" />
                         </div>
                         <p className="text-xs text-white">{image.error}</p>
                       </div>
@@ -264,7 +264,7 @@ export default function ImageUpload({
                 <button
                   onClick={() => removePreviewImage(index)}
                   className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                  <IconX className="w-4 h-4" />
+                  <TbX className="w-4 h-4" />
                 </button>
               )}
             </div>
@@ -279,11 +279,11 @@ export default function ImageUpload({
             <Button onClick={uploadImages} disabled={uploading} className="flex-1">
               {uploading ?
                 <>
-                  <IconLoader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <TbLoader2 className="w-4 h-4 mr-2 animate-spin" />
                   Subiendo...
                 </>
               : <>
-                  <IconUpload className="w-4 h-4 mr-2" />
+                  <TbUpload className="w-4 h-4 mr-2" />
                   Subir Imágenes
                 </>
               }

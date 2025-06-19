@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AuthService } from '@/lib/auth';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { LuMail, LuLock, LuEye, LuEyeOff } from 'react-icons/lu';
 import HeaderAuth from '@/components/auth/HeaderAuth';
 import FooterAuth from '@/components/auth/FooterAuth';
 
@@ -80,7 +80,7 @@ export default function LoginPage() {
                     Email
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <LuMail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <input
                       id="email"
                       name="email"
@@ -108,7 +108,7 @@ export default function LoginPage() {
                     </Link>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <LuLock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <input
                       id="password"
                       name="password"
@@ -125,8 +125,8 @@ export default function LoginPage() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">
                       {showPassword ?
-                        <EyeOff className="h-4 w-4" />
-                      : <Eye className="h-4 w-4" />}
+                        <LuEyeOff className="h-4 w-4" />
+                      : <LuEye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>

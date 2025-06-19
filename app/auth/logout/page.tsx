@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthService } from '@/lib/auth';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { LuCheck, LuX } from 'react-icons/lu';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 
 export default function LogoutPage() {
@@ -65,7 +65,7 @@ export default function LogoutPage() {
       case 'success':
         return (
           <>
-            <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
+            <LuCheck className="h-12 w-12 text-green-600 mx-auto mb-4" />
             <p className="text-gray-700 font-medium mb-2">Sesión cerrada exitosamente</p>
             <p className="text-gray-500 text-sm">Redirigiendo...</p>
           </>
@@ -74,7 +74,7 @@ export default function LogoutPage() {
       case 'error':
         return (
           <>
-            <XCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+            <LuX className="h-12 w-12 text-red-600 mx-auto mb-4" />
             <p className="text-gray-700 font-medium mb-2">Error al cerrar sesión</p>
             <p className="text-red-600 text-sm mb-3">{errorMessage}</p>
             <p className="text-gray-500 text-sm">Redirigiendo al dashboard...</p>

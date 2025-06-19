@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Phone, User, Lock, Eye, EyeOff, IdCard } from 'lucide-react';
+import { LuMail, LuPhone, LuUser, LuLock, LuEye, LuEyeOff, LuCreditCard } from 'react-icons/lu';
 import Link from 'next/link';
 import HeaderAuth from '@/components/auth/HeaderAuth';
 import FooterAuth from '@/components/auth/FooterAuth';
@@ -271,7 +271,7 @@ export default function RegisterPage() {
                     Nombre Completo
                   </label>
                   <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <LuUser className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <input
                       id="name"
                       name="name"
@@ -293,7 +293,7 @@ export default function RegisterPage() {
                     RUT
                   </label>
                   <div className="relative">
-                    <IdCard className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <LuCreditCard className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <input
                       id="rut"
                       name="rut"
@@ -332,7 +332,7 @@ export default function RegisterPage() {
                     Email
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <LuMail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <input
                       id="email"
                       name="email"
@@ -354,7 +354,7 @@ export default function RegisterPage() {
                     Número Celular
                   </label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <LuPhone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <input
                       id="phone"
                       name="phone"
@@ -376,7 +376,7 @@ export default function RegisterPage() {
                     Contraseña
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <LuLock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <input
                       id="password"
                       name="password"
@@ -392,8 +392,8 @@ export default function RegisterPage() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">
                       {showPassword ?
-                        <EyeOff className="h-4 w-4" />
-                      : <Eye className="h-4 w-4" />}
+                        <LuEyeOff className="h-4 w-4" />
+                      : <LuEye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
@@ -406,7 +406,7 @@ export default function RegisterPage() {
                     Confirmar Contraseña
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <LuLock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <input
                       id="confirmPassword"
                       name="confirmPassword"

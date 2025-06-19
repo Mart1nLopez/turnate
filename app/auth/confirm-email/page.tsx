@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { IconMail, IconCheck, IconRefresh } from '@tabler/icons-react';
+import { TbMail, TbCheck, TbRefresh } from 'react-icons/tb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
@@ -456,7 +456,7 @@ export default function ConfirmEmailPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <IconMail className="w-8 h-8 text-blue-600" />
+            <TbMail className="w-8 h-8 text-blue-600" />
           </div>
           <CardTitle className="text-2xl">Confirma tu email</CardTitle>
         </CardHeader>
@@ -472,7 +472,7 @@ export default function ConfirmEmailPage() {
 
           <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg">
             <div className="flex items-center">
-              <IconRefresh className="w-4 h-4 mr-2 animate-spin" />
+              <TbRefresh className="w-4 h-4 mr-2 animate-spin" />
               <span className="text-sm">Verificando automáticamente cada 5 segundos...</span>
             </div>
           </div>
@@ -481,11 +481,11 @@ export default function ConfirmEmailPage() {
             <Button onClick={handleManualCheck} disabled={isChecking} className="w-full">
               {isChecking ?
                 <>
-                  <IconRefresh className="w-4 h-4 mr-2 animate-spin" />
+                  <TbRefresh className="w-4 h-4 mr-2 animate-spin" />
                   Verificando...
                 </>
               : <>
-                  <IconCheck className="w-4 h-4 mr-2" />
+                  <TbCheck className="w-4 h-4 mr-2" />
                   Ya confirmé mi email
                 </>
               }
@@ -495,18 +495,18 @@ export default function ConfirmEmailPage() {
               <Button onClick={handleResendEmail} disabled={isResending} variant="outline" className="w-full">
                 {isResending ?
                   <>
-                    <IconRefresh className="w-4 h-4 mr-2 animate-spin" />
+                    <TbRefresh className="w-4 h-4 mr-2 animate-spin" />
                     Reenviando...
                   </>
                 : <>
-                    <IconRefresh className="w-4 h-4 mr-2" />
+                    <TbRefresh className="w-4 h-4 mr-2" />
                     Reenviar email
                   </>
                 }
               </Button>
             : <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
                 <div className="flex items-center">
-                  <IconCheck className="w-4 h-4 mr-2" />
+                  <TbCheck className="w-4 h-4 mr-2" />
                   <span className="text-sm">Email reenviado exitosamente</span>
                 </div>
               </div>
