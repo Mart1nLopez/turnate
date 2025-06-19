@@ -6,17 +6,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import {
-  IconHome,
-  IconCalendar,
-  IconUsers,
-  IconSettings,
-  IconStars,
-  IconClock,
-  IconLogout,
-  IconMenu2,
-  IconX,
-  IconTrendingUp,
-} from '@tabler/icons-react';
+  TbHome,
+  TbCalendar,
+  TbUsers,
+  TbSettings,
+  TbStars,
+  TbClock,
+  TbLogout,
+  TbMenu2,
+  TbX,
+  TbTrendingUp,
+} from 'react-icons/tb';
 import { AuthService } from '@/lib/auth';
 import { getCurrentProfessional } from '@/lib/supabase';
 import { Professional } from '@/types';
@@ -26,14 +26,14 @@ interface DashboardLayoutProps {
 }
 
 const navigation = [
-  { name: 'Inicio', href: '/dashboard', icon: IconHome },
-  { name: 'Citas', href: '/dashboard/citas', icon: IconCalendar },
-  { name: 'Servicios', href: '/dashboard/servicios', icon: IconUsers },
-  { name: 'Disponibilidad', href: '/dashboard/disponibilidad', icon: IconClock },
-  { name: 'Analíticas', href: '/dashboard/analytics', icon: IconTrendingUp },
-  { name: 'Perfil', href: '/dashboard/perfil', icon: IconSettings },
-  { name: 'Reseñas', href: '/dashboard/resenas', icon: IconStars },
-  { name: 'Configuración', href: '/dashboard/configuracion', icon: IconSettings },
+  { name: 'Inicio', href: '/dashboard', icon: TbHome },
+  { name: 'Citas', href: '/dashboard/citas', icon: TbCalendar },
+  { name: 'Servicios', href: '/dashboard/servicios', icon: TbUsers },
+  { name: 'Disponibilidad', href: '/dashboard/disponibilidad', icon: TbClock },
+  { name: 'Analíticas', href: '/dashboard/analytics', icon: TbTrendingUp },
+  { name: 'Perfil', href: '/dashboard/perfil', icon: TbSettings },
+  { name: 'Reseñas', href: '/dashboard/resenas', icon: TbStars },
+  { name: 'Configuración', href: '/dashboard/configuracion', icon: TbSettings },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -105,7 +105,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500">
-            <IconX className="h-5 w-5" />
+            <TbX className="h-5 w-5" />
           </button>
         </div>
 
@@ -147,7 +147,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <button
             onClick={handleSignOut}
             className="flex items-center w-full px-3 py-2 text-sm font-medium text-red-600 rounded-md hover:bg-red-50 transition-colors">
-            <IconLogout className="mr-3 h-5 w-5" />
+            <TbLogout className="mr-3 h-5 w-5" />
             Cerrar sesión
           </button>
         </div>
@@ -158,7 +158,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Top bar */}
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
           <button type="button" className="-m-2.5 p-2.5 text-gray-700 lg:hidden" onClick={() => setSidebarOpen(true)}>
-            <IconMenu2 className="h-6 w-6" />
+            <TbMenu2 className="h-6 w-6" />
           </button>
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">

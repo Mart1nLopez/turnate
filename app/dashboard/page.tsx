@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { IconCalendar, IconUsers, IconCurrency, IconTrendingUp, IconClock, IconUser } from '@tabler/icons-react';
+import { TbCalendar, TbUsers, TbCurrencyDollar, TbTrendingUp, TbClock, TbUser } from 'react-icons/tb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { supabase, getCurrentProfessional } from '@/lib/supabase';
@@ -165,7 +165,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Citas Hoy</CardTitle>
-            <IconCalendar className="h-4 w-4 text-muted-foreground" />
+            <TbCalendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.todayAppointments}</div>
@@ -178,7 +178,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Citas Semana</CardTitle>
-            <IconTrendingUp className="h-4 w-4 text-muted-foreground" />
+            <TbTrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.weeklyAppointments}</div>
@@ -189,7 +189,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Ingresos Mes</CardTitle>
-            <IconCurrency className="h-4 w-4 text-muted-foreground" />
+            <TbCurrencyDollar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(stats.monthlyRevenue)}</div>
@@ -200,7 +200,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Clientes</CardTitle>
-            <IconUsers className="h-4 w-4 text-muted-foreground" />
+            <TbUsers className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalClients}</div>
@@ -223,7 +223,7 @@ export default function DashboardPage() {
         <CardContent>
           {todayAppointments.length === 0 ?
             <div className="text-center py-8 text-gray-500">
-              <IconCalendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <TbCalendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
               <p>No hay citas programadas para hoy</p>
             </div>
           : <div className="space-y-4">
@@ -233,7 +233,7 @@ export default function DashboardPage() {
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full">
-                      <IconUser className="h-5 w-5 text-blue-600" />
+                      <TbUser className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">{appointment.client?.name || 'Cliente'}</p>
@@ -242,7 +242,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="text-right">
                     <div className="flex items-center text-sm text-gray-500">
-                      <IconClock className="h-4 w-4 mr-1" />
+                      <TbClock className="h-4 w-4 mr-1" />
                       {formatTime(appointment.start_time)}
                     </div>
                     <p className="text-xs text-gray-400">{appointment.service?.duration_minutes} min</p>
