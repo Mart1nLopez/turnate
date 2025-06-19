@@ -1,0 +1,92 @@
+export interface Professional {
+  id: string;
+  name: string;
+  slug: string;
+  email: string;
+  rut: string;
+  phone: string;
+  bio?: string;
+  social_links?: {
+    instagram?: string;
+    whatsapp?: string;
+    facebook?: string;
+  };
+  profile_images?: {
+    url: string;
+    alt: string;
+  }[];
+  location?: string;
+  map_embed_url?: string;
+  created_at: string;
+}
+
+export interface Service {
+  id: string;
+  professional_id: string;
+  name: string;
+  description?: string;
+  price: number;
+  duration_minutes: number;
+  image_url?: string;
+  created_at: string;
+}
+
+export interface Client {
+  id: string;
+  email: string;
+  name: string;
+  phone: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Appointment {
+  id: string;
+  professional_id: string;
+  service_id?: string;
+  client_id?: string;
+  start_time: string;
+  end_time: string;
+  status: 'confirmed' | 'cancelled_by_pro';
+  created_at: string;
+  service?: Service;
+  client?: Client;
+}
+
+export interface Availability {
+  id: string;
+  professional_id: string;
+  day_of_week: number; // 0 = domingo, 1 = lunes, etc.
+  start_time: string; // HH:MM format
+  end_time: string; // HH:MM format
+  break_minutes: number;
+  advance_hours: number;
+  cancel_hours: number;
+}
+
+export interface Review {
+  id: string;
+  appointment_id: string;
+  professional_id: string;
+  client_name: string;
+  rating: number;
+  comment?: string;
+  created_at: string;
+}
+
+export interface BookingFormData {
+  name: string;
+  email: string;
+  phone: string;
+  service_id: string;
+  date: string;
+  time: string;
+}
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  user_metadata?: {
+    name?: string;
+  };
+}

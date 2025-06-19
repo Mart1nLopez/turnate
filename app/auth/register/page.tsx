@@ -1,13 +1,22 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Mail, Phone, User, Lock, Eye, EyeOff, IdCard } from 'lucide-react';
 import Link from 'next/link';
 import HeaderAuth from '@/components/auth/HeaderAuth';
 import FooterAuth from '@/components/auth/FooterAuth';
+import { AuthService } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
+import { validateRut, formatRutOnInput } from '@/lib/rut-validator';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [rutValidation, setRutValidation] = useState<{ isValid: boolean; error?: string } | null>(null);
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     name: '',
     rut: '',
@@ -22,12 +31,219 @@ export default function RegisterPage() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    // Limpiar error cuando el usuario empiece a escribir
+    if (error) setError(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedRut = formatRutOnInput(e.target.value);
+    setFormData({
+      ...formData,
+      rut: formattedRut,
+    });
+
+    // Validar RUT en tiempo real si tiene al menos 8 caracteres
+    if (formattedRut.length >= 8) {
+      const validation = validateRut(formattedRut);
+      setRutValidation(validation);
+    } else {
+      setRutValidation(null);
+    }
+
+    // Limpiar error cuando el usuario empiece a escribir
+    if (error) setError(null);
+  };
+
+  const validateForm = (): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+
+    if (!formData.name.trim()) {
+      errors.push('El nombre es requerido');
+    }
+
+    if (!formData.rut.trim()) {
+      errors.push('El RUT es requerido');
+    } else {
+      const rutValidation = validateRut(formData.rut);
+      if (!rutValidation.isValid) {
+        errors.push(rutValidation.error || 'RUT inválido');
+      }
+    }
+
+    if (!formData.email.trim()) {
+      errors.push('El email es requerido');
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        errors.push('El email no tiene un formato válido');
+      }
+    }
+
+    if (!formData.phone.trim()) {
+      errors.push('El teléfono es requerido');
+    }
+
+    if (!formData.password) {
+      errors.push('La contraseña es requerida');
+    } else if (formData.password.length < 6) {
+      errors.push('La contraseña debe tener al menos 6 caracteres');
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      errors.push('Las contraseñas no coinciden');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
+  };
+
+  const createSlugFromName = (name: string): string => {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '') // Remover caracteres especiales
+      .replace(/[\s_-]+/g, '-') // Reemplazar espacios y guiones bajos con guiones
+      .replace(/^-+|-+$/g, ''); // Remover guiones al inicio y final
+  };
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aquí iría la lógica de registro
-    console.log('Datos de registro:', formData);
+
+    // Validar formulario
+    const validation = validateForm();
+    if (!validation.isValid) {
+      setError(validation.errors.join(', '));
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // 1. Crear usuario en Supabase Auth
+      console.log('🔄 Creando usuario en Auth...');
+      const { data: authData, error: authError } = await AuthService.signUp(formData.email, formData.password, {
+        name: formData.name,
+      });
+
+      if (authError) {
+        console.error('❌ Error en Auth:', authError);
+        throw authError;
+      }
+
+      if (!authData.user) {
+        throw new Error('No se pudo crear el usuario');
+      }
+
+      console.log('✅ Usuario creado en Auth:', authData.user.id);
+
+      // 2. Verificar si tenemos sesión inmediata o si requiere confirmación de email
+      if (authData.session) {
+        console.log('🔄 Estableciendo sesión...');
+        await supabase.auth.setSession(authData.session);
+        console.log('✅ Sesión establecida');
+
+        // Proceder con la creación del profesional
+        await createProfessionalProfile(authData.user.id, formData);
+
+        // Redirigir al dashboard
+        console.log('🔄 Redirigiendo al dashboard...');
+        router.push('/dashboard');
+      } else {
+        // No hay sesión - probablemente requiere confirmación de email
+        console.log('📧 Email requiere confirmación, saltando creación de profesional');
+        console.log('🔄 Redirigiendo a confirmación de email...');
+
+        // Guardar temporalmente las credenciales para login automático después de confirmación
+        sessionStorage.setItem(
+          'pendingEmailConfirmation',
+          JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+            name: formData.name,
+            rut: formData.rut,
+            phone: formData.phone,
+            timestamp: Date.now(),
+          }),
+        );
+
+        router.push('/auth/confirm-email?email=' + encodeURIComponent(formData.email));
+      }
+    } catch (error) {
+      console.error('Error en registro:', error);
+
+      let errorMessage = 'Error al crear la cuenta. Por favor intenta nuevamente.';
+
+      if (error instanceof Error) {
+        if (error.message.includes('User already registered')) {
+          errorMessage = 'Ya existe una cuenta con este email';
+        } else if (error.message.includes('Invalid email')) {
+          errorMessage = 'El formato del email no es válido';
+        } else if (error.message.includes('Password')) {
+          errorMessage = 'La contraseña debe tener al menos 6 caracteres';
+        }
+      }
+
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Función auxiliar para crear el perfil del profesional
+  const createProfessionalProfile = async (
+    userId: string,
+    data: {
+      name: string;
+      email: string;
+      rut: string;
+      phone: string;
+    },
+  ) => {
+    // Crear slug único
+    const baseSlug = createSlugFromName(data.name);
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    const slug = `${baseSlug}-${randomSuffix}`;
+
+    console.log('🔄 Creando profesional con slug:', slug);
+
+    // Crear registro en la tabla professionals
+    const { error: professionalError } = await supabase.from('professionals').insert({
+      user_id: userId,
+      name: data.name,
+      slug: slug,
+      email: data.email,
+      rut: data.rut,
+      phone: data.phone,
+    });
+
+    if (professionalError) {
+      console.error('❌ Error creando profesional:', professionalError);
+      // Si falla por slug duplicado, intentar con un nuevo sufijo
+      if (professionalError.message.includes('duplicate') || professionalError.message.includes('unique')) {
+        console.log('🔄 Reintentando con nuevo slug...');
+        const newSlug = `${baseSlug}-${Date.now()}`;
+        const { error: retryError } = await supabase.from('professionals').insert({
+          user_id: userId,
+          name: data.name,
+          slug: newSlug,
+          email: data.email,
+          rut: data.rut,
+          phone: data.phone,
+        });
+
+        if (retryError) {
+          console.error('❌ Error en segundo intento:', retryError);
+          throw retryError;
+        }
+        console.log('✅ Profesional creado con slug:', newSlug);
+      } else {
+        throw professionalError;
+      }
+    } else {
+      console.log('✅ Profesional creado exitosamente');
+    }
   };
 
   return (
@@ -78,17 +294,34 @@ export default function RegisterPage() {
                   </label>
                   <div className="relative">
                     <IdCard className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <input
-                    id="rut"
-                    name="rut"
-                    type="text"
-                    placeholder="12.345.678-9"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10"
-                    value={formData.rut}
-                    onChange={handleInputChange}
-                    required
+                    <input
+                      id="rut"
+                      name="rut"
+                      type="text"
+                      placeholder="12.345.678-9"
+                      className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10 pr-10 ${
+                        rutValidation?.isValid === false ? 'border-red-500 focus-visible:ring-red-500'
+                        : rutValidation?.isValid === true ? 'border-green-500 focus-visible:ring-green-500'
+                        : ''
+                      }`}
+                      value={formData.rut}
+                      onChange={handleRutChange}
+                      maxLength={12}
+                      required
                     />
+                    {/* Indicador de validación */}
+                    {rutValidation && (
+                      <div className="absolute right-3 top-3">
+                        {rutValidation.isValid ?
+                          <div className="h-4 w-4 text-green-500">✓</div>
+                        : <div className="h-4 w-4 text-red-500">✗</div>}
+                      </div>
+                    )}
                   </div>
+                  {/* Mensaje de error del RUT */}
+                  {rutValidation && !rutValidation.isValid && (
+                    <p className="text-sm text-red-500">{rutValidation.error}</p>
+                  )}
                 </div>
 
                 {/* Email */}
@@ -158,7 +391,9 @@ export default function RegisterPage() {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showPassword ?
+                        <EyeOff className="h-4 w-4" />
+                      : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
@@ -185,10 +420,23 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
+                {/* Error Message */}
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                    <p className="text-sm">{error}</p>
+                  </div>
+                )}
+
                 <button
                   type="submit"
+                  disabled={isLoading}
                   className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 w-full">
-                  Crear Cuenta
+                  {isLoading ?
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                      Creando cuenta...
+                    </>
+                  : 'Crear Cuenta'}
                 </button>
               </form>
 
