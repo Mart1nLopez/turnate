@@ -42,3 +42,16 @@ export function extractMapUrl(input: string): string {
   // Si no se pudo extraer nada, devolver el input original
   return cleanInput;
 }
+
+/**
+ * Formatea un número como moneda chilena (CLP)
+ * @param amount - El monto a formatear
+ * @returns String formateado como moneda chilena
+ */
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: 0,
+  }).format(amount);
+}

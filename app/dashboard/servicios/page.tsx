@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { supabase, getCurrentProfessional } from '@/lib/supabase';
 import { Service } from '@/types';
+import { formatCurrency } from '@/lib/utils';
 import Image from 'next/image';
 
 interface ServiceForm {
@@ -153,13 +154,6 @@ export default function ServiciosPage() {
       console.error('Error deleting service:', error);
       alert('Error al eliminar el servicio');
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-    }).format(amount);
   };
 
   if (loading) {

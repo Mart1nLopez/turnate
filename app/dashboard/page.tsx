@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { supabase, getCurrentProfessional } from '@/lib/supabase';
 import { Appointment, Service } from '@/types';
+import { formatCurrency } from '@/lib/utils';
 
 interface DashboardStats {
   todayAppointments: number;
@@ -128,13 +129,6 @@ export default function DashboardPage() {
       .order('start_time', { ascending: true });
 
     setTodayAppointments(appointments || []);
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-    }).format(amount);
   };
 
   const formatTime = (dateString: string) => {
