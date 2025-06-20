@@ -9,6 +9,7 @@ import {
   TbHome,
   TbCalendar,
   TbUsers,
+  TbUser,
   TbSettings,
   TbStars,
   TbClock,
@@ -31,7 +32,7 @@ const navigation = [
   { name: 'Servicios', href: '/dashboard/servicios', icon: TbUsers },
   { name: 'Disponibilidad', href: '/dashboard/disponibilidad', icon: TbClock },
   { name: 'Analíticas', href: '/dashboard/analytics', icon: TbTrendingUp },
-  { name: 'Perfil', href: '/dashboard/perfil', icon: TbSettings },
+  { name: 'Perfil', href: '/dashboard/perfil', icon: TbUser },
   { name: 'Reseñas', href: '/dashboard/resenas', icon: TbStars },
   { name: 'Configuración', href: '/dashboard/configuracion', icon: TbSettings },
 ];

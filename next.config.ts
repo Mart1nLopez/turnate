@@ -8,6 +8,21 @@ const nextConfig: NextConfig = {
         hostname: 'place-hold.it',
         pathname: '**',
       },
+      {
+        protocol: 'https',
+        hostname: 'reservoimg.s3.amazonaws.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i0.wp.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.fresha.com',
+        pathname: '**',
+      },
     ],
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',

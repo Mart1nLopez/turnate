@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { IconPlus, IconEdit, IconTrash, IconCurrency, IconClock, IconPhoto, IconX } from '@tabler/icons-react';
+import { TbPlus, TbEdit, TbTrash, TbCurrencyDollar, TbClock, TbPhoto, TbX } from 'react-icons/tb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -179,7 +179,7 @@ export default function ServiciosPage() {
           <p className="text-gray-600">Gestiona los servicios que ofreces</p>
         </div>
         <Button onClick={() => setShowForm(true)}>
-          <IconPlus className="w-4 h-4 mr-2" />
+          <TbPlus className="w-4 h-4 mr-2" />
           Nuevo Servicio
         </Button>
       </div>
@@ -196,7 +196,7 @@ export default function ServiciosPage() {
                 </CardDescription>
               </div>
               <Button variant="outline" size="sm" onClick={resetForm}>
-                <IconX className="w-4 h-4" />
+                <TbX className="w-4 h-4" />
               </Button>
             </div>
           </CardHeader>
@@ -217,7 +217,7 @@ export default function ServiciosPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Precio *</label>
                   <div className="relative">
-                    <IconCurrency className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <TbCurrencyDollar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       name="price"
                       type="number"
@@ -233,7 +233,7 @@ export default function ServiciosPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Duración (minutos) *</label>
                   <div className="relative">
-                    <IconClock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <TbClock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       name="duration_minutes"
                       type="number"
@@ -249,7 +249,7 @@ export default function ServiciosPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">URL de imagen</label>
                   <div className="relative">
-                    <IconPhoto className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <TbPhoto className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       name="image_url"
                       type="url"
@@ -294,10 +294,10 @@ export default function ServiciosPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {services.length === 0 ?
           <div className="col-span-full text-center py-12">
-            <IconCurrency className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <TbCurrencyDollar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <p className="text-gray-500 mb-4">No tienes servicios creados</p>
             <Button onClick={() => setShowForm(true)}>
-              <IconPlus className="w-4 h-4 mr-2" />
+              <TbPlus className="w-4 h-4 mr-2" />
               Crear primer servicio
             </Button>
           </div>
@@ -317,7 +317,7 @@ export default function ServiciosPage() {
                       }}
                     />
                   : <div className="flex items-center justify-center h-full">
-                      <IconPhoto className="h-12 w-12 text-gray-300" />
+                      <TbPhoto className="h-12 w-12 text-gray-300" />
                     </div>
                   }
                 </div>
@@ -332,11 +332,10 @@ export default function ServiciosPage() {
 
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center text-green-600">
-                      <IconCurrency className="h-4 w-4 mr-1" />
                       <span className="font-bold">{formatCurrency(service.price)}</span>
                     </div>
                     <div className="flex items-center text-gray-500">
-                      <IconClock className="h-4 w-4 mr-1" />
+                      <TbClock className="h-4 w-4 mr-1" />
                       <span className="text-sm">{service.duration_minutes} min</span>
                     </div>
                   </div>
@@ -344,11 +343,11 @@ export default function ServiciosPage() {
                   {/* Actions */}
                   <div className="flex space-x-2">
                     <Button size="sm" variant="outline" onClick={() => handleEdit(service)} className="flex-1">
-                      <IconEdit className="w-4 h-4 mr-1" />
+                      <TbEdit className="w-4 h-4 mr-1" />
                       Editar
                     </Button>
                     <Button size="sm" variant="destructive" onClick={() => handleDelete(service.id)}>
-                      <IconTrash className="w-4 h-4" />
+                      <TbTrash className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
