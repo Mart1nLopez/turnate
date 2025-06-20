@@ -1,10 +1,9 @@
 'use client';
 
-import { TbBrandInstagram } from 'react-icons/tb';
-import { FaTwitter, FaLinkedin, FaYoutube } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
+import { SocialButtons } from '@/components/ui/social-buttons';
 
 export default function Footer() {
   return (
@@ -20,49 +19,25 @@ export default function Footer() {
             </div>
 
             <h3 className="text-xl font-semibold text-foreground mb-4">Síguenos</h3>
-            <div className="flex justify-center md:justify-start gap-4">
-              <a
-                href="https://www.twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-blue-500 hover:text-white transition-all duration-300 hover:scale-110"
-                aria-label="Seguir en Twitter">
-                <FaTwitter className="w-5 h-5" />
-              </a>
-              <a
-                href="https://www.instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 hover:text-white transition-all duration-300 hover:scale-110"
-                aria-label="Seguir en Instagram">
-                <TbBrandInstagram className="w-5 h-5" />
-              </a>
-              <a
-                href="https://www.youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-red-600 hover:text-white transition-all duration-300 hover:scale-110"
-                aria-label="Seguir en YouTube">
-                <FaYoutube className="w-5 h-5" />
-              </a>
-              <a
-                href="https://www.linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-blue-700 hover:text-white transition-all duration-300 hover:scale-110"
-                aria-label="Seguir en LinkedIn">
-                <FaLinkedin className="w-5 h-5" />
-              </a>
-            </div>
+            <SocialButtons
+              socials={[
+                { platform: 'twitter', url: 'https://www.twitter.com/turnate' },
+                { platform: 'instagram', url: 'https://www.instagram.com/turnate' },
+                { platform: 'youtube', url: 'https://www.youtube.com/turnate' },
+                { platform: 'linkedin', url: 'https://www.linkedin.com/company/turnate' },
+              ]}
+              size="md"
+              className="justify-center md:justify-start"
+            />
           </div>
 
           {/* CTA section */}
           <div className="text-center md:text-right">
             <h3 className="text-xl font-semibold text-foreground mb-2">¿Eres profesional?</h3>
-            <p className="text-muted-foreground mb-4">Obtén tu propia página para agendar servicios</p>
+            <p className="text-muted-foreground mb-4">Obtén tu propia página para tus clientes</p>
             <div className="flex flex-col sm:flex-row gap-3 max-w-sm md:ml-auto">
               <Input type="email" placeholder="tu@email.com" className="flex-1" />
-              <Button className="sm:px-6">Crear página</Button>
+              <Button className="sm:px-6">Contáctanos</Button>
             </div>
           </div>
         </div>

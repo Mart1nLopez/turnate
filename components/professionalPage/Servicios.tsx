@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { TbClock } from 'react-icons/tb';
 import { Service } from '@/types';
+import { formatCurrency } from '@/lib/utils';
 
 interface ServiciosProps {
   services: Service[];
@@ -11,13 +12,6 @@ interface ServiciosProps {
 }
 
 export default function Servicios({ services, slug }: ServiciosProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-    }).format(amount);
-  };
-
   return (
     <section id="servicios" className="py-16 px-6 text-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <h2 className="text-3xl md:text-4xl mb-8 font-bold text-gray-900">Servicios disponibles</h2>

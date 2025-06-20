@@ -1,32 +1,14 @@
 'use client';
 
-import { TbBrandInstagram, TbBrandWhatsapp, TbBrandFacebook } from 'react-icons/tb';
-import { FaTiktok, FaYoutube } from 'react-icons/fa';
 import { extractMapUrl } from '@/lib/utils';
 import { Professional } from '@/types';
+import { SocialButtons } from '@/components/ui/social-buttons';
 
 interface ContactoYRedesProps {
   professional: Professional;
 }
 
 export default function ContactoYRedes({ professional }: ContactoYRedesProps) {
-  const getSocialIcon = (platform: string) => {
-    switch (platform) {
-      case 'instagram':
-        return <TbBrandInstagram className="w-6 h-6" />;
-      case 'whatsapp':
-        return <TbBrandWhatsapp className="w-6 h-6" />;
-      case 'facebook':
-        return <TbBrandFacebook className="w-6 h-6" />;
-      case 'tiktok':
-        return <FaTiktok className="w-6 h-6" />;
-      case 'youtube':
-        return <FaYoutube className="w-6 h-6" />;
-      default:
-        return null;
-    }
-  };
-
   const getSocialUrl = (platform: string, value: string) => {
     switch (platform) {
       case 'instagram':
@@ -41,23 +23,6 @@ export default function ContactoYRedes({ professional }: ContactoYRedesProps) {
         return value.startsWith('http') ? value : `https://youtube.com/@${value.replace('@', '')}`;
       default:
         return '#';
-    }
-  };
-
-  const getSocialColor = (platform: string) => {
-    switch (platform) {
-      case 'instagram':
-        return 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500';
-      case 'whatsapp':
-        return 'hover:bg-green-500';
-      case 'facebook':
-        return 'hover:bg-blue-600';
-      case 'tiktok':
-        return 'hover:bg-black';
-      case 'youtube':
-        return 'hover:bg-red-600';
-      default:
-        return 'hover:bg-primary';
     }
   };
 
@@ -99,23 +64,16 @@ export default function ContactoYRedes({ professional }: ContactoYRedesProps) {
             <h3 className="text-xl font-semibold text-gray-800 text-center">Síguenos</h3>
             {hasSocialLinks ?
               <div className="flex flex-col items-center justify-center">
-                <div className="flex justify-center items-center gap-4 flex-wrap mb-6">
-                  {Object.entries(socialLinks).map(([platform, value]) => {
-                    if (!value) return null;
-
-                    return (
-                      <a
-                        key={platform}
-                        href={getSocialUrl(platform, value)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`flex items-center justify-center w-14 h-14 bg-white border border-gray-200 rounded-full text-gray-600 transition-all duration-300 hover:text-white hover:scale-110 hover:shadow-lg ${getSocialColor(platform)}`}
-                        aria-label={`Seguir en ${platform}`}>
-                        {getSocialIcon(platform)}
-                      </a>
-                    );
-                  })}
-                </div>
+                <SocialButtons
+                  socials={Object.entries(socialLinks)
+                    .filter(([, value]) => !!value)
+                    .map(([platform, value]) => ({
+                      platform: platform as keyof typeof socialLinks,
+                      url: getSocialUrl(platform, value as string),
+                    }))}
+                  size="lg"
+                  className="justify-center items-center flex-wrap mb-6"
+                />
                 <p className="text-center text-gray-600 max-w-xs mb-6">
                   Mantente al día con nuestras novedades y promociones
                 </p>
