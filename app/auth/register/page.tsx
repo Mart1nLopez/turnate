@@ -6,7 +6,7 @@ import { LuMail, LuPhone, LuUser, LuLock, LuEye, LuEyeOff, LuCreditCard } from '
 import Link from 'next/link';
 import HeaderAuth from '@/components/auth/HeaderAuth';
 import FooterAuth from '@/components/auth/FooterAuth';
-import { AuthService } from '@/lib/auth';
+import { AuthService } from '@/services/authService';
 import { supabase } from '@/lib/supabase';
 import { validateRut, formatRutOnInput } from '@/lib/rut-validator';
 

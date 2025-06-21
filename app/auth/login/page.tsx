@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AuthService } from '@/lib/auth';
+import { AuthService } from '@/services/authService';
 import { LuMail, LuLock, LuEye, LuEyeOff } from 'react-icons/lu';
 import HeaderAuth from '@/components/auth/HeaderAuth';
 import FooterAuth from '@/components/auth/FooterAuth';

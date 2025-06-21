@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AuthService } from '@/lib/auth';
+import { AuthService } from '@/services/authService';
 import { LuCheck, LuX } from 'react-icons/lu';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 

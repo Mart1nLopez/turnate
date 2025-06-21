@@ -18,7 +18,7 @@ import {
   TbX,
   TbTrendingUp,
 } from 'react-icons/tb';
-import { AuthService } from '@/lib/auth';
+import { AuthService } from '@/services/authService';
 import { getCurrentProfessional } from '@/lib/supabase';
 import { Professional } from '@/types';
 

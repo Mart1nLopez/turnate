@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '../lib/supabase';
 import { AuthUser } from '@/types';
 import { Session, AuthError } from '@supabase/supabase-js';
 
