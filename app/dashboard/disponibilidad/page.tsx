@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { supabase, getCurrentProfessional } from '@/lib/supabase';
 import { Availability } from '@/types';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface AvailabilityForm {
   day_of_week: number;
@@ -34,6 +36,7 @@ export default function DisponibilidadPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingAvailability, setEditingAvailability] = useState<Availability | null>(null);
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [formData, setFormData] = useState<AvailabilityForm>({
     day_of_week: 1, // Lunes por defecto
     start_time: '09:00',
@@ -101,7 +104,7 @@ export default function DisponibilidadPage() {
 
       // Validar horarios
       if (formData.start_time >= formData.end_time) {
-        alert('La hora de inicio debe ser anterior a la hora de fin');
+        toast.error('La hora de inicio debe ser anterior a la hora de fin');
         return;
       }
 
@@ -112,7 +115,7 @@ export default function DisponibilidadPage() {
         const existingAvailability = availability.find((av) => av.day_of_week === selectedDayOfWeek);
 
         if (existingAvailability) {
-          alert(`Ya tienes configurada la disponibilidad para ${getDayName(selectedDayOfWeek)}`);
+          toast.error(`Ya tienes configurada la disponibilidad para ${getDayName(selectedDayOfWeek)}`);
           return;
         }
       } else {
@@ -122,7 +125,7 @@ export default function DisponibilidadPage() {
         );
 
         if (existingAvailability) {
-          alert(`Ya tienes configurada la disponibilidad para ${getDayName(selectedDayOfWeek)}`);
+          toast.error(`Ya tienes configurada la disponibilidad para ${getDayName(selectedDayOfWeek)}`);
           return;
         }
       }
@@ -157,10 +160,12 @@ export default function DisponibilidadPage() {
       }
 
       resetForm();
-      alert(editingAvailability ? 'Disponibilidad actualizada exitosamente' : 'Disponibilidad creada exitosamente');
+      toast.success(
+        editingAvailability ? 'Disponibilidad actualizada exitosamente' : 'Disponibilidad creada exitosamente',
+      );
     } catch (error) {
       console.error('Error saving availability:', error);
-      alert('Error al guardar la disponibilidad');
+      toast.error('Error al guardar la disponibilidad');
     } finally {
       setSubmitting(false);
     }
@@ -180,9 +185,16 @@ export default function DisponibilidadPage() {
   };
 
   const handleDelete = async (availabilityId: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar esta configuración de disponibilidad?')) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: '¿Eliminar configuración de disponibilidad?',
+      description:
+        'Esta acción eliminará permanentemente esta configuración de disponibilidad. Las citas existentes no se verán afectadas.',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) return;
 
     try {
       const { error } = await supabase.from('availability').delete().eq('id', availabilityId);
@@ -190,10 +202,10 @@ export default function DisponibilidadPage() {
       if (error) throw error;
 
       setAvailability((prev) => prev.filter((av) => av.id !== availabilityId));
-      alert('Disponibilidad eliminada exitosamente');
+      toast.success('Disponibilidad eliminada exitosamente');
     } catch (error) {
       console.error('Error deleting availability:', error);
-      alert('Error al eliminar la disponibilidad');
+      toast.error('Error al eliminar la disponibilidad');
     }
   };
 
@@ -432,6 +444,7 @@ export default function DisponibilidadPage() {
           </ul>
         </CardContent>
       </Card>
+      <ConfirmDialog />
     </div>
   );
 }

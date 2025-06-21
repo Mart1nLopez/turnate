@@ -21,6 +21,7 @@ import LoadingSpinner from '@/components/ui/loading-spinner';
 import { supabase, getCurrentProfessional } from '@/lib/supabase';
 import { Professional } from '@/types';
 import Image from 'next/image';
+import { toast } from 'sonner';
 
 interface ProfileForm {
   name: string;
@@ -139,7 +140,7 @@ export default function PerfilPage() {
 
       // Validar que no haya errores en el slug antes de enviar
       if (slugError) {
-        alert('Corrige el error en el slug antes de continuar');
+        toast.error('Corrige el error en el slug antes de continuar');
         setSubmitting(false);
         return;
       }
@@ -176,10 +177,10 @@ export default function PerfilPage() {
       // Actualizar el estado local
       setProfessional((prev) => (prev ? ({ ...prev, ...updateData } as Professional) : null));
 
-      alert('Perfil actualizado exitosamente');
+      toast.success('Perfil actualizado exitosamente');
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Error al actualizar el perfil');
+      toast.error('Error al actualizar el perfil');
     } finally {
       setSubmitting(false);
     }
@@ -299,7 +300,7 @@ export default function PerfilPage() {
             <Button
               onClick={() => {
                 navigator.clipboard.writeText(getPublicUrl());
-                alert('URL copiada al portapapeles');
+                toast.success('URL copiada al portapapeles');
               }}
               variant="outline">
               Copiar

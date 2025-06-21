@@ -11,6 +11,8 @@ import { supabase, getCurrentProfessional } from '@/lib/supabase';
 import { Service } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import Image from 'next/image';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
+import { toast } from 'sonner';
 
 interface ServiceForm {
   name: string;
@@ -25,6 +27,7 @@ export default function ServiciosPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [formData, setFormData] = useState<ServiceForm>({
     name: '',
     description: '',
@@ -117,10 +120,10 @@ export default function ServiciosPage() {
       }
 
       resetForm();
-      alert(editingService ? 'Servicio actualizado exitosamente' : 'Servicio creado exitosamente');
+      toast.success(editingService ? 'Servicio actualizado exitosamente' : 'Servicio creado exitosamente');
     } catch (error) {
       console.error('Error saving service:', error);
-      alert('Error al guardar el servicio');
+      toast.error('Error al guardar el servicio');
     } finally {
       setSubmitting(false);
     }
@@ -139,9 +142,16 @@ export default function ServiciosPage() {
   };
 
   const handleDelete = async (serviceId: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este servicio?')) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: '¿Eliminar este servicio?',
+      description:
+        'Esta acción eliminará permanentemente el servicio. Las citas existentes que usen este servicio no se verán afectadas.',
+      confirmText: 'Eliminar servicio',
+      cancelText: 'Cancelar',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) return;
 
     try {
       const { error } = await supabase.from('services').delete().eq('id', serviceId);
@@ -149,10 +159,10 @@ export default function ServiciosPage() {
       if (error) throw error;
 
       setServices((prev) => prev.filter((service) => service.id !== serviceId));
-      alert('Servicio eliminado exitosamente');
+      toast.success('Servicio eliminado exitosamente');
     } catch (error) {
       console.error('Error deleting service:', error);
-      alert('Error al eliminar el servicio');
+      toast.error('Error al eliminar el servicio');
     }
   };
 
@@ -350,6 +360,7 @@ export default function ServiciosPage() {
           ))
         }
       </div>
+      <ConfirmDialog />
     </div>
   );
 }

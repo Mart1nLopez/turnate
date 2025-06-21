@@ -1,20 +1,21 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import './globals.css';
+import { ToasterProvider } from '@/components/ui/toaster';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: "Turnate - Gestión de citas",
-  description: "Plataforma de gestión de citas para profesionales y empresas",
+  title: 'Turnate - Gestión de citas',
+  description: 'Plataforma de gestión de citas para profesionales y empresas',
   icons: {
     icon: '/logo.svg',
     apple: '/logo.svg',
@@ -28,10 +29,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-          {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {children}
+        <ToasterProvider />
       </body>
     </html>
   );

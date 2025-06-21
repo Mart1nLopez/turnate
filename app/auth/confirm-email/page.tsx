@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { TbMail, TbCheck, TbRefresh } from 'react-icons/tb';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
 import Link from 'next/link';
 
 export default function ConfirmEmailPage() {
@@ -325,7 +326,7 @@ export default function ConfirmEmailPage() {
             if (Date.now() - timestamp > 3600000) {
               console.log('❌ Credenciales guardadas expiradas');
               sessionStorage.removeItem('pendingEmailConfirmation');
-              alert('La sesión de confirmación ha expirado. Por favor regístrate nuevamente.');
+              toast.error('La sesión de confirmación ha expirado. Por favor regístrate nuevamente.');
               router.push('/auth/register');
               return;
             }
@@ -340,7 +341,7 @@ export default function ConfirmEmailPage() {
 
               if (loginError) {
                 console.error('Error en login automático:', loginError);
-                alert('Error al acceder automáticamente. Por favor ve al login manual.');
+                toast.error('Error al acceder automáticamente. Por favor ve al login manual.');
                 router.push('/auth/login');
                 return;
               }
@@ -353,7 +354,7 @@ export default function ConfirmEmailPage() {
                 return;
               } else {
                 console.log('❌ Login exitoso pero email aún no confirmado');
-                alert('El email aún no está confirmado.');
+                toast.warning('El email aún no está confirmado.');
               }
             }
           } catch (parseError) {
@@ -363,7 +364,7 @@ export default function ConfirmEmailPage() {
         }
 
         setIsChecking(false);
-        alert('El email parece confirmado pero no hay sesión activa. Por favor intenta hacer login manualmente.');
+        toast.error('El email parece confirmado pero no hay sesión activa. Por favor intenta hacer login manualmente.');
         router.push('/auth/login');
         return;
       }
@@ -393,7 +394,7 @@ export default function ConfirmEmailPage() {
 
       if (error) {
         console.error('Error obteniendo sesión:', error);
-        alert('Error al verificar el estado. Por favor intenta nuevamente.');
+        toast.error('Error al verificar el estado. Por favor intenta nuevamente.');
         return;
       }
 
@@ -419,13 +420,13 @@ export default function ConfirmEmailPage() {
         await handleEmailConfirmed(currentUser);
       } else {
         console.log('📧 Email aún no confirmado en verificación manual');
-        alert(
+        toast.warning(
           'El email aún no ha sido confirmado. Por favor revisa tu bandeja de entrada y haz clic en el enlace de confirmación.',
         );
       }
     } catch (error) {
       console.error('Error en verificación manual:', error);
-      alert('Error al verificar el estado. Por favor intenta nuevamente.');
+      toast.error('Error al verificar el estado. Por favor intenta nuevamente.');
     } finally {
       setIsChecking(false);
     }
@@ -443,9 +444,10 @@ export default function ConfirmEmailPage() {
 
       if (error) throw error;
       setResent(true);
+      toast.success('Email de confirmación enviado nuevamente');
     } catch (error) {
       console.error('Error reenviando email:', error);
-      alert('Error al reenviar el email. Por favor intenta nuevamente.');
+      toast.error('Error al reenviar el email. Por favor intenta nuevamente.');
     } finally {
       setIsResending(false);
     }
