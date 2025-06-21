@@ -5,6 +5,7 @@ import { TbUpload, TbX, TbPhoto, TbLoader2 } from 'react-icons/tb';
 import { Button } from '@/components/ui/button';
 import { StorageService, validateImageFile, createImagePreview } from '@/lib/storage';
 import Image from 'next/image';
+import { toast } from 'sonner';
 
 interface ImageUploadProps {
   onUpload: (urls: string[]) => void;
@@ -43,7 +44,7 @@ export default function ImageUpload({
       const totalImages = existingImages.length + previewImages.length + fileArray.length;
 
       if (totalImages > maxFiles) {
-        alert(`Máximo ${maxFiles} imágenes permitidas`);
+        toast.error(`Máximo ${maxFiles} imágenes permitidas`);
         return;
       }
 
@@ -53,7 +54,7 @@ export default function ImageUpload({
         const validation = validateImageFile(file);
 
         if (!validation.valid) {
-          alert(validation.error);
+          toast.error(validation.error);
           continue;
         }
 

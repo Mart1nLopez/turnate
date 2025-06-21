@@ -15,11 +15,7 @@ export default function Carrusel({ professional }: CarruselProps) {
   const slides =
     professional.profile_images && professional.profile_images.length > 0 ?
       professional.profile_images.map((img) => img.url)
-    : [
-        'https://reservoimg.s3.amazonaws.com/fotos_blog/4aab7f1c-e_foto_blog.jpg',
-        'https://i0.wp.com/hairinmotion.co.uk/wp-content/uploads/2022/12/tecnicas-basicas-de-barberia-scaled.jpg',
-        'https://images.fresha.com/locations/location-profile-images/1119325/4171739/ecc5b582-ba58-4dea-8b37-ec6c8bbc988a-TorricoStudio-AR-BuenosAires-BuenosAires-Almagro-Fresha.jpg',
-      ];
+    : ['/img/default-carrusel/cortando.jpg', '/img/default-carrusel/cortando2.webp', '/img/default-carrusel/sala.jpeg'];
 
   const nextSlide = useCallback(() => {
     setIndex((prev) => (prev + 1) % slides.length);
@@ -59,13 +55,13 @@ export default function Carrusel({ professional }: CarruselProps) {
         </div>
 
         <button
-          className="absolute top-1/2 left-0 transform -translate-y-1/2 text-[2rem] bg-none border-none text-white cursor-pointer z-[2] px-5 hover:bg-black hover:bg-opacity-20 py-2 rounded-r"
+          className="absolute top-1/2 left-0 transform -translate-y-1/2 text-4xl bg-none border-none text-white cursor-pointer z-[2] px-5 hover:bg-white hover:text-black hover:bg-opacity-90 py-2 rounded-r"
           onClick={prevSlide}>
           &#10094;
         </button>
 
         <button
-          className="absolute top-1/2 right-0 transform -translate-y-1/2 text-[2rem] bg-none border-none text-white cursor-pointer z-[2] px-5 hover:bg-black hover:bg-opacity-20 py-2 rounded-l"
+          className="absolute top-1/2 right-0 transform -translate-y-1/2 text-4xl bg-none border-none text-white cursor-pointer z-[2] px-5 hover:bg-white hover:text-black hover:bg-opacity-90 py-2 rounded-l"
           onClick={nextSlide}>
           &#10095;
         </button>
