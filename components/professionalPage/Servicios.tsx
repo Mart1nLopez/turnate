@@ -30,7 +30,7 @@ export default function Servicios({ services, slug }: ServiciosProps) {
                 <figure className="mb-4">
                   <div className="relative w-full h-48 mb-3 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
                     <Image
-                      src={service.image_url || '/appointments-default.svg'}
+                      src={service.image_url || '/img/appointments-default.svg'}
                       alt={service.name}
                       fill
                       className="object-contain p-3"
