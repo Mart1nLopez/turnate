@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { TbMail, TbCheck, TbRefresh } from 'react-icons/tb';
@@ -9,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
-export default function ConfirmEmailPage() {
+function ConfirmEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const email = searchParams.get('email');
@@ -526,5 +527,13 @@ export default function ConfirmEmailPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function ConfirmEmailPage() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <ConfirmEmailContent />
+    </Suspense>
   );
 }

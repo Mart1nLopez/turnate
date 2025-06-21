@@ -4,11 +4,11 @@ import { extractMapUrl } from '@/lib/utils';
 import { Professional } from '@/types';
 import { SocialButtons } from '@/components/ui/social-buttons';
 
-interface ContactoYRedesProps {
+interface ContactoProps {
   professional: Professional;
 }
 
-export default function ContactoYRedes({ professional }: ContactoYRedesProps) {
+export default function Contacto({ professional }: ContactoProps) {
   const getSocialUrl = (platform: string, value: string) => {
     switch (platform) {
       case 'instagram':
