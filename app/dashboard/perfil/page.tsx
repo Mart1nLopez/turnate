@@ -77,7 +77,7 @@ export default function PerfilPage() {
         whatsapp: professional.social_links?.whatsapp || '',
         facebook: professional.social_links?.facebook || '',
       });
-      setImages(professional.profile_images || []);
+      setImages(professional.carrusel_images || []);
     } catch (error) {
       console.error('Error loading professional:', error);
     } finally {
@@ -167,7 +167,7 @@ export default function PerfilPage() {
           whatsapp: formData.whatsapp || undefined,
           facebook: formData.facebook || undefined,
         },
-        profile_images: images,
+        carrusel_images: images,
       };
 
       const { error } = await supabase.from('professionals').update(updateData).eq('id', professional.id);

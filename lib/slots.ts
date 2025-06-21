@@ -79,10 +79,6 @@ export const formatTime = (date: Date) => {
   return format(date, 'HH:mm');
 };
 
-export const formatDateTime = (date: Date) => {
-  return format(date, 'dd/MM/yyyy HH:mm', { locale: es });
-};
-
 export const getDayName = (dayOfWeek: number): string => {
   const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
   return days[dayOfWeek];

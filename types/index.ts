@@ -6,12 +6,13 @@ export interface Professional {
   rut: string;
   phone: string;
   bio?: string;
+  profile_image?: string; // URL to the profile image
   social_links?: {
     instagram?: string;
     whatsapp?: string;
     facebook?: string;
   };
-  profile_images?: {
+  carrusel_images?: {
     url: string;
     alt: string;
   }[];

@@ -13,8 +13,8 @@ export default function Carrusel({ professional }: CarruselProps) {
 
   // Use professional images or default images
   const slides =
-    professional.profile_images && professional.profile_images.length > 0 ?
-      professional.profile_images.map((img) => img.url)
+    professional.carrusel_images && professional.carrusel_images.length > 0 ?
+      professional.carrusel_images.map((img) => img.url)
     : ['/img/default-carrusel/cortando.jpg', '/img/default-carrusel/cortando2.webp', '/img/default-carrusel/sala.jpeg'];
 
   const nextSlide = useCallback(() => {
