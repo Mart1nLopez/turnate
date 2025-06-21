@@ -59,9 +59,11 @@ export interface Availability {
   day_of_week: number; // 0 = domingo, 1 = lunes, etc.
   start_time: string; // HH:MM format
   end_time: string; // HH:MM format
+  is_available?: boolean;
   break_minutes: number;
   advance_hours: number;
   cancel_hours: number;
+  created_at?: string;
 }
 
 export interface Review {
