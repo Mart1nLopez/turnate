@@ -10,17 +10,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'reservoimg.s3.amazonaws.com',
-        pathname: '**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'i0.wp.com',
-        pathname: '**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'images.fresha.com',
+        hostname: 'via.placeholder.com',
         pathname: '**',
       },
     ],
