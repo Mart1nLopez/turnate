@@ -55,3 +55,24 @@ export function formatCurrency(amount: number): string {
     minimumFractionDigits: 0,
   }).format(amount);
 }
+
+/**
+ * Formatea una fecha y hora para mostrar en formato chileno
+ * @param dateString - La fecha en formato string (ISO)
+ * @returns Objeto con fecha y hora formateadas
+ */
+export function formatDateTime(dateString: string) {
+  const date = new Date(dateString);
+  return {
+    date: date.toLocaleDateString('es-CL', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }),
+    time: date.toLocaleTimeString('es-CL', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+  };
+}

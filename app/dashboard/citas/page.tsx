@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { supabase, getCurrentProfessional } from '@/lib/supabase';
 import { Appointment, Service, Client } from '@/types';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from 'sonner';
 
@@ -137,22 +137,6 @@ export default function CitasPage() {
   useEffect(() => {
     filterAppointments();
   }, [filterAppointments]);
-
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return {
-      date: date.toLocaleDateString('es-CL', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }),
-      time: date.toLocaleTimeString('es-CL', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-    };
-  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
