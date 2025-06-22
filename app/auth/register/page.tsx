@@ -121,6 +121,9 @@ export default function RegisterPage() {
     setError(null);
 
     try {
+      // Limpiar sesión previa si existe
+      console.log('🔄 Limpiando sesión previa...');
+      await AuthService.signOut();
       // 1. Crear usuario en Supabase Auth
       console.log('🔄 Creando usuario en Auth...');
       const { data: authData, error: authError } = await AuthService.signUp(formData.email, formData.password, {
