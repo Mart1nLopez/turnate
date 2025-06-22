@@ -1,225 +1,208 @@
 import { supabase } from './supabase';
+import { v4 as uuidv4 } from 'uuid';
+import imageCompression from 'browser-image-compression';
 
-export class StorageService {
-  private static readonly BUCKET_NAME = 'profile-images';
-
-  // Subir una imagen al bucket de Supabase Storage
-  static async uploadImage(file: File, path: string): Promise<{ success: boolean; url?: string; error?: string }> {
-    try {
-      // Validar el archivo
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-      if (!allowedTypes.includes(file.type)) {
-        return {
-          success: false,
-          error: 'Tipo de archivo no permitido. Solo se permiten imágenes JPEG, PNG y WebP.',
-        };
-      }
-
-      // Validar el tamaño (máximo 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      if (file.size > maxSize) {
-        return {
-          success: false,
-          error: 'El archivo es demasiado grande. Máximo 5MB permitido.',
-        };
-      }
-
-      // Crear un nombre único para el archivo
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${path}/${fileName}`;
-
-      // Subir el archivo
-      const { data, error } = await supabase.storage.from(this.BUCKET_NAME).upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false,
-      });
-
-      if (error) {
-        console.error('Error uploading file:', error);
-        return { success: false, error: error.message };
-      }
-
-      // Obtener la URL pública
-      const { data: publicUrl } = supabase.storage.from(this.BUCKET_NAME).getPublicUrl(data.path);
-
-      return {
-        success: true,
-        url: publicUrl.publicUrl,
-      };
-    } catch (error) {
-      console.error('Error in uploadImage:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Error desconocido',
-      };
-    }
-  }
-
-  // Subir múltiples imágenes
-  static async uploadMultipleImages(
-    files: File[],
-    path: string,
-  ): Promise<{ success: boolean; urls?: string[]; errors?: string[] }> {
-    try {
-      const results = await Promise.allSettled(files.map((file) => this.uploadImage(file, path)));
-
-      const urls: string[] = [];
-      const errors: string[] = [];
-
-      results.forEach((result, index) => {
-        if (result.status === 'fulfilled' && result.value.success) {
-          urls.push(result.value.url!);
-        } else {
-          const error = result.status === 'fulfilled' ? result.value.error : 'Error desconocido';
-          errors.push(`Archivo ${index + 1}: ${error}`);
-        }
-      });
-
-      return {
-        success: urls.length > 0,
-        urls: urls.length > 0 ? urls : undefined,
-        errors: errors.length > 0 ? errors : undefined,
-      };
-    } catch (error) {
-      console.error('Error in uploadMultipleImages:', error);
-      return {
-        success: false,
-        errors: [error instanceof Error ? error.message : 'Error desconocido'],
-      };
-    }
-  }
-
-  // Eliminar una imagen
-  static async deleteImage(url: string): Promise<{ success: boolean; error?: string }> {
-    try {
-      // Extraer el path del archivo de la URL
-      const urlParts = url.split('/');
-      const bucketIndex = urlParts.findIndex((part) => part === this.BUCKET_NAME);
-
-      if (bucketIndex === -1) {
-        return { success: false, error: 'URL inválida' };
-      }
-
-      const filePath = urlParts.slice(bucketIndex + 1).join('/');
-
-      const { error } = await supabase.storage.from(this.BUCKET_NAME).remove([filePath]);
-
-      if (error) {
-        console.error('Error deleting file:', error);
-        return { success: false, error: error.message };
-      }
-
-      return { success: true };
-    } catch (error) {
-      console.error('Error in deleteImage:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Error desconocido',
-      };
-    }
-  }
-
-  // Eliminar múltiples imágenes
-  static async deleteMultipleImages(urls: string[]): Promise<{ success: boolean; errors?: string[] }> {
-    try {
-      const results = await Promise.allSettled(urls.map((url) => this.deleteImage(url)));
-
-      const errors: string[] = [];
-
-      results.forEach((result, index) => {
-        if (result.status === 'fulfilled' && !result.value.success) {
-          errors.push(`Imagen ${index + 1}: ${result.value.error}`);
-        } else if (result.status === 'rejected') {
-          errors.push(`Imagen ${index + 1}: Error desconocido`);
-        }
-      });
-
-      return {
-        success: errors.length === 0,
-        errors: errors.length > 0 ? errors : undefined,
-      };
-    } catch (error) {
-      console.error('Error in deleteMultipleImages:', error);
-      return {
-        success: false,
-        errors: [error instanceof Error ? error.message : 'Error desconocido'],
-      };
-    }
-  }
-
-  // Obtener la URL pública de un archivo
-  static getPublicUrl(path: string): string {
-    const { data } = supabase.storage.from(this.BUCKET_NAME).getPublicUrl(path);
-
-    return data.publicUrl;
-  }
-
-  // Validar si una imagen existe
-  static async imageExists(path: string): Promise<boolean> {
-    try {
-      const { data, error } = await supabase.storage
-        .from(this.BUCKET_NAME)
-        .list(path.substring(0, path.lastIndexOf('/')));
-
-      if (error) return false;
-
-      const fileName = path.substring(path.lastIndexOf('/') + 1);
-      return data.some((file) => file.name === fileName);
-    } catch (error) {
-      console.error('Error checking if image exists:', error);
-      return false;
-    }
-  }
+export interface UploadImageOptions {
+  maxSizeMB?: number;
+  maxWidthOrHeight?: number;
+  quality?: number;
 }
 
-// Tipos para el manejo de archivos
-export interface ImageUploadResult {
-  success: boolean;
-  url?: string;
-  error?: string;
-}
+// Función auxiliar para eliminar imágenes de Supabase Storage
+export async function deleteImageFromStorage(imageUrl: string) {
+  try {
+    console.log('🗑️ Eliminando imagen:', imageUrl);
 
-export interface MultipleImageUploadResult {
-  success: boolean;
-  urls?: string[];
-  errors?: string[];
-}
+    if (!imageUrl || !imageUrl.includes('supabase.co')) {
+      console.log('⚠️ URL no válida para eliminar, saltando...');
+      return;
+    }
 
-// Helper para validar archivos de imagen
-export const validateImageFile = (file: File): { valid: boolean; error?: string } => {
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-  const maxSize = 5 * 1024 * 1024; // 5MB
+    // Extraer el path correcto de la URL
+    const regex = /\/public\/professional-images\/(.+)$/;
+    const match = imageUrl.match(regex);
+    const path = match ? match[1] : null;
 
-  if (!allowedTypes.includes(file.type)) {
-    return {
-      valid: false,
-      error: 'Tipo de archivo no permitido. Solo se permiten imágenes JPEG, PNG y WebP.',
-    };
-  }
+    if (path) {
+      console.log('📂 Path extraído para eliminación:', path);
+      const { error: storageError } = await supabase.storage.from('professional-images').remove([path]);
 
-  if (file.size > maxSize) {
-    return {
-      valid: false,
-      error: 'El archivo es demasiado grande. Máximo 5MB permitido.',
-    };
-  }
-
-  return { valid: true };
-};
-
-// Helper para crear preview de imagen
-export const createImagePreview = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        resolve(e.target.result as string);
+      if (storageError) {
+        console.error(`❌ Error al eliminar imagen: ${storageError.message}`);
       } else {
-        reject(new Error('No se pudo leer el archivo'));
+        console.log('✅ Imagen eliminada exitosamente');
       }
+    } else {
+      console.error('❌ No se pudo extraer el path de la URL:', imageUrl);
+    }
+  } catch (error) {
+    const err = error as Error;
+    console.error(`❌ Error al eliminar imagen: ${err.message}`);
+  }
+}
+
+// Función auxiliar para procesar y subir imagen
+export async function processAndUploadImage(imageFile: File, options: UploadImageOptions = {}): Promise<string> {
+  try {
+    console.log('🔄 Iniciando processAndUploadImage...');
+    console.log('📁 Archivo:', imageFile.name, 'Tamaño:', imageFile.size);
+
+    // Obtener el usuario autenticado
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('❌ Error de autenticación:', authError);
+      throw new Error('Usuario no autenticado');
+    }
+    console.log('✅ Usuario autenticado:', user.id);
+
+    const compressionOptions = {
+      maxSizeMB: options.maxSizeMB || 2.0, // Aumentado de 1.5MB a 2.0MB para mejor calidad por defecto
+      maxWidthOrHeight: options.maxWidthOrHeight || 2048, // Aumentado de 1920px a 2048px para mejor resolución
+      useWebWorker: true,
+      quality: options.quality || 0.9, // Aumentado de 0.85 a 0.90 para mejor calidad por defecto
     };
-    reader.onerror = () => reject(new Error('Error leyendo el archivo'));
-    reader.readAsDataURL(file);
-  });
-};
+
+    console.log('🗜️ Comprimiendo imagen con opciones:', compressionOptions);
+    const compressedFile = await imageCompression(imageFile, compressionOptions);
+    console.log('✅ Imagen comprimida. Tamaño original:', imageFile.size, 'Tamaño comprimido:', compressedFile.size);
+
+    const fileExt = compressedFile.name?.split('.').pop() || 'jpg';
+    const fileName = `${uuidv4()}.${fileExt}`;
+    const filePath = `${user.id}/carrusel/${fileName}`;
+
+    console.log('📤 Subiendo archivo a path:', filePath);
+
+    const { error: uploadError } = await supabase.storage.from('professional-images').upload(filePath, compressedFile);
+
+    if (uploadError) {
+      console.error('❌ Error al subir imagen:', uploadError);
+      throw uploadError;
+    }
+
+    console.log('✅ Imagen subida exitosamente');
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('professional-images').getPublicUrl(filePath);
+
+    console.log('🔗 URL pública generada:', publicUrl);
+    return publicUrl;
+  } catch (error) {
+    const err = error as Error;
+    console.error('❌ Error en processAndUploadImage:', err.message);
+    throw new Error(`Error al procesar y subir la imagen: ${err.message}`);
+  }
+}
+
+// Función para subir imagen al storage de Supabase
+export async function uploadImage(file: File, folderPath: string, options: UploadImageOptions = {}): Promise<string> {
+  try {
+    // Validar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+      throw new Error('El archivo debe ser una imagen');
+    }
+
+    // Validar tamaño máximo (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error('La imagen es demasiado grande. Máximo 10MB');
+    }
+
+    // Comprimir imagen usando imageCompression directamente
+    const compressionOptions = {
+      maxSizeMB: options.maxSizeMB || 2.0, // Aumentado para mejor calidad por defecto
+      maxWidthOrHeight: options.maxWidthOrHeight || 2048, // Aumentado para mejor resolución por defecto
+      useWebWorker: true,
+      quality: options.quality || 0.9, // Calidad alta del 90% por defecto
+    };
+
+    const compressedFile = await imageCompression(file, compressionOptions);
+
+    // Generar nombre único
+    const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const fileName = `${uuidv4()}.${fileExtension}`;
+    const filePath = `${folderPath}/${fileName}`;
+
+    // Subir archivo
+    const { error: uploadError } = await supabase.storage.from('professional-images').upload(filePath, compressedFile, {
+      cacheControl: '3600',
+      upsert: false,
+    });
+
+    if (uploadError) {
+      throw new Error(`Error al subir imagen: ${uploadError.message}`);
+    }
+
+    // Obtener URL pública
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('professional-images').getPublicUrl(filePath);
+
+    return publicUrl;
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw error;
+  }
+}
+
+// Función para eliminar imagen del storage
+export async function deleteImage(imageUrl: string): Promise<void> {
+  await deleteImageFromStorage(imageUrl);
+}
+
+// Función para subir múltiples imágenes del carrusel
+export async function uploadCarouselImages(files: File[]): Promise<string[]> {
+  console.log('🎠 Subiendo imágenes de carrusel:', files.length, 'archivos');
+
+  // Opciones específicas para imágenes de carrusel - optimizadas para pantalla completa
+  // Configuración premium para imágenes que se mostrarán a gran tamaño
+  const carouselOptions: UploadImageOptions = {
+    maxSizeMB: 3.0, // 3MB permite alta calidad sin sacrificar rendimiento web
+    maxWidthOrHeight: 2560, // Resolución 2K para pantallas modernas de alta resolución
+    quality: 0.92, // 92% de calidad para imágenes con detalles nítidos en pantalla completa
+  };
+
+  const uploadPromises = files.map((file) => processAndUploadImage(file, carouselOptions));
+
+  try {
+    const urls = await Promise.all(uploadPromises);
+    console.log('✅ Todas las imágenes de carrusel subidas exitosamente');
+    return urls;
+  } catch (error) {
+    console.error('❌ Error uploading carousel images:', error);
+    throw new Error('Error al subir las imágenes del carrusel');
+  }
+}
+
+// Función para subir múltiples imágenes (genérica)
+export async function uploadMultipleImages(files: File[], options: UploadImageOptions = {}): Promise<string[]> {
+  console.log('📁 Subiendo múltiples imágenes:', files.length, 'archivos');
+
+  const uploadPromises = files.map((file) => processAndUploadImage(file, options));
+
+  try {
+    const urls = await Promise.all(uploadPromises);
+    console.log('✅ Todas las imágenes subidas exitosamente');
+    return urls;
+  } catch (error) {
+    console.error('❌ Error uploading multiple images:', error);
+    throw new Error('Error al subir las imágenes');
+  }
+}
+
+// Función para eliminar múltiples imágenes
+export async function deleteMultipleImages(imageUrls: string[]): Promise<void> {
+  console.log('🗑️ Eliminando múltiples imágenes:', imageUrls.length, 'archivos');
+
+  const deletePromises = imageUrls.map((url) => deleteImageFromStorage(url));
+
+  try {
+    await Promise.all(deletePromises);
+    console.log('✅ Todas las imágenes eliminadas exitosamente');
+  } catch (error) {
+    console.error('❌ Error deleting multiple images:', error);
+    // No lanzamos el error para no interrumpir el flujo principal
+  }
+}

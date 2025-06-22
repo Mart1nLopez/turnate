@@ -8,7 +8,6 @@ import {
   TbBrandInstagram,
   TbBrandWhatsapp,
   TbBrandFacebook,
-  TbPhoto,
   TbDeviceFloppy,
   TbLink,
 } from 'react-icons/tb';
@@ -16,11 +15,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import ImageUpload from '@/components/ui/image-upload';
+import { ImageUpload } from '@/components/ui/image-upload';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { supabase, getCurrentProfessional } from '@/lib/supabase';
+import { deleteMultipleImages, uploadCarouselImages } from '@/lib/storage';
 import { Professional } from '@/types';
-import Image from 'next/image';
 import { toast } from 'sonner';
 
 interface ProfileForm {
@@ -56,14 +55,27 @@ export default function PerfilPage() {
     facebook: '',
   });
   const [images, setImages] = useState<ProfileImage[]>([]);
+  const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
   const [slugError, setSlugError] = useState<string>('');
   const [checkingSlug, setCheckingSlug] = useState(false);
   const slugTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadProfessional = useCallback(async () => {
     try {
+      // Obtener el usuario autenticado para logs
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      console.log('🔍 Usuario autenticado:', user?.id);
+
       const { professional, error } = await getCurrentProfessional();
       if (error || !professional) throw error;
+
+      console.log('👤 Profesional cargado:', {
+        professionalId: professional.id,
+        userId: user?.id,
+        areEqual: professional.id === user?.id,
+      });
 
       setProfessional(professional);
       setFormData({
@@ -136,7 +148,13 @@ export default function PerfilPage() {
     setSubmitting(true);
 
     try {
+      console.log('🚀 Iniciando actualización del perfil...');
+
       if (!professional) throw new Error('No professional found');
+
+      console.log('👤 Profesional encontrado:', professional.id);
+      console.log('📷 Nuevas imágenes a subir:', newImageFiles.length);
+      console.log('🖼️ Imágenes existentes:', images.length);
 
       // Validar que no haya errores en el slug antes de enviar
       if (slugError) {
@@ -155,6 +173,31 @@ export default function PerfilPage() {
         }
       }
 
+      // Subir nuevas imágenes si las hay
+      let newImageUrls: string[] = [];
+      if (newImageFiles.length > 0) {
+        console.log('🎠 Subiendo', newImageFiles.length, 'nuevas imágenes de carrusel...');
+        newImageUrls = await uploadCarouselImages(newImageFiles);
+        console.log('✅ Imágenes de carrusel subidas exitosamente:', newImageUrls);
+      }
+
+      // Determinar qué imágenes eliminar (las que estaban antes pero ya no están)
+      const currentImageUrls = professional.carrusel_images?.map((img) => img.url) || [];
+      const keptImageUrls = images.map((img) => img.url);
+      const imagesToDelete = currentImageUrls.filter((url) => !keptImageUrls.includes(url));
+
+      console.log('🗑️ Imágenes a eliminar:', imagesToDelete.length);
+
+      // Eliminar imágenes que ya no están
+      if (imagesToDelete.length > 0) {
+        await deleteMultipleImages(imagesToDelete);
+      }
+
+      // Combinar imágenes existentes con las nuevas
+      const allImages = [...images, ...newImageUrls.map((url) => ({ url, alt: 'Imagen del perfil' }))];
+
+      console.log('💾 Total de imágenes finales:', allImages.length);
+
       const updateData = {
         name: formData.name,
         slug: formData.slug,
@@ -167,16 +210,20 @@ export default function PerfilPage() {
           whatsapp: formData.whatsapp || undefined,
           facebook: formData.facebook || undefined,
         },
-        carrusel_images: images,
+        carrusel_images: allImages,
       };
 
+      console.log('💾 Actualizando base de datos...');
       const { error } = await supabase.from('professionals').update(updateData).eq('id', professional.id);
 
       if (error) throw error;
 
       // Actualizar el estado local
       setProfessional((prev) => (prev ? ({ ...prev, ...updateData } as Professional) : null));
+      setImages(allImages);
+      setNewImageFiles([]);
 
+      console.log('✅ Perfil actualizado exitosamente');
       toast.success('Perfil actualizado exitosamente');
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -186,16 +233,16 @@ export default function PerfilPage() {
     }
   };
 
-  const handleImagesUpload = (urls: string[]) => {
-    const newImages: ProfileImage[] = urls.map((url) => ({
+  const handleImagesChange = (files: File[], existingUrls: string[]) => {
+    // Actualizar archivos nuevos
+    setNewImageFiles(files);
+
+    // Actualizar imágenes existentes
+    const existingImages: ProfileImage[] = existingUrls.map((url) => ({
       url,
       alt: 'Imagen del perfil',
     }));
-    setImages(newImages);
-  };
-
-  const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImages(existingImages);
   };
 
   const getPublicUrl = () => {
@@ -496,51 +543,12 @@ export default function PerfilPage() {
             <CardDescription>Agrega imágenes que se mostrarán en tu página pública</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Upload de imágenes */}
             <ImageUpload
-              onUpload={handleImagesUpload}
+              onFilesChange={handleImagesChange}
               multiple={true}
               maxFiles={6}
               existingImages={images.map((img) => img.url)}
-              folderPath={`professionals/${professional?.id || 'temp'}`}
             />
-
-            {/* Image gallery */}
-            {images.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {images.map((image, index) => (
-                  <div key={index} className="relative group">
-                    <div className="relative h-48 bg-gray-100 rounded-lg overflow-hidden">
-                      <Image
-                        src={image.url}
-                        alt={image.alt}
-                        fill
-                        className="object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        size="sm"
-                        variant="destructive">
-                        ×
-                      </Button>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-2 truncate">{image.alt}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {images.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <TbPhoto className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <p>No has agregado imágenes aún</p>
-              </div>
-            )}
           </CardContent>
         </Card>
 
