@@ -177,3 +177,49 @@ html {
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
+/* Estilos para scroll suave */
+html {
+  scroll-behavior: smooth !important;
+}
+
+/* Estilos personalizados para el calendario */
+.calendar-container button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.calendar-container button:not(:disabled):hover {
+  transform: scale(1.05);
+  transition: transform 0.1s ease-in-out;
+}
+
+/* Estilos simplificados para los días del calendario */
+.calendar-day {
+  @apply flex items-center justify-center text-sm rounded-lg font-medium border border-transparent;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease;
+}
+
+@media (max-width: 1024px) {
+  .calendar-day {
+    @apply text-base;
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* Animaciones mejoradas para mobile */
+@media (max-width: 1024px) {
+  * {
+    scroll-behavior: smooth !important;
+  }
+
+  /* Mejora el rendimiento del scroll en móvil */
+  body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}

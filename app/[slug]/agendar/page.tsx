@@ -2,16 +2,19 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { TbClock, TbUser, TbMail, TbPhone, TbArrowLeft, TbCheck } from 'react-icons/tb';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { TbArrowLeft } from 'react-icons/tb';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { supabase } from '@/lib/supabase';
-import { Professional, Service, Availability, Client, Appointment } from '@/types';
-import { formatCurrency } from '@/lib/utils';
+import { Professional, Service, Availability, Client } from '@/types';
 import { generateTimeSlots, TimeSlot } from '@/lib/slots';
 import Link from 'next/link';
+import ServiceSelector from '@/components/appointment/ServiceSelector';
+import DateCalendar from '@/components/appointment/DateCalendar';
+import TimeSlotSelector from '@/components/appointment/TimeSlotSelector';
+import AppointmentSummary from '@/components/appointment/AppointmentSummary';
+import ClientForm from '@/components/appointment/ClientForm';
+import { toast } from 'sonner';
 
 interface BookingForm {
   name: string;
@@ -30,9 +33,10 @@ export default function AgendarPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [formData, setFormData] = useState<BookingForm>({
     name: '',
     email: '',
@@ -44,10 +48,19 @@ export default function AgendarPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState(1); // 1: service, 2: date/time, 3: details, 4: confirmation
+  const [step, setStep] = useState(1); // 1: selection, 2: client details
 
   const slug = params.slug as string;
   const preSelectedServiceId = searchParams.get('service');
+
+  // Scroll suave para móvil
+  const scrollToSection = (element: HTMLElement) => {
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+      inline: 'nearest',
+    });
+  };
 
   const loadData = useCallback(async () => {
     try {
@@ -59,7 +72,7 @@ export default function AgendarPage() {
         .single();
 
       if (professionalError || !professionalData) {
-        router.push('/');
+        console.error('Professional not found');
         return;
       }
 
@@ -78,22 +91,21 @@ export default function AgendarPage() {
       const { data: availabilityData } = await supabase
         .from('availability')
         .select('*')
-        .eq('professional_id', professionalData.id)
-        .eq('is_available', true); // Solo disponibilidades activas
+        .eq('professional_id', professionalData.id);
 
       setAvailability(availabilityData || []);
 
       // Pre-seleccionar servicio si viene en la URL
       if (preSelectedServiceId && servicesData) {
-        const preSelected = servicesData.find((s) => s.id === preSelectedServiceId);
-        if (preSelected) {
-          setSelectedService(preSelected);
-          setFormData((prev) => ({ ...prev, serviceId: preSelected.id }));
-          setStep(2);
+        const preSelectedService = servicesData.find((s) => s.id === preSelectedServiceId);
+        if (preSelectedService) {
+          setSelectedService(preSelectedService);
+          setFormData((prev) => ({ ...prev, serviceId: preSelectedService.id }));
         }
       }
     } catch (error) {
       console.error('Error loading data:', error);
+      router.push('/');
     } finally {
       setLoading(false);
     }
@@ -106,43 +118,37 @@ export default function AgendarPage() {
   }, [slug, loadData]);
 
   const generateTimeSlotsForDay = useCallback(
-    async (date: string, service: Service) => {
+    async (date: Date, service: Service) => {
       if (!professional || !availability.length) {
         setTimeSlots([]);
         return;
       }
 
-      const selectedDate = new Date(date);
-      const dayOfWeek = selectedDate.getDay(); // 0 = domingo, 1 = lunes, etc.
-
-      // Buscar disponibilidad para este día específico
+      const dayOfWeek = date.getDay();
       const dayAvailability = availability.find((av) => av.day_of_week === dayOfWeek);
+
       if (!dayAvailability) {
         setTimeSlots([]);
         return;
       }
 
       try {
-        // Obtener citas existentes para ese día
+        const dateString = date.toISOString().split('T')[0];
+
+        // Obtener citas existentes para este día
         const { data: existingAppointments } = await supabase
           .from('appointments')
           .select('*')
           .eq('professional_id', professional.id)
-          .eq('status', 'confirmed')
-          .gte('start_time', `${date}T00:00:00`)
-          .lte('start_time', `${date}T23:59:59`);
+          .gte('start_time', `${dateString}T00:00:00`)
+          .lt('start_time', `${dateString}T23:59:59`)
+          .eq('status', 'confirmed');
 
-        // Usar la función centralizada para generar slots
-        const slots = generateTimeSlots(
-          selectedDate,
-          dayAvailability,
-          (existingAppointments || []) as Appointment[],
-          service.duration_minutes,
-        );
-
+        // Generar slots usando la función de slots
+        const slots = generateTimeSlots(date, dayAvailability, existingAppointments || [], service.duration_minutes);
         setTimeSlots(slots);
       } catch (error) {
-        console.error('Error generando slots:', error);
+        console.error('Error generating time slots:', error);
         setTimeSlots([]);
       }
     },
@@ -158,19 +164,39 @@ export default function AgendarPage() {
   const handleServiceSelect = (service: Service) => {
     setSelectedService(service);
     setFormData((prev) => ({ ...prev, serviceId: service.id }));
-    setStep(2);
+    setSelectedTime('');
+
+    // Scroll en móvil al calendario
+    if (window.innerWidth < 1024) {
+      setTimeout(() => {
+        const calendarElement = document.getElementById('calendar-section');
+        if (calendarElement) scrollToSection(calendarElement);
+      }, 100);
+    }
   };
 
-  const handleDateSelect = (date: string) => {
-    setSelectedDate(date);
+  const handleDateSelect = (date: Date) => {
+    // Crear una nueva fecha sin problemas de timezone
+    const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    setSelectedDate(localDate);
     setSelectedTime('');
-    setFormData((prev) => ({ ...prev, date, time: '' }));
+
+    // Formatear fecha de manera más segura
+    const dateString = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`;
+    setFormData((prev) => ({ ...prev, date: dateString, time: '' }));
+
+    // Scroll en móvil a las horas
+    if (window.innerWidth < 1024) {
+      setTimeout(() => {
+        const timeSlotsElement = document.getElementById('time-slots-section');
+        if (timeSlotsElement) scrollToSection(timeSlotsElement);
+      }, 100);
+    }
   };
 
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time);
     setFormData((prev) => ({ ...prev, time }));
-    setStep(3);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -180,7 +206,6 @@ export default function AgendarPage() {
 
   const checkExistingClient = async (email: string) => {
     const { data } = await supabase.from('clients').select('*').eq('email', email).single();
-
     return data;
   };
 
@@ -188,7 +213,6 @@ export default function AgendarPage() {
     const existingClient = await checkExistingClient(formData.email);
 
     if (existingClient) {
-      // Actualizar cliente existente
       const { data, error } = await supabase
         .from('clients')
         .update({
@@ -203,7 +227,6 @@ export default function AgendarPage() {
       if (error) throw error;
       return data;
     } else {
-      // Crear nuevo cliente
       const { data, error } = await supabase
         .from('clients')
         .insert({
@@ -219,15 +242,10 @@ export default function AgendarPage() {
     }
   };
 
-  // Función de validación del formulario
   const validateForm = (): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
-    // Validar datos básicos
-    if (!formData.name.trim()) {
-      errors.push('El nombre es requerido');
-    }
-
+    if (!formData.name.trim()) errors.push('El nombre es requerido');
     if (!formData.email.trim()) {
       errors.push('El email es requerido');
     } else {
@@ -236,7 +254,6 @@ export default function AgendarPage() {
         errors.push('El email no tiene un formato válido');
       }
     }
-
     if (!formData.phone.trim()) {
       errors.push('El teléfono es requerido');
     } else {
@@ -245,21 +262,10 @@ export default function AgendarPage() {
         errors.push('El teléfono debe tener al menos 10 dígitos');
       }
     }
+    if (!selectedService) errors.push('Debe seleccionar un servicio');
+    if (!formData.date) errors.push('Debe seleccionar una fecha');
+    if (!formData.time) errors.push('Debe seleccionar una hora');
 
-    // Validar selecciones
-    if (!selectedService) {
-      errors.push('Debe seleccionar un servicio');
-    }
-
-    if (!formData.date) {
-      errors.push('Debe seleccionar una fecha');
-    }
-
-    if (!formData.time) {
-      errors.push('Debe seleccionar una hora');
-    }
-
-    // Validar que la fecha y hora sean futuras
     if (formData.date && formData.time) {
       const selectedDateTime = new Date(`${formData.date}T${formData.time}`);
       const now = new Date();
@@ -268,16 +274,12 @@ export default function AgendarPage() {
       }
     }
 
-    return {
-      isValid: errors.length === 0,
-      errors,
-    };
+    return { isValid: errors.length === 0, errors };
   };
 
   const handleSubmit = async () => {
     if (!professional || !selectedService) return;
 
-    // Validar formulario
     const validation = validateForm();
     if (!validation.isValid) {
       setError(validation.errors.join(', '));
@@ -288,14 +290,11 @@ export default function AgendarPage() {
     setError(null);
 
     try {
-      // Crear o actualizar cliente
       const client = await createOrUpdateClient();
-
-      // Crear la cita
       const startDateTime = new Date(`${formData.date}T${formData.time}`);
       const endDateTime = new Date(startDateTime.getTime() + selectedService.duration_minutes * 60000);
 
-      const { data: appointmentData, error } = await supabase
+      const { error } = await supabase
         .from('appointments')
         .insert({
           professional_id: professional.id,
@@ -310,20 +309,24 @@ export default function AgendarPage() {
 
       if (error) throw error;
 
-      // Enviar email de confirmación
-      try {
-        // Send mail
-        console.log(appointmentData.id);
-      } catch (emailError) {
-        console.error('Error enviando email de confirmación:', emailError);
-        // No falla la cita si el email falla, solo log del error
-      }
+      // Reset y mostrar éxito
+      setStep(1);
+      setSelectedService(null);
+      setSelectedDate(null);
+      setSelectedTime('');
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        serviceId: '',
+        date: '',
+        time: '',
+      });
 
-      setStep(4);
+      toast.success('¡Cita agendada exitosamente!');
+      router.push(`/${slug}`);
     } catch (error) {
       console.error('Error creating appointment:', error);
-
-      // Manejar diferentes tipos de errores
       let errorMessage = 'Error al crear la cita. Por favor intenta nuevamente.';
 
       if (error instanceof Error) {
@@ -331,49 +334,74 @@ export default function AgendarPage() {
           errorMessage = 'Ya tienes una cita agendada en esta fecha y hora.';
         } else if (error.message.includes('conflict')) {
           errorMessage = 'Este horario ya no está disponible. Por favor selecciona otro horario.';
-        } else if (error.message.includes('advance')) {
-          errorMessage = 'No es posible agendar con tan poca anticipación.';
         }
       }
-
       setError(errorMessage);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const getAvailableDates = () => {
-    const dates: string[] = [];
+  // Funciones del calendario
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+
+    // Calcular el primer lunes visible
+    const firstDayOfWeek = firstDayOfMonth.getDay() === 0 ? 6 : firstDayOfMonth.getDay() - 1; // 0=lunes, 6=domingo
+    const firstVisible = new Date(firstDayOfMonth);
+    firstVisible.setDate(firstDayOfMonth.getDate() - firstDayOfWeek);
+
+    // Calcular el último domingo visible
+    const lastDayOfWeek = lastDayOfMonth.getDay() === 0 ? 6 : lastDayOfMonth.getDay() - 1;
+    const lastVisible = new Date(lastDayOfMonth);
+    lastVisible.setDate(lastDayOfMonth.getDate() + (6 - lastDayOfWeek));
+
+    const days = [];
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    // Generar próximos 30 días
-    for (let i = 0; i < 30; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-
-      const dayOfWeek = date.getDay(); // 0 = domingo, 1 = lunes, etc.
-      const hasAvailability = availability.some((av) => av.day_of_week === dayOfWeek);
-
-      if (hasAvailability) {
-        dates.push(date.toISOString().split('T')[0]);
-      }
+    for (let d = new Date(firstVisible); d <= lastVisible; d.setDate(d.getDate() + 1)) {
+      const current = new Date(d);
+      const isCurrentMonth = current.getMonth() === month;
+      const dayOfWeek = current.getDay();
+      const hasAvailability = availability ? availability.some((av) => av.day_of_week === dayOfWeek) : false;
+      const isPast = current < today;
+      const isToday = current.getTime() === today.getTime();
+      days.push({
+        date: current,
+        isCurrentMonth,
+        isToday,
+        isAvailable: isCurrentMonth && hasAvailability && !isPast,
+      });
     }
-
-    return dates;
+    return days;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-CL', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentMonth((prev) => {
+      const newMonth = new Date(prev);
+      if (direction === 'prev') {
+        newMonth.setMonth(prev.getMonth() - 1);
+      } else {
+        newMonth.setMonth(prev.getMonth() + 1);
+      }
+      return newMonth;
     });
   };
 
+  const formatMonthYear = (date: Date) => {
+    return date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+  };
+
+  // Cambia canContinue a booleano explícito
+  const canContinue = Boolean(selectedService && selectedDate && selectedTime);
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <LoadingSpinner size="lg" text="Cargando información..." />
       </div>
     );
@@ -381,7 +409,7 @@ export default function AgendarPage() {
 
   if (!professional) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Profesional no encontrado</h1>
           <Link href="/">
@@ -393,311 +421,105 @@ export default function AgendarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-md border-b border-gray-200">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center space-x-4">
-            <Link href={`/${slug}`}>
-              <Button variant="outline" size="sm">
-                <TbArrowLeft className="w-4 h-4 mr-2" />
-                Volver
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Agendar Cita</h1>
-              <p className="text-sm text-gray-600">con {professional.name}</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Link href={`/${slug}`}>
+                <Button variant="outline" size="sm">
+                  <TbArrowLeft className="w-4 h-4 mr-2" />
+                  Volver
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Agendar Cita</h1>
+                <p className="text-sm text-gray-600">con {professional.name}</p>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          {/* Progress Steps */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              {[1, 2, 3, 4].map((stepNumber) => (
-                <div key={stepNumber} className="flex items-center">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                      stepNumber <= step ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-                    }`}>
-                    {stepNumber < step ?
-                      <TbCheck className="w-4 h-4" />
-                    : stepNumber}
-                  </div>
-                  {stepNumber < 4 && (
-                    <div className={`h-1 w-16 mx-2 ${stepNumber < step ? 'bg-blue-600' : 'bg-gray-200'}`} />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between mt-2 text-xs text-gray-600">
-              <span>Servicio</span>
-              <span>Fecha y Hora</span>
-              <span>Datos</span>
-              <span>Confirmación</span>
-            </div>
+      {step === 1 && (
+        <div className="container mx-auto px-4 py-6">
+          {/* Desktop Layout - Solo pantallas grandes */}
+          <div className="hidden xl:grid xl:grid-cols-[0.5fr_1fr_0.5fr] xl:gap-6">
+            {/* Servicios */}
+            <ServiceSelector services={services} selectedService={selectedService} onSelect={handleServiceSelect} />
+            {/* Calendario */}
+            <DateCalendar
+              currentMonth={currentMonth}
+              getDaysInMonth={getDaysInMonth}
+              selectedDate={selectedDate}
+              onDateSelect={handleDateSelect}
+              navigateMonth={navigateMonth}
+              formatMonthYear={formatMonthYear}
+              selectedService={selectedService}
+            />
+            {/* Horarios */}
+            <TimeSlotSelector
+              selectedDate={selectedDate}
+              timeSlots={timeSlots}
+              selectedTime={selectedTime}
+              onTimeSelect={handleTimeSelect}
+              onContinue={() => setStep(2)}
+              canContinue={canContinue}
+            />
           </div>
 
-          {/* Step 1: Service Selection */}
-          {step === 1 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Selecciona un Servicio</CardTitle>
-                <CardDescription>Elige el servicio que necesitas</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {services.length === 0 ?
-                  <p className="text-gray-500 text-center py-8">No hay servicios disponibles</p>
-                : <div className="space-y-4">
-                    {services.map((service) => (
-                      <div
-                        key={service.id}
-                        onClick={() => handleServiceSelect(service)}
-                        className="border rounded-lg p-4 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 mb-1">{service.name}</h3>
-                            {service.description && <p className="text-gray-600 text-sm mb-2">{service.description}</p>}
-                            <div className="flex items-center text-sm text-gray-500">
-                              <TbClock className="h-4 w-4 mr-1" />
-                              {service.duration_minutes} minutos
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="flex items-center text-green-600 font-bold">
-                              {formatCurrency(service.price)}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                }
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Step 2: Date and Time Selection */}
-          {step === 2 && selectedService && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Selecciona Fecha y Hora</CardTitle>
-                <CardDescription>
-                  {selectedService.name} - {formatCurrency(selectedService.price)}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Date Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Fecha</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {getAvailableDates()
-                      .slice(0, 14)
-                      .map((date) => (
-                        <button
-                          key={date}
-                          onClick={() => handleDateSelect(date)}
-                          className={`p-3 text-left border rounded-lg transition-all ${
-                            selectedDate === date ?
-                              'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 hover:border-gray-300'
-                          }`}>
-                          <div className="font-medium capitalize">{formatDate(date)}</div>
-                        </button>
-                      ))}
-                  </div>
-                </div>
-
-                {/* Time Selection */}
-                {selectedDate && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">Hora</label>
-                    {timeSlots.length === 0 ?
-                      <p className="text-gray-500 text-center py-4">No hay horarios disponibles para esta fecha</p>
-                    : <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                        {timeSlots.map((slot) => (
-                          <button
-                            key={slot.time}
-                            onClick={() => slot.available && handleTimeSelect(slot.time)}
-                            disabled={!slot.available}
-                            className={`p-2 text-sm border rounded-lg transition-all ${
-                              selectedTime === slot.time ? 'border-blue-500 bg-blue-50 text-blue-700'
-                              : slot.available ? 'border-gray-200 hover:border-gray-300'
-                              : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
-                            }`}>
-                            {slot.time}
-                          </button>
-                        ))}
-                      </div>
-                    }
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Step 3: Client Details */}
-          {step === 3 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Tus Datos</CardTitle>
-                <CardDescription>Completa tu información para confirmar la cita</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Nombre completo *</label>
-                    <div className="relative">
-                      <TbUser className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        placeholder="Tu nombre completo"
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                    <div className="relative">
-                      <TbMail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        placeholder="tu@email.com"
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Teléfono *</label>
-                    <div className="relative">
-                      <TbPhone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        name="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        placeholder="+56 9 1234 5678"
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">Resumen de tu cita</h4>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <p>
-                        <strong>Servicio:</strong> {selectedService?.name}
-                      </p>
-                      <p>
-                        <strong>Fecha:</strong> {selectedDate && formatDate(selectedDate)}
-                      </p>
-                      <p>
-                        <strong>Hora:</strong> {selectedTime}
-                      </p>
-                      <p>
-                        <strong>Duración:</strong> {selectedService?.duration_minutes} minutos
-                      </p>
-                      <p>
-                        <strong>Precio:</strong> {selectedService && formatCurrency(selectedService.price)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                      <p className="text-sm">{error}</p>
-                    </div>
-                  )}
-
-                  <Button
-                    onClick={handleSubmit}
-                    disabled={!formData.name || !formData.email || !formData.phone || submitting}
-                    className="w-full">
-                    {submitting ? 'Agendando...' : 'Confirmar Cita'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Step 4: Confirmation */}
-          {step === 4 && (
-            <Card>
-              <CardContent className="text-center py-8">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <TbCheck className="w-8 h-8 text-green-600" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">¡Cita Agendada!</h2>
-                <p className="text-gray-600 mb-6">Tu cita ha sido confirmada. Recibirás un email con los detalles.</p>
-
-                <div className="bg-gray-50 p-4 rounded-lg mb-6 text-left">
-                  <h4 className="font-medium text-gray-900 mb-3">Detalles de tu cita</h4>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <p>
-                      <strong>Profesional:</strong> {professional.name}
-                    </p>
-                    <p>
-                      <strong>Servicio:</strong> {selectedService?.name}
-                    </p>
-                    <p>
-                      <strong>Fecha:</strong> {selectedDate && formatDate(selectedDate)}
-                    </p>
-                    <p>
-                      <strong>Hora:</strong> {selectedTime}
-                    </p>
-                    <p>
-                      <strong>Duración:</strong> {selectedService?.duration_minutes} minutos
-                    </p>
-                    <p>
-                      <strong>Precio:</strong> {selectedService && formatCurrency(selectedService.price)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <Link href={`/${slug}`}>
-                    <Button variant="outline" className="w-full">
-                      Volver al perfil
-                    </Button>
-                  </Link>
-                  <Button
-                    onClick={() => {
-                      // Reset form for new appointment
-                      setStep(1);
-                      setSelectedService(null);
-                      setSelectedDate('');
-                      setSelectedTime('');
-                      setFormData({
-                        name: '',
-                        email: '',
-                        phone: '',
-                        serviceId: '',
-                        date: '',
-                        time: '',
-                      });
-                    }}
-                    className="w-full">
-                    Agendar Otra Cita
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Mobile & Tablet Layout */}
+          <div className="xl:hidden space-y-6">
+            <ServiceSelector services={services} selectedService={selectedService} onSelect={handleServiceSelect} />
+            {selectedService && (
+              <DateCalendar
+                currentMonth={currentMonth}
+                getDaysInMonth={getDaysInMonth}
+                selectedDate={selectedDate}
+                onDateSelect={handleDateSelect}
+                navigateMonth={navigateMonth}
+                formatMonthYear={formatMonthYear}
+                selectedService={selectedService}
+              />
+            )}
+            {selectedDate && (
+              <TimeSlotSelector
+                selectedDate={selectedDate}
+                timeSlots={timeSlots}
+                selectedTime={selectedTime}
+                onTimeSelect={handleTimeSelect}
+                onContinue={() => setStep(2)}
+                canContinue={canContinue}
+              />
+            )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Step 2: Detalles del Cliente */}
+      {step === 2 && (
+        <div className="container mx-auto px-4 py-6">
+          <div className="grid lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+            {/* Resumen de la cita */}
+            <AppointmentSummary
+              selectedService={selectedService}
+              professional={professional}
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
+            />
+            {/* Información del cliente */}
+            <ClientForm
+              formData={formData}
+              onChange={handleInputChange}
+              onBack={() => setStep(1)}
+              onSubmit={handleSubmit}
+              submitting={submitting}
+              error={error}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

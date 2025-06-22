@@ -6,14 +6,18 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  // Esperar los parámetros antes de usarlos
+  const { slug } = await params;
+
   // Cargar datos del profesional
   const { data: professional } = await supabase
     .from('professionals')
     .select('name, profile_image')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .single();
 
-  if (!professional) { // Si por alguna razón no se encuentra el profesional
+  if (!professional) {
+    // Si por alguna razón no se encuentra el profesional
     return {
       title: 'Agenda con Turnate',
       icons: {
