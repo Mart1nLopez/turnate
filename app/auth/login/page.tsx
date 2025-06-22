@@ -41,6 +41,7 @@ export default function LoginPage() {
     }
   };
 
+  {/*
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     setError(null);
@@ -53,6 +54,7 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+  */}
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -131,6 +133,7 @@ export default function LoginPage() {
                   </div>
                 </div>
 
+                {/* Boton de recordar sesión
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -140,7 +143,7 @@ export default function LoginPage() {
                   <label htmlFor="remember" className="text-sm">
                     Recordar mi sesión
                   </label>
-                </div>
+                </div>*/}
 
                 <button
                   type="submit"
@@ -181,6 +184,7 @@ export default function LoginPage() {
                 </div>
               </div>
 
+              {/*}
               <div className="space-y-2">
                 <button
                   type="button"
@@ -207,7 +211,7 @@ export default function LoginPage() {
                   </svg>
                   Continuar con Google
                 </button>
-              </div>
+              </div> */}
 
               <div className="text-center text-sm text-muted-foreground">
                 ¿No tienes una cuenta?{' '}
