@@ -5,14 +5,9 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'place-hold.it',
+        hostname: '**',
         pathname: '**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'via.placeholder.com',
-        pathname: '**',
-      },
+      }
     ],
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
