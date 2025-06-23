@@ -54,12 +54,18 @@ export interface Appointment {
   client?: Client;
 }
 
+export interface TimeBlock {
+  start_time: string;
+  end_time: string;
+}
+
 export interface Availability {
   id: string;
   professional_id: string;
   day_of_week: number; // 0 = domingo, 1 = lunes, etc.
-  start_time: string; // HH:MM format
-  end_time: string; // HH:MM format
+  start_time?: string; // HH:MM format (mantenido para retrocompatibilidad)
+  end_time?: string; // HH:MM format (mantenido para retrocompatibilidad)
+  time_blocks?: TimeBlock[]; // Nuevos bloques de tiempo
   is_available?: boolean;
   break_minutes: number;
   advance_hours: number;

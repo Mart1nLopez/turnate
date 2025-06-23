@@ -407,7 +407,6 @@ export default function ServiciosPage() {
                       onClick={() => handleDelete(service.id)}
                       className="sm:w-auto">
                       <TbTrash className="w-4 h-4 sm:mr-0 mr-1" />
-                      <span className="sm:hidden">Eliminar</span>
                     </Button>
                   </div>
                 </div>

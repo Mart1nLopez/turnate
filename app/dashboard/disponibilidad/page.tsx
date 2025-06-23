@@ -9,14 +9,13 @@ import LoadingSpinner from '@/components/ui/loading-spinner';
 import { TimeSelector } from '@/components/ui/time-selector';
 import { MinuteSelector } from '@/components/ui/minute-selector';
 import { supabase, getCurrentProfessional } from '@/lib/supabase';
-import { Availability } from '@/types';
+import { Availability, TimeBlock } from '@/types';
 import { toast } from 'sonner';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface AvailabilityForm {
   day_of_week: number;
-  start_time: string;
-  end_time: string;
+  time_blocks: TimeBlock[];
   break_minutes: string;
   advance_hours: string;
   cancel_hours: string;
@@ -41,8 +40,7 @@ export default function DisponibilidadPage() {
   const { confirm, ConfirmDialog } = useConfirmDialog();
   const [formData, setFormData] = useState<AvailabilityForm>({
     day_of_week: 1, // Lunes por defecto
-    start_time: '09:00',
-    end_time: '18:00',
+    time_blocks: [{ start_time: '09:00', end_time: '18:00' }],
     break_minutes: '0',
     advance_hours: '1',
     cancel_hours: '2',
@@ -78,8 +76,7 @@ export default function DisponibilidadPage() {
   const resetForm = () => {
     setFormData({
       day_of_week: 1, // Lunes por defecto
-      start_time: '09:00',
-      end_time: '18:00',
+      time_blocks: [{ start_time: '09:00', end_time: '18:00' }],
       break_minutes: '0',
       advance_hours: '2',
       cancel_hours: '2',
@@ -104,10 +101,21 @@ export default function DisponibilidadPage() {
       const { professional } = await getCurrentProfessional();
       if (!professional) throw new Error('No professional found');
 
-      // Validar horarios
-      if (formData.start_time >= formData.end_time) {
-        toast.error('La hora de inicio debe ser anterior a la hora de fin');
-        return;
+      // Validar que todos los bloques de tiempo sean válidos
+      for (const block of formData.time_blocks) {
+        if (block.start_time >= block.end_time) {
+          toast.error('La hora de inicio debe ser anterior a la hora de fin en todos los bloques');
+          return;
+        }
+      }
+
+      // Validar que no haya superposiciones entre bloques
+      const sortedBlocks = [...formData.time_blocks].sort((a, b) => a.start_time.localeCompare(b.start_time));
+      for (let i = 0; i < sortedBlocks.length - 1; i++) {
+        if (sortedBlocks[i].end_time > sortedBlocks[i + 1].start_time) {
+          toast.error('Los bloques de horario no pueden superponerse');
+          return;
+        }
       }
 
       const selectedDayOfWeek = parseInt(formData.day_of_week.toString());
@@ -134,13 +142,12 @@ export default function DisponibilidadPage() {
 
       const availabilityData = {
         day_of_week: selectedDayOfWeek,
-        start_time: formData.start_time,
-        end_time: formData.end_time,
+        time_blocks: formData.time_blocks,
         break_minutes: parseInt(formData.break_minutes),
         advance_hours: parseInt(formData.advance_hours),
         cancel_hours: parseInt(formData.cancel_hours),
         professional_id: professional.id,
-        is_available: true, // Agregar campo is_available
+        is_available: true,
       };
 
       if (editingAvailability) {
@@ -177,8 +184,7 @@ export default function DisponibilidadPage() {
     setEditingAvailability(av);
     setFormData({
       day_of_week: av.day_of_week,
-      start_time: av.start_time,
-      end_time: av.end_time,
+      time_blocks: av.time_blocks || [{ start_time: av.start_time || '09:00', end_time: av.end_time || '18:00' }],
       break_minutes: av.break_minutes.toString(),
       advance_hours: av.advance_hours.toString(),
       cancel_hours: av.cancel_hours.toString(),
@@ -224,6 +230,48 @@ export default function DisponibilidadPage() {
     return DAYS_OF_WEEK.filter(
       (day) => !usedDays.includes(day.value) || (editingAvailability && day.value === editingAvailability.day_of_week),
     );
+  };
+
+  const addTimeBlock = () => {
+    const lastBlock = formData.time_blocks[formData.time_blocks.length - 1];
+    const newStartTime = lastBlock ? lastBlock.end_time : '09:00';
+
+    setFormData((prev) => ({
+      ...prev,
+      time_blocks: [...prev.time_blocks, { start_time: newStartTime, end_time: '18:00' }],
+    }));
+  };
+
+  const removeTimeBlock = (index: number) => {
+    if (formData.time_blocks.length <= 1) {
+      toast.error('Debe haber al menos un bloque de horario');
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      time_blocks: prev.time_blocks.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateTimeBlock = (index: number, field: 'start_time' | 'end_time', value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      time_blocks: prev.time_blocks.map((block, i) => (i === index ? { ...block, [field]: value } : block)),
+    }));
+  };
+
+  const formatTimeBlocks = (availability: Availability) => {
+    if (availability.time_blocks && availability.time_blocks.length > 0) {
+      return availability.time_blocks
+        .map((block) => `${formatTime(block.start_time)} - ${formatTime(block.end_time)}`)
+        .join('\n');
+    }
+    // Fallback para datos antiguos
+    if (availability.start_time && availability.end_time) {
+      return `${formatTime(availability.start_time)} - ${formatTime(availability.end_time)}`;
+    }
+    return 'No configurado';
   };
 
   if (loading) {
@@ -283,8 +331,47 @@ export default function DisponibilidadPage() {
                       </option>
                     ))}
                   </select>
+                </div>{' '}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Horarios de atención *</label>
+                  <div className="space-y-4">
+                    {formData.time_blocks.map((block, index) => (
+                      <div key={index} className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg">
+                        <div className="flex-1">
+                          <TimeSelector
+                            label="Hora de inicio"
+                            value={block.start_time}
+                            onChange={(time) => updateTimeBlock(index, 'start_time', time)}
+                            required
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <TimeSelector
+                            label="Hora de fin"
+                            value={block.end_time}
+                            onChange={(time) => updateTimeBlock(index, 'end_time', time)}
+                            required
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => removeTimeBlock(index)}
+                          disabled={formData.time_blocks.length <= 1}
+                          className="mt-6">
+                          <TbX className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <div className="flex justify-center">
+                      <Button type="button" variant="default" onClick={addTimeBlock} className="w-auto">
+                        <TbPlus className="w-4 h-4 mr-2" />
+                        Agregar Bloque
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-
                 <div>
                   <MinuteSelector
                     label="Descanso entre citas (minutos)"
@@ -295,25 +382,6 @@ export default function DisponibilidadPage() {
                     required
                   />
                 </div>
-
-                <div>
-                  <TimeSelector
-                    label="Hora de inicio"
-                    value={formData.start_time}
-                    onChange={(time) => setFormData((prev) => ({ ...prev, start_time: time }))}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <TimeSelector
-                    label="Hora de fin"
-                    value={formData.end_time}
-                    onChange={(time) => setFormData((prev) => ({ ...prev, end_time: time }))}
-                    required
-                  />
-                </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Anticipación mínima para agendar (horas) *
@@ -328,7 +396,6 @@ export default function DisponibilidadPage() {
                     required
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Anticipación mínima para cancelar (horas) *
@@ -382,10 +449,10 @@ export default function DisponibilidadPage() {
                 {/* Action buttons in top right corner */}
                 <div className="absolute top-4 right-4 flex items-center space-x-1">
                   <Button size="sm" variant="outline" onClick={() => handleEdit(av)} className="h-10 w-10 p-0">
-                    <TbEdit className="w-4 h-4" />
+                    <TbEdit className="w-5 h-5" />
                   </Button>
                   <Button size="sm" variant="destructive" onClick={() => handleDelete(av.id)} className="h-10 w-10 p-0">
-                    <TbTrash className="w-4 h-4" />
+                    <TbTrash className="w-5 h-5" />
                   </Button>
                 </div>
 
@@ -403,9 +470,7 @@ export default function DisponibilidadPage() {
                       <TbClock className="h-4 w-4 mr-1" />
                       Horario
                     </div>
-                    <p className="font-medium text-gray-900">
-                      {formatTime(av.start_time)} - {formatTime(av.end_time)}
-                    </p>
+                    <div className="font-medium text-gray-900 whitespace-pre-line">{formatTimeBlocks(av)}</div>
                   </div>
 
                   <div>
@@ -440,9 +505,10 @@ export default function DisponibilidadPage() {
         <CardContent>
           <ul className="space-y-2 text-sm text-gray-600">
             <li>• Los horarios se aplican semanalmente de forma recurrente</li>
+            <li>• Puedes configurar múltiples bloques de horario para el mismo día (ej: mañana y tarde)</li>
             <li>• El descanso entre citas se suma automáticamente a la duración del servicio</li>
             <li>• La anticipación mínima evita que los clientes agenden muy cerca de la fecha</li>
-            <li>• Puedes tener un día configurado por vez (edita para cambiar horarios)</li>
+            <li>• Los bloques de horario no pueden superponerse</li>
           </ul>
         </CardContent>
       </Card>

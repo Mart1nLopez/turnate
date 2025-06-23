@@ -23,52 +23,68 @@ export const generateTimeSlots = (
     return slots;
   }
 
-  // Crear datetime para el inicio y fin del día
-  const [startHour, startMinute] = availability.start_time.split(':').map(Number);
-  const [endHour, endMinute] = availability.end_time.split(':').map(Number);
+  // Determinar qué bloques de tiempo usar
+  let timeBlocks: { start_time: string; end_time: string }[] = [];
 
-  let currentTime = new Date(date);
-  currentTime.setHours(startHour, startMinute, 0, 0);
-
-  const endTime = new Date(date);
-  endTime.setHours(endHour, endMinute, 0, 0);
-
-  // Generar slots basados en la duración del servicio + tiempo de descanso
-  while (isBefore(currentTime, endTime)) {
-    const slotEndTime = addMinutes(currentTime, serviceDuration);
-
-    // Verificar si el slot completo cabe antes del fin del día
-    if (isAfter(slotEndTime, endTime)) {
-      break;
-    }
-
-    // Verificar si hay conflicto con citas existentes
-    const hasConflict = existingAppointments.some((appointment) => {
-      const appointmentStart = parseISO(appointment.start_time);
-      const appointmentEnd = parseISO(appointment.end_time);
-
-      return (
-        (isBefore(currentTime, appointmentEnd) && isAfter(slotEndTime, appointmentStart)) ||
-        currentTime.getTime() === appointmentStart.getTime()
-      );
-    });
-
-    // Verificar anticipación mínima
-    const now = new Date();
-    const minimumAdvanceTime = addMinutes(now, availability.advance_hours * 60);
-    const isInAdvance = isAfter(currentTime, minimumAdvanceTime);
-
-    slots.push({
-      time: format(currentTime, 'HH:mm'),
-      datetime: new Date(currentTime),
-      available: !hasConflict && isInAdvance,
-    });
-
-    // Avanzar por el tiempo del servicio + pausa
-    currentTime = addMinutes(currentTime, serviceDuration + availability.break_minutes);
+  if (availability.time_blocks && availability.time_blocks.length > 0) {
+    // Usar los nuevos bloques de tiempo
+    timeBlocks = availability.time_blocks;
+  } else if (availability.start_time && availability.end_time) {
+    // Fallback para datos antiguos
+    timeBlocks = [{ start_time: availability.start_time, end_time: availability.end_time }];
+  } else {
+    return slots;
   }
 
-  return slots;
+  // Generar slots para cada bloque de tiempo
+  timeBlocks.forEach((block) => {
+    const [startHour, startMinute] = block.start_time.split(':').map(Number);
+    const [endHour, endMinute] = block.end_time.split(':').map(Number);
+
+    let currentTime = new Date(date);
+    currentTime.setHours(startHour, startMinute, 0, 0);
+
+    const endTime = new Date(date);
+    endTime.setHours(endHour, endMinute, 0, 0);
+
+    // Generar slots basados en la duración del servicio + tiempo de descanso
+    while (isBefore(currentTime, endTime)) {
+      const slotEndTime = addMinutes(currentTime, serviceDuration);
+
+      // Verificar si el slot completo cabe antes del fin del bloque
+      if (isAfter(slotEndTime, endTime)) {
+        break;
+      }
+
+      // Verificar si hay conflicto con citas existentes
+      const hasConflict = existingAppointments.some((appointment) => {
+        const appointmentStart = parseISO(appointment.start_time);
+        const appointmentEnd = parseISO(appointment.end_time);
+
+        return (
+          (isBefore(currentTime, appointmentEnd) && isAfter(slotEndTime, appointmentStart)) ||
+          currentTime.getTime() === appointmentStart.getTime()
+        );
+      });
+
+      // Verificar anticipación mínima
+      const now = new Date();
+      const minimumAdvanceTime = addMinutes(now, availability.advance_hours * 60);
+      const isInAdvance = isAfter(currentTime, minimumAdvanceTime);
+
+      slots.push({
+        time: format(currentTime, 'HH:mm'),
+        datetime: new Date(currentTime),
+        available: !hasConflict && isInAdvance,
+      });
+
+      // Avanzar por el tiempo del servicio + pausa
+      currentTime = addMinutes(currentTime, serviceDuration + availability.break_minutes);
+    }
+  });
+
+  // Ordenar slots por tiempo
+  return slots.sort((a, b) => a.datetime.getTime() - b.datetime.getTime());
 };
 
 export const formatDate = (date: Date) => {
