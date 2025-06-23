@@ -21,7 +21,7 @@ interface ResenasProps {
   averageRating: number;
 }
 
-export default function Resenas({ reviews, averageRating }: ResenasProps) {
+export default function Reviews({ reviews, averageRating }: ResenasProps) {
   const renderStars = (rating: number) => {
     return (
       <div className="flex items-center">

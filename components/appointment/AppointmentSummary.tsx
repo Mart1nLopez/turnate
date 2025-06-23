@@ -25,15 +25,13 @@ export default function AppointmentSummary({
       <CardContent>
         <div className="space-y-4">
           <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Image
-                src={selectedService?.image_url || '/img/appointments-default.svg'}
-                alt={selectedService?.name || ''}
-                width={24}
-                height={24}
-                className="object-contain"
-              />
-            </div>
+            <Image
+              src={selectedService?.image_url || '/img/appointments-default.svg'}
+              alt={selectedService?.name || ''}
+              width={96}
+              height={96}
+              className="object-cover w-14 h-14 rounded-lg"
+            />
             <div>
               <h3 className="font-semibold text-gray-900">{selectedService?.name}</h3>
               <p className="text-sm text-gray-600">

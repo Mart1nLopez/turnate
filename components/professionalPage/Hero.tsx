@@ -33,14 +33,16 @@ export default function Carrusel({ professional }: CarruselProps) {
   const caption = `Descubre los servicios de ${professional.name}`;
 
   return (
-    <section className="relative w-full h-[calc(100vh-80px)] overflow-hidden z-0">
-      <div className="relative w-full h-full">
+    <section className="relative w-full h-screen overflow-hidden z-0 -mt-20">
+      <div className="relative w-full h-full pt-20">
         {slides.map((slide, i) => (
           <Image
             key={i}
             src={slide}
             alt={`Imagen ${i + 1}`}
             fill
+            sizes="100vw"
+            priority={i === 0}
             className={`absolute w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
               i === index ? 'opacity-100 z-[1]' : 'opacity-0 z-0'
             }`}

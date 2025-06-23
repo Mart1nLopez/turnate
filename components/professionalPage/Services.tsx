@@ -11,7 +11,7 @@ interface ServiciosProps {
   slug: string;
 }
 
-export default function Servicios({ services, slug }: ServiciosProps) {
+export default function Services({ services, slug }: ServiciosProps) {
   return (
     <section id="servicios" className="py-16 px-6 text-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <h2 className="text-3xl md:text-4xl mb-8 font-bold text-gray-900">Servicios disponibles</h2>
@@ -23,17 +23,18 @@ export default function Servicios({ services, slug }: ServiciosProps) {
             {services.map((service) => (
               <article
                 key={service.id}
-                className="bg-white border border-gray-300 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:shadow-blue-200 hover:scale-105 transition-all duration-200 ease-in-out cursor-pointer max-w-sm mx-auto w-full"
+                className="bg-white border border-gray-300 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:shadow-blue-200 hover:scale-105 transition-all duration-200 ease-in-out cursor-pointer max-w-sm mx-auto w-max"
                 onClick={() => {
                   window.location.href = `/${slug}/agendar?service=${service.id}`;
                 }}>
                 <figure className="mb-4">
-                  <div className="relative w-full h-48 mb-3 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
+                  <div className="relative w-64 h-64 mb-3 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center mx-auto">
                     <Image
                       src={service.image_url || '/img/appointments-default.svg'}
                       alt={service.name}
                       fill
-                      className="object-contain p-3"
+                      sizes="(max-width: 768px) 256px, 512px"
+                      className="object-cover p-3 rounded-2xl"
                     />
                   </div>
                   <figcaption className="font-semibold mt-3 text-gray-900">{service.name}</figcaption>

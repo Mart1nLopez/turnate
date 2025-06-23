@@ -7,7 +7,7 @@ import LoadingSpinner from '@/components/ui/loading-spinner';
 import { supabase } from '@/lib/supabase';
 import { Professional, Service, Review } from '@/types';
 import Link from 'next/link';
-import { Header, Carrusel, Servicios, Contacto, Resenas, Footer } from '@/components/professionalPage';
+import { Header, Carrusel, Services, Contacto, Reviews, Footer } from '@/components/professionalPage';
 
 interface ReviewWithClient extends Review {
   appointment?: {
@@ -114,9 +114,9 @@ export default function ProfessionalPublicPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <Header professional={professional} slug={slug} />
       <Carrusel professional={professional} />
-      <Servicios services={services} slug={slug} />
+      <Services services={services} slug={slug} />
       <Contacto professional={professional} />
-      <Resenas reviews={reviews} averageRating={averageRating} />
+      <Reviews reviews={reviews} averageRating={averageRating} />
       <Footer />
     </div>
   );

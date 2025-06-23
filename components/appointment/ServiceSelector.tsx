@@ -29,13 +29,14 @@ export default function ServiceSelector({ services, selectedService, onSelect }:
                 : 'border-gray-200 hover:border-blue-300'
               }`}>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <div className="relative bg-blue-100 rounded flex items-center justify-center">
+
                   <Image
                     src={service.image_url || '/img/appointments-default.svg'}
                     alt={service.name}
-                    width={24}
-                    height={24}
-                    className="object-contain"
+                    width={256}
+                    height={256}
+                    className="object-cover w-14 h-14 rounded"
                   />
                 </div>
                 <div className="flex-1">
