@@ -15,7 +15,7 @@ const Button = React.forwardRef<
     default: 'bg-primary text-primary-foreground hover:bg-primary/90',
     outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
     ghost: 'hover:bg-accent hover:text-accent-foreground',
-    destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+    destructive: 'bg-destructive text-white hover:bg-destructive/90',
   };
 
   const sizes = {

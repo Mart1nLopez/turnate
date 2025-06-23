@@ -117,9 +117,12 @@ export function ImageUpload({
       {/* Upload Area */}
       <div
         className={`
-          border-2 border-dashed rounded-lg p-6 text-center transition-colors
-          ${disabled ? 'border-gray-300 bg-gray-50' : 'border-gray-300 hover:border-gray-400'}
-          ${!disabled && 'cursor-pointer'}
+          border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200
+          ${
+            disabled ?
+              'border-gray-300 bg-gray-50 cursor-not-allowed'
+            : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer'
+          }
         `}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -134,12 +137,16 @@ export function ImageUpload({
           disabled={disabled}
         />
 
-        <div className="space-y-2">
-          <TbUpload className="w-8 h-8 mx-auto text-gray-400" />
+        <div className="space-y-3">
+          <div className="w-12 h-12 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
+            <TbUpload className="w-6 h-6 text-blue-600" />
+          </div>
           <div className="text-sm text-gray-600">
-            <span className="font-medium">Haz clic para subir</span> o arrastra las imágenes aquí
+            <span className="font-medium text-gray-900">Haz clic para subir</span> o arrastra las imágenes aquí
             <br />
-            <span className="text-xs text-gray-500">PNG, JPG, WebP hasta 10MB • Máximo {maxFiles} imágenes</span>
+            <span className="text-xs text-gray-500 mt-1 block">
+              Formatos soportados: PNG, JPG, WebP • Máximo 10MB por imagen • Hasta {maxFiles} imágenes
+            </span>
           </div>
         </div>
       </div>
@@ -147,37 +154,47 @@ export function ImageUpload({
       {/* Images Preview */}
       {images.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-2">
-            Imágenes del carrusel ({images.length}/{maxFiles})
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            Imágenes seleccionadas ({images.length}/{maxFiles})
           </h4>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {images.map((image, index) => (
               <div key={index} className="relative group">
-                <div className="relative">
+                <div className="relative aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
                   <Image
                     src={image.preview}
                     alt={`Imagen ${index + 1}`}
-                    width={200}
-                    height={96}
-                    className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.src = '/img/appointments-default.svg';
                     }}
                   />
+
+                  {/* Overlay gradient for better text readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+
                   {!image.isExisting && (
-                    <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-1 py-0.5 rounded">
+                    <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full shadow-sm">
                       Nuevo
                     </div>
                   )}
+
                   {!disabled && (
                     <button
                       type="button"
                       onClick={() => handleRemoveImage(index)}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600">
-                      <TbX className="w-3 h-3" />
+                      className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-600 hover:scale-110 shadow-md">
+                      <TbX className="w-4 h-4" />
                     </button>
                   )}
+
+                  {/* Image number indicator */}
+                  <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                    {index + 1}
+                  </div>
                 </div>
               </div>
             ))}
@@ -187,8 +204,12 @@ export function ImageUpload({
 
       {/* Info */}
       {images.length === 0 && (
-        <div className="text-center text-gray-500 text-sm">
-          No hay imágenes subidas. Las imágenes se mostrarán en tu página pública.
+        <div className="text-center py-4">
+          <div className="w-16 h-16 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+            <TbUpload className="w-8 h-8 text-gray-400" />
+          </div>
+          <p className="text-gray-500 text-sm mb-1">No hay imágenes subidas</p>
+          <p className="text-gray-400 text-xs">Las imágenes se mostrarán en tu página pública como un carrusel</p>
         </div>
       )}
     </div>

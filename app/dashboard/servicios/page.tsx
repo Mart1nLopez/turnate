@@ -227,15 +227,17 @@ export default function ServiciosPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Servicios</h1>
-          <p className="text-gray-600">Gestiona los servicios que ofreces</p>
+      <div className="space-y-4 sm:space-y-0">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Servicios</h1>
+            <p className="text-gray-600">Gestiona los servicios que ofreces</p>
+          </div>
+          <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
+            <TbPlus className="w-4 h-4 mr-2" />
+            <span>Crear Servicio</span>
+          </Button>
         </div>
-        <Button onClick={() => setShowForm(true)}>
-          <TbPlus className="w-4 h-4 mr-2" />
-          Nuevo Servicio
-        </Button>
       </div>
 
       {/* Service Form Modal */}
@@ -325,15 +327,15 @@ export default function ServiciosPage() {
                 />
               </div>
 
-              <div className="flex space-x-3">
-                <Button type="submit" disabled={submitting}>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button type="submit" disabled={submitting} className="w-full sm:w-auto">
                   {submitting ?
                     'Guardando...'
                   : editingService ?
                     'Actualizar'
                   : 'Crear Servicio'}
                 </Button>
-                <Button type="button" variant="outline" onClick={resetForm}>
+                <Button type="button" variant="outline" onClick={resetForm} className="w-full sm:w-auto">
                   Cancelar
                 </Button>
               </div>
@@ -348,9 +350,10 @@ export default function ServiciosPage() {
           <div className="col-span-full text-center py-12">
             <TbCurrencyDollar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <p className="text-gray-500 mb-4">No tienes servicios creados</p>
-            <Button onClick={() => setShowForm(true)}>
+            <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
               <TbPlus className="w-4 h-4 mr-2" />
-              Crear primer servicio
+              <span className="hidden sm:inline">Crear primer servicio</span>
+              <span className="sm:hidden">Crear Servicio</span>
             </Button>
           </div>
         : services.map((service) => (
@@ -398,8 +401,13 @@ export default function ServiciosPage() {
                       <TbEdit className="w-4 h-4 mr-1" />
                       Editar
                     </Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleDelete(service.id)}>
-                      <TbTrash className="w-4 h-4" />
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDelete(service.id)}
+                      className="sm:w-auto">
+                      <TbTrash className="w-4 h-4 sm:mr-0 mr-1" />
+                      <span className="sm:hidden">Eliminar</span>
                     </Button>
                   </div>
                 </div>

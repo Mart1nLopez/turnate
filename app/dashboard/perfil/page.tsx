@@ -352,7 +352,7 @@ export default function PerfilPage() {
               variant="outline">
               Copiar
             </Button>
-            <Button onClick={() => window.open(getPublicUrl(), '_blank')} variant="outline">
+            <Button onClick={() => window.open(getPublicUrl(), '_blank')} variant="default">
               Ver página
             </Button>
           </div>

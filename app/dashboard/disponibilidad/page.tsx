@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import LoadingSpinner from '@/components/ui/loading-spinner';
+import { TimeSelector } from '@/components/ui/time-selector';
+import { MinuteSelector } from '@/components/ui/minute-selector';
 import { supabase, getCurrentProfessional } from '@/lib/supabase';
 import { Availability } from '@/types';
 import { toast } from 'sonner';
@@ -41,8 +43,8 @@ export default function DisponibilidadPage() {
     day_of_week: 1, // Lunes por defecto
     start_time: '09:00',
     end_time: '18:00',
-    break_minutes: '15',
-    advance_hours: '2',
+    break_minutes: '0',
+    advance_hours: '1',
     cancel_hours: '2',
   });
   const [submitting, setSubmitting] = useState(false);
@@ -78,7 +80,7 @@ export default function DisponibilidadPage() {
       day_of_week: 1, // Lunes por defecto
       start_time: '09:00',
       end_time: '18:00',
-      break_minutes: '15',
+      break_minutes: '0',
       advance_hours: '2',
       cancel_hours: '2',
     });
@@ -235,17 +237,19 @@ export default function DisponibilidadPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Disponibilidad</h1>
-          <p className="text-gray-600">Configura tus horarios de atención</p>
+      <div className="space-y-4 sm:space-y-0">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Disponibilidad</h1>
+            <p className="text-gray-600">Configura tus horarios de atención</p>
+          </div>
+          {getAvailableDays().length > 0 && (
+            <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
+              <TbPlus className="w-4 h-4 mr-2" />
+              <span>Agregar Horario</span>
+            </Button>
+          )}
         </div>
-        {getAvailableDays().length > 0 && (
-          <Button onClick={() => setShowForm(true)}>
-            <TbPlus className="w-4 h-4 mr-2" />
-            Agregar Horario
-          </Button>
-        )}
       </div>
 
       {/* Availability Form Modal */}
@@ -282,34 +286,32 @@ export default function DisponibilidadPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Descanso entre citas (minutos) *
-                  </label>
-                  <Input
-                    name="break_minutes"
-                    type="number"
+                  <MinuteSelector
+                    label="Descanso entre citas (minutos)"
                     value={formData.break_minutes}
-                    onChange={handleInputChange}
-                    placeholder="15"
-                    min="0"
+                    onChange={(minutes) => setFormData((prev) => ({ ...prev, break_minutes: minutes }))}
+                    step={15}
+                    max={60}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Hora de inicio *</label>
-                  <Input
-                    name="start_time"
-                    type="time"
+                  <TimeSelector
+                    label="Hora de inicio"
                     value={formData.start_time}
-                    onChange={handleInputChange}
+                    onChange={(time) => setFormData((prev) => ({ ...prev, start_time: time }))}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Hora de fin *</label>
-                  <Input name="end_time" type="time" value={formData.end_time} onChange={handleInputChange} required />
+                  <TimeSelector
+                    label="Hora de fin"
+                    value={formData.end_time}
+                    onChange={(time) => setFormData((prev) => ({ ...prev, end_time: time }))}
+                    required
+                  />
                 </div>
 
                 <div>
@@ -343,15 +345,15 @@ export default function DisponibilidadPage() {
                 </div>
               </div>
 
-              <div className="flex space-x-3">
-                <Button type="submit" disabled={submitting}>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button type="submit" disabled={submitting} className="w-full sm:w-auto">
                   {submitting ?
                     'Guardando...'
                   : editingAvailability ?
                     'Actualizar'
                   : 'Crear Disponibilidad'}
                 </Button>
-                <Button type="button" variant="outline" onClick={resetForm}>
+                <Button type="button" variant="outline" onClick={resetForm} className="w-full sm:w-auto">
                   Cancelar
                 </Button>
               </div>
@@ -367,58 +369,58 @@ export default function DisponibilidadPage() {
             <CardContent className="text-center py-12">
               <TbCalendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
               <p className="text-gray-500 mb-4">No tienes horarios configurados</p>
-              <Button onClick={() => setShowForm(true)}>
+              <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
                 <TbPlus className="w-4 h-4 mr-2" />
-                Configurar primer horario
+                <span className="hidden sm:inline">Configurar primer horario</span>
+                <span className="sm:hidden">Crear Horario</span>
               </Button>
             </CardContent>
           </Card>
         : availability.map((av) => (
-            <Card key={av.id}>
+            <Card key={av.id} className="relative">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-4">
-                    <div>
-                      <div className="flex items-center text-sm text-gray-500 mb-1">
-                        <TbCalendar className="h-4 w-4 mr-1" />
-                        Día
-                      </div>
-                      <p className="font-medium text-gray-900">{getDayName(av.day_of_week)}</p>
-                    </div>
+                {/* Action buttons in top right corner */}
+                <div className="absolute top-4 right-4 flex items-center space-x-1">
+                  <Button size="sm" variant="outline" onClick={() => handleEdit(av)} className="h-10 w-10 p-0">
+                    <TbEdit className="w-4 h-4" />
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => handleDelete(av.id)} className="h-10 w-10 p-0">
+                    <TbTrash className="w-4 h-4" />
+                  </Button>
+                </div>
 
-                    <div>
-                      <div className="flex items-center text-sm text-gray-500 mb-1">
-                        <TbClock className="h-4 w-4 mr-1" />
-                        Horario
-                      </div>
-                      <p className="font-medium text-gray-900">
-                        {formatTime(av.start_time)} - {formatTime(av.end_time)}
-                      </p>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 pr-20">
+                  <div>
+                    <div className="flex items-center text-sm text-gray-500 mb-1">
+                      <TbCalendar className="h-4 w-4 mr-1" />
+                      Día
                     </div>
-
-                    <div>
-                      <div className="text-sm text-gray-500 mb-1">Descanso</div>
-                      <p className="font-medium text-gray-900">{av.break_minutes} min</p>
-                    </div>
-
-                    <div>
-                      <div className="text-sm text-gray-500 mb-1">Anticipación agendar</div>
-                      <p className="font-medium text-gray-900">{av.advance_hours}h</p>
-                    </div>
-
-                    <div>
-                      <div className="text-sm text-gray-500 mb-1">Anticipación cancelar</div>
-                      <p className="font-medium text-gray-900">{av.cancel_hours}h</p>
-                    </div>
+                    <p className="font-medium text-gray-900">{getDayName(av.day_of_week)}</p>
                   </div>
 
-                  <div className="flex items-center space-x-2 ml-4">
-                    <Button size="sm" variant="outline" onClick={() => handleEdit(av)}>
-                      <TbEdit className="w-4 h-4" />
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={() => handleDelete(av.id)}>
-                      <TbTrash className="w-4 h-4" />
-                    </Button>
+                  <div>
+                    <div className="flex items-center text-sm text-gray-500 mb-1">
+                      <TbClock className="h-4 w-4 mr-1" />
+                      Horario
+                    </div>
+                    <p className="font-medium text-gray-900">
+                      {formatTime(av.start_time)} - {formatTime(av.end_time)}
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">Descanso</div>
+                    <p className="font-medium text-gray-900">{av.break_minutes} min</p>
+                  </div>
+
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">Anticipación agendar</div>
+                    <p className="font-medium text-gray-900">{av.advance_hours}h</p>
+                  </div>
+
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">Anticipación cancelar</div>
+                    <p className="font-medium text-gray-900">{av.cancel_hours}h</p>
                   </div>
                 </div>
               </CardContent>

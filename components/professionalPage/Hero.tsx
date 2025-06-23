@@ -56,17 +56,21 @@ export default function Carrusel({ professional }: CarruselProps) {
           </div>
         </div>
 
-        <button
-          className="absolute top-1/2 left-0 transform -translate-y-1/2 text-4xl bg-none border-none text-white cursor-pointer z-[2] px-5 hover:bg-white hover:text-black hover:bg-opacity-90 py-2 rounded-r"
-          onClick={prevSlide}>
-          &#10094;
-        </button>
+        {slides.length > 1 && (
+          <>
+            <button
+              className="absolute top-1/2 left-0 transform -translate-y-1/2 text-4xl bg-none border-none text-white cursor-pointer z-[2] px-5 hover:bg-white hover:text-black hover:bg-opacity-90 py-2 rounded-r"
+              onClick={prevSlide}>
+              &#10094;
+            </button>
 
-        <button
-          className="absolute top-1/2 right-0 transform -translate-y-1/2 text-4xl bg-none border-none text-white cursor-pointer z-[2] px-5 hover:bg-white hover:text-black hover:bg-opacity-90 py-2 rounded-l"
-          onClick={nextSlide}>
-          &#10095;
-        </button>
+            <button
+              className="absolute top-1/2 right-0 transform -translate-y-1/2 text-4xl bg-none border-none text-white cursor-pointer z-[2] px-5 hover:bg-white hover:text-black hover:bg-opacity-90 py-2 rounded-l"
+              onClick={nextSlide}>
+              &#10095;
+            </button>
+          </>
+        )}
       </div>
     </section>
   );
