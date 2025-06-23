@@ -188,7 +188,7 @@ export function ImageUpload({
       {/* Info */}
       {images.length === 0 && (
         <div className="text-center text-gray-500 text-sm">
-          No hay imágenes subidas. Las imágenes se mostrarán en el carrusel de tu página pública.
+          No hay imágenes subidas. Las imágenes se mostrarán en tu página pública.
         </div>
       )}
     </div>

@@ -8,10 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { supabase, getCurrentProfessional } from '@/lib/supabase';
+import { uploadServiceImage, deleteImageFromStorage } from '@/lib/storage';
 import { Service } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import Image from 'next/image';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
+import { ImageUpload } from '@/components/ui/image-upload';
 import { toast } from 'sonner';
 
 interface ServiceForm {
@@ -36,6 +38,8 @@ export default function ServiciosPage() {
     image_url: '',
   });
   const [submitting, setSubmitting] = useState(false);
+  const [newImageFile, setNewImageFile] = useState<File | null>(null);
+  const [removeExistingImage, setRemoveExistingImage] = useState(false);
 
   const loadServices = useCallback(async () => {
     try {
@@ -72,6 +76,8 @@ export default function ServiciosPage() {
     });
     setEditingService(null);
     setShowForm(false);
+    setNewImageFile(null);
+    setRemoveExistingImage(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -82,6 +88,20 @@ export default function ServiciosPage() {
     }));
   };
 
+  const handleImageChange = (files: File[], existingUrls: string[]) => {
+    if (files.length > 0) {
+      setNewImageFile(files[0]); // Solo tomamos el primer archivo para servicios
+      setRemoveExistingImage(false);
+    } else if (existingUrls.length === 0 && formData.image_url) {
+      // Si no hay archivos nuevos ni URLs existentes, pero había una imagen antes, marcar para eliminar
+      setRemoveExistingImage(true);
+      setNewImageFile(null);
+    } else {
+      setNewImageFile(null);
+      setRemoveExistingImage(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -90,12 +110,32 @@ export default function ServiciosPage() {
       const { professional } = await getCurrentProfessional();
       if (!professional) throw new Error('No professional found');
 
+      let finalImageUrl = formData.image_url;
+
+      // Procesar cambios de imagen
+      if (newImageFile) {
+        // Subir nueva imagen
+        console.log('📤 Subiendo nueva imagen de servicio...');
+        finalImageUrl = await uploadServiceImage(newImageFile);
+
+        // Eliminar imagen anterior si existe
+        if (formData.image_url && editingService) {
+          console.log('🗑️ Eliminando imagen anterior...');
+          await deleteImageFromStorage(formData.image_url);
+        }
+      } else if (removeExistingImage && formData.image_url) {
+        // Eliminar imagen existente
+        console.log('🗑️ Eliminando imagen existente...');
+        await deleteImageFromStorage(formData.image_url);
+        finalImageUrl = '';
+      }
+
       const serviceData = {
         name: formData.name,
         description: formData.description || undefined,
         price: parseFloat(formData.price),
         duration_minutes: parseInt(formData.duration_minutes),
-        image_url: formData.image_url || undefined,
+        image_url: finalImageUrl || undefined,
         professional_id: professional.id,
       };
 
@@ -138,10 +178,14 @@ export default function ServiciosPage() {
       duration_minutes: service.duration_minutes.toString(),
       image_url: service.image_url || '',
     });
+    setNewImageFile(null);
+    setRemoveExistingImage(false);
     setShowForm(true);
   };
 
   const handleDelete = async (serviceId: string) => {
+    const serviceToDelete = services.find((s) => s.id === serviceId);
+
     const confirmed = await confirm({
       title: '¿Eliminar este servicio?',
       description:
@@ -157,6 +201,12 @@ export default function ServiciosPage() {
       const { error } = await supabase.from('services').delete().eq('id', serviceId);
 
       if (error) throw error;
+
+      // Eliminar imagen asociada si existe
+      if (serviceToDelete?.image_url) {
+        console.log('🗑️ Eliminando imagen del servicio...');
+        await deleteImageFromStorage(serviceToDelete.image_url);
+      }
 
       setServices((prev) => prev.filter((service) => service.id !== serviceId));
       toast.success('Servicio eliminado exitosamente');
@@ -249,21 +299,19 @@ export default function ServiciosPage() {
                     />
                   </div>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">URL de imagen</label>
-                  <div className="relative">
-                    <TbPhoto className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      name="image_url"
-                      type="url"
-                      value={formData.image_url}
-                      onChange={handleInputChange}
-                      placeholder="https://ejemplo.com/imagen.jpg"
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
+              {/* Image Upload Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Imagen del servicio</label>
+                <ImageUpload
+                  onFilesChange={handleImageChange}
+                  multiple={false}
+                  maxFiles={1}
+                  existingImages={formData.image_url ? [formData.image_url] : []}
+                  disabled={submitting}
+                  acceptedTypes="image/*"
+                />
               </div>
 
               <div>

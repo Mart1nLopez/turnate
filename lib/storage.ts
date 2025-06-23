@@ -42,10 +42,14 @@ export async function deleteImageFromStorage(imageUrl: string) {
 }
 
 // Función auxiliar para procesar y subir imagen
-export async function processAndUploadImage(imageFile: File, options: UploadImageOptions = {}): Promise<string> {
+export async function processAndUploadImage(
+  imageFile: File,
+  options: UploadImageOptions = {},
+  subfolder: string = 'carrusel',
+): Promise<string> {
   try {
     console.log('🔄 Iniciando processAndUploadImage...');
-    console.log('📁 Archivo:', imageFile.name, 'Tamaño:', imageFile.size);
+    console.log('📁 Archivo:', imageFile.name, 'Tamaño:', imageFile.size, 'Subcarpeta:', subfolder);
 
     // Obtener el usuario autenticado
     const {
@@ -71,7 +75,7 @@ export async function processAndUploadImage(imageFile: File, options: UploadImag
 
     const fileExt = compressedFile.name?.split('.').pop() || 'jpg';
     const fileName = `${uuidv4()}.${fileExt}`;
-    const filePath = `${user.id}/carrusel/${fileName}`;
+    const filePath = `${user.id}/${subfolder}/${fileName}`;
 
     console.log('📤 Subiendo archivo a path:', filePath);
 
@@ -164,7 +168,7 @@ export async function uploadCarouselImages(files: File[]): Promise<string[]> {
     quality: 0.92, // 92% de calidad para imágenes con detalles nítidos en pantalla completa
   };
 
-  const uploadPromises = files.map((file) => processAndUploadImage(file, carouselOptions));
+  const uploadPromises = files.map((file) => processAndUploadImage(file, carouselOptions, 'carrusel'));
 
   try {
     const urls = await Promise.all(uploadPromises);
@@ -204,5 +208,26 @@ export async function deleteMultipleImages(imageUrls: string[]): Promise<void> {
   } catch (error) {
     console.error('❌ Error deleting multiple images:', error);
     // No lanzamos el error para no interrumpir el flujo principal
+  }
+}
+
+// Función para subir imagen de servicio
+export async function uploadServiceImage(file: File): Promise<string> {
+  console.log('🔧 Subiendo imagen de servicio:', file.name);
+
+  // Opciones específicas para imágenes de servicios - compresión mayor ya que se muestran más pequeñas
+  const serviceOptions: UploadImageOptions = {
+    maxSizeMB: 0.8, // Menor tamaño de archivo ya que no se muestran tan grandes
+    maxWidthOrHeight: 800, // Resolución moderada, suficiente para cards de servicios
+    quality: 0.85, // Calidad buena pero no premium
+  };
+
+  try {
+    const url = await processAndUploadImage(file, serviceOptions, 'servicios');
+    console.log('✅ Imagen de servicio subida exitosamente');
+    return url;
+  } catch (error) {
+    console.error('❌ Error uploading service image:', error);
+    throw new Error('Error al subir la imagen del servicio');
   }
 }
