@@ -20,6 +20,7 @@ import { supabase, getCurrentProfessional } from '@/lib/supabase';
 import { Professional } from '@/types';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from 'sonner';
+import LoadingSpinner from '@/components/ui/loading-spinner';
 
 interface NotificationSettings {
   emailNotifications: boolean;
@@ -278,11 +279,7 @@ export default function ConfiguracionPage() {
             <p className="text-gray-600">Gestiona las configuraciones de tu cuenta</p>
           </div>
         </div>
-        <div className="animate-pulse space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-64 bg-gray-200 rounded-lg"></div>
-          ))}
-        </div>
+        <LoadingSpinner size="lg" text="Cargando configuración..." />
       </div>
     );
   }

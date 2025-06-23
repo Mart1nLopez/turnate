@@ -31,8 +31,7 @@ export default function CitasPage() {
   const cancelAppointment = async (appointmentId: string) => {
     const confirmed = await confirm({
       title: '¿Cancelar esta cita?',
-      description:
-        'La cita será marcada como cancelada por el profesional. Esta acción se puede revertir más tarde si es necesario.',
+      description: 'La cita será marcada como cancelada por el profesional. Esta acción no es reversible.',
       confirmText: 'Cancelar cita',
       cancelText: 'Mantener cita',
       variant: 'warning',

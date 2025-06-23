@@ -473,11 +473,11 @@ export default function PerfilPage() {
                 name="map_embed_url"
                 value={formData.map_embed_url}
                 onChange={handleInputChange}
-                placeholder="https://www.google.com/maps/embed?pb=..."
+                placeholder="&lt;iframe src=&quot;https://www.google.com/maps/embed?pb=...&quot;&gt;&lt;/iframe&gt;"
               />
               <p className="text-xs text-gray-500 mt-1">
                 Ve a Google Maps, busca tu ubicación, haz clic en &quot;Compartir&quot; → &quot;Incorporar un mapa&quot;
-                y copia la URL
+                y selecciona &quot;Copiar HTML&quot;.
               </p>
             </div>
           </CardContent>

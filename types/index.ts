@@ -99,3 +99,11 @@ export interface AuthUser {
     name?: string;
   };
 }
+
+export interface UnavailableDate {
+  id: string;
+  professional_id: string;
+  date: string; // YYYY-MM-DD format
+  reason?: string;
+  created_at: string;
+}

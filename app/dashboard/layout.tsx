@@ -17,6 +17,7 @@ import {
   TbMenu2,
   TbX,
   TbTrendingUp,
+  TbCalendarOff,
 } from 'react-icons/tb';
 import { AuthService } from '@/services/authService';
 import { getCurrentProfessional } from '@/lib/supabase';
@@ -31,6 +32,7 @@ const navigation = [
   { name: 'Citas', href: '/dashboard/citas', icon: TbCalendar },
   { name: 'Servicios', href: '/dashboard/servicios', icon: TbUsers },
   { name: 'Disponibilidad', href: '/dashboard/disponibilidad', icon: TbClock },
+  { name: 'Libres', href: '/dashboard/libres', icon: TbCalendarOff },
   { name: 'Analíticas', href: '/dashboard/analytics', icon: TbTrendingUp },
   { name: 'Perfil', href: '/dashboard/perfil', icon: TbUser },
   { name: 'Reseñas', href: '/dashboard/resenas', icon: TbStars },

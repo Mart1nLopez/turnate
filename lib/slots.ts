@@ -1,6 +1,6 @@
 import { format, addMinutes, isBefore, isAfter, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Availability, Appointment } from '@/types';
+import { Availability, Appointment, UnavailableDate } from '@/types';
 
 export interface TimeSlot {
   time: string; // HH:MM format
@@ -13,6 +13,7 @@ export const generateTimeSlots = (
   availability: Availability,
   existingAppointments: Appointment[],
   serviceDuration: number,
+  unavailableDates: UnavailableDate[] = [],
 ): TimeSlot[] => {
   const slots: TimeSlot[] = [];
 
@@ -20,6 +21,13 @@ export const generateTimeSlots = (
 
   // Verificar si hay disponibilidad para este día
   if (availability.day_of_week !== dayOfWeek) {
+    return slots;
+  }
+
+  // Verificar si este día está marcado como no disponible
+  const dateString = format(date, 'yyyy-MM-dd');
+  const isUnavailable = unavailableDates.some((ud) => ud.date === dateString);
+  if (isUnavailable) {
     return slots;
   }
 

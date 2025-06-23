@@ -6,8 +6,9 @@ import { TbArrowLeft } from 'react-icons/tb';
 import { Button } from '@/components/ui/button';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { supabase } from '@/lib/supabase';
-import { Professional, Service, Availability, Client } from '@/types';
+import { Professional, Service, Availability, Client, UnavailableDate } from '@/types';
 import { generateTimeSlots, TimeSlot } from '@/lib/slots';
+import { format } from 'date-fns';
 import Link from 'next/link';
 import ServiceSelector from '@/components/appointment/ServiceSelector';
 import DateCalendar from '@/components/appointment/DateCalendar';
@@ -32,6 +33,7 @@ export default function AgendarPage() {
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [availability, setAvailability] = useState<Availability[]>([]);
+  const [unavailableDates, setUnavailableDates] = useState<UnavailableDate[]>([]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>('');
@@ -95,6 +97,14 @@ export default function AgendarPage() {
 
       setAvailability(availabilityData || []);
 
+      // Cargar fechas no disponibles
+      const { data: unavailableDatesData } = await supabase
+        .from('unavailable_dates')
+        .select('*')
+        .eq('professional_id', professionalData.id);
+
+      setUnavailableDates(unavailableDatesData || []);
+
       // Pre-seleccionar servicio si viene en la URL
       if (preSelectedServiceId && servicesData) {
         const preSelectedService = servicesData.find((s) => s.id === preSelectedServiceId);
@@ -144,15 +154,21 @@ export default function AgendarPage() {
           .lt('start_time', `${dateString}T23:59:59`)
           .eq('status', 'confirmed');
 
-        // Generar slots usando la función de slots
-        const slots = generateTimeSlots(date, dayAvailability, existingAppointments || [], service.duration_minutes);
+        // Generar slots usando la función de slots con fechas no disponibles
+        const slots = generateTimeSlots(
+          date,
+          dayAvailability,
+          existingAppointments || [],
+          service.duration_minutes,
+          unavailableDates,
+        );
         setTimeSlots(slots);
       } catch (error) {
         console.error('Error generating time slots:', error);
         setTimeSlots([]);
       }
     },
-    [professional, availability],
+    [professional, availability, unavailableDates],
   );
 
   useEffect(() => {
@@ -370,11 +386,16 @@ export default function AgendarPage() {
       const hasAvailability = availability ? availability.some((av) => av.day_of_week === dayOfWeek) : false;
       const isPast = current < today;
       const isToday = current.getTime() === today.getTime();
+
+      // Verificar si este día está marcado como no disponible
+      const dateString = format(current, 'yyyy-MM-dd');
+      const isUnavailable = unavailableDates.some((ud) => ud.date === dateString);
+
       days.push({
         date: current,
         isCurrentMonth,
         isToday,
-        isAvailable: isCurrentMonth && hasAvailability && !isPast,
+        isAvailable: isCurrentMonth && hasAvailability && !isPast && !isUnavailable,
       });
     }
     return days;
