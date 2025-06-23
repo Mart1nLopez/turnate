@@ -58,6 +58,7 @@ export default function PerfilPage() {
   const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
   const [slugError, setSlugError] = useState<string>('');
   const [checkingSlug, setCheckingSlug] = useState(false);
+  const [nameError, setNameError] = useState<string>('');
   const slugTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadProfessional = useCallback(async () => {
@@ -103,6 +104,17 @@ export default function PerfilPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+
+    // Validar límite de caracteres para el nombre
+    if (name === 'name') {
+      if (value.length > 30) {
+        setNameError('El nombre no puede exceder los 30 caracteres');
+        toast.error('El nombre no puede exceder los 30 caracteres');
+        return; // No actualizar el estado si excede el límite
+      } else {
+        setNameError('');
+      }
+    }
 
     setFormData((prev) => ({
       ...prev,
@@ -377,10 +389,17 @@ export default function PerfilPage() {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="Tu nombre completo"
-                    className="pl-10"
+                    placeholder="Tu nombre"
+                    className={`pl-10 ${nameError ? 'border-red-500' : ''}`}
+                    maxLength={30}
                     required
                   />
+                </div>
+                <div className="flex justify-between items-center mt-1">
+                  <div>{nameError && <p className="text-red-500 text-sm">{nameError}</p>}</div>
+                  <p className={`text-xs ${formData.name.length > 25 ? 'text-orange-500' : 'text-gray-500'}`}>
+                    {formData.name.length}/30 caracteres
+                  </p>
                 </div>
               </div>
 
@@ -473,7 +492,7 @@ export default function PerfilPage() {
                 name="map_embed_url"
                 value={formData.map_embed_url}
                 onChange={handleInputChange}
-                placeholder="&lt;iframe src=&quot;https://www.google.com/maps/embed?pb=...&quot;&gt;&lt;/iframe&gt;"
+                placeholder='&lt;iframe src="https://www.google.com/maps/embed?pb=..."&gt;&lt;/iframe&gt;'
               />
               <p className="text-xs text-gray-500 mt-1">
                 Ve a Google Maps, busca tu ubicación, haz clic en &quot;Compartir&quot; → &quot;Incorporar un mapa&quot;

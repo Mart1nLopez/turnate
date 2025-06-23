@@ -692,10 +692,7 @@ export default function LibresPage() {
           <ul className="space-y-2 text-sm text-gray-600">
             <li>• Los días marcados como libres no aparecerán disponibles en el calendario de agendamiento</li>
             <li>• Puedes agregar días individuales o rangos de fechas completos</li>
-            <li>• Los rangos de fechas consecutivas se agrupan automáticamente para facilitar la gestión</li>
-            <li>• Al eliminar un rango, se eliminan todos los días incluidos en el período</li>
             <li>• Las citas ya agendadas en estos días no se verán afectadas</li>
-            <li>• Solo puedes agregar días libres a partir de hoy en adelante</li>
             <li>• Los clientes verán estos días como no disponibles sin mostrar el motivo</li>
           </ul>
         </CardContent>

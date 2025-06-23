@@ -45,7 +45,7 @@ export default function Footer() {
 
         {/* Bottom section */}
         <div className="mt-4 pt-4 border-t text-center">
-          <p className="text-sm text-muted-foreground">© 2024 Turnate. Todos los derechos reservados.</p>
+          <p className="text-sm text-muted-foreground">© 2025 Turnate. Todos los derechos reservados.</p>
         </div>
       </div>
     </footer>
