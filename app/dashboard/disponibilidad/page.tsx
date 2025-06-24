@@ -38,8 +38,9 @@ export default function DisponibilidadPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingAvailability, setEditingAvailability] = useState<Availability | null>(null);
   const { confirm, ConfirmDialog } = useConfirmDialog();
+
   const [formData, setFormData] = useState<AvailabilityForm>({
-    day_of_week: 1, // Lunes por defecto
+    day_of_week: 1, // Se actualizará dinámicamente
     time_blocks: [{ start_time: '09:00', end_time: '18:00' }],
     break_minutes: '0',
     advance_hours: '1',
@@ -61,7 +62,17 @@ export default function DisponibilidadPage() {
 
       if (error) throw error;
 
-      setAvailability(data || []);
+      // Asegurar que day_of_week sean números
+      const processedData = (data || []).map((item) => ({
+        ...item,
+        day_of_week: typeof item.day_of_week === 'string' ? parseInt(item.day_of_week) : item.day_of_week,
+      }));
+
+      console.log('=== LOADED AVAILABILITY ===');
+      console.log('Raw data:', data);
+      console.log('Processed data:', processedData);
+
+      setAvailability(processedData);
     } catch (error) {
       console.error('Error loading availability:', error);
     } finally {
@@ -73,9 +84,39 @@ export default function DisponibilidadPage() {
     loadAvailability();
   }, [loadAvailability]);
 
+  // Efecto para actualizar el día por defecto cuando cambia la disponibilidad
+  useEffect(() => {
+    if (!showForm && !editingAvailability) {
+      const availableDays = DAYS_OF_WEEK.filter((day) => !availability.map((av) => av.day_of_week).includes(day.value));
+
+      if (availableDays.length > 0 && availableDays[0].value !== formData.day_of_week) {
+        console.log('=== UPDATING DEFAULT DAY ===');
+        console.log('From:', formData.day_of_week, 'To:', availableDays[0].value);
+        setFormData((prev) => ({
+          ...prev,
+          day_of_week: availableDays[0].value,
+        }));
+      }
+    }
+  }, [availability, showForm, editingAvailability, formData.day_of_week]);
+
   const resetForm = () => {
+    const availableDays = DAYS_OF_WEEK.filter(
+      (day) =>
+        !availability.map((av) => av.day_of_week).includes(day.value) ||
+        (editingAvailability && day.value === editingAvailability.day_of_week),
+    );
+    const defaultDay = availableDays.length > 0 ? availableDays[0].value : 1;
+
+    console.log('=== RESET FORM ===');
+    console.log(
+      'availableDays:',
+      availableDays.map((d) => ({ value: d.value, label: d.label })),
+    );
+    console.log('defaultDay:', defaultDay);
+
     setFormData({
-      day_of_week: 1, // Lunes por defecto
+      day_of_week: defaultDay,
       time_blocks: [{ start_time: '09:00', end_time: '18:00' }],
       break_minutes: '0',
       advance_hours: '2',
@@ -87,9 +128,18 @@ export default function DisponibilidadPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    const newValue = name === 'day_of_week' ? parseInt(value) : value;
+
+    if (name === 'day_of_week') {
+      console.log('=== DAY CHANGE ===');
+      console.log('Original value:', value, 'tipo:', typeof value);
+      console.log('Parsed value:', newValue, 'tipo:', typeof newValue);
+      console.log('Día seleccionado:', getDayName(parseInt(value)));
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: newValue,
     }));
   };
 
@@ -118,13 +168,37 @@ export default function DisponibilidadPage() {
         }
       }
 
-      const selectedDayOfWeek = parseInt(formData.day_of_week.toString());
+      const selectedDayOfWeek = formData.day_of_week;
+
+      console.log('=== DEBUG VALIDATION ===');
+      console.log('selectedDayOfWeek:', selectedDayOfWeek, 'tipo:', typeof selectedDayOfWeek);
+      console.log('Día seleccionado:', getDayName(selectedDayOfWeek));
+      console.log(
+        'availability days:',
+        availability.map((av) => ({
+          id: av.id,
+          day_of_week: av.day_of_week,
+          day_name: getDayName(av.day_of_week),
+          tipo: typeof av.day_of_week,
+        })),
+      );
+      console.log('editingAvailability:', editingAvailability?.id);
 
       // Verificar si ya existe disponibilidad para este día (solo si no estamos editando)
       if (!editingAvailability) {
-        const existingAvailability = availability.find((av) => av.day_of_week === selectedDayOfWeek);
+        const existingAvailability = availability.find((av) => {
+          const matches = av.day_of_week === selectedDayOfWeek;
+          console.log(
+            `Comparando ${av.day_of_week} (${getDayName(av.day_of_week)}) === ${selectedDayOfWeek} (${getDayName(selectedDayOfWeek)}): ${matches}`,
+          );
+          return matches;
+        });
+
+        console.log('existingAvailability found:', existingAvailability);
 
         if (existingAvailability) {
+          console.log('ERROR: Ya existe disponibilidad para:', getDayName(selectedDayOfWeek));
+          console.log('Pero encontrado:', getDayName(existingAvailability.day_of_week));
           toast.error(`Ya tienes configurada la disponibilidad para ${getDayName(selectedDayOfWeek)}`);
           return;
         }
@@ -227,9 +301,25 @@ export default function DisponibilidadPage() {
 
   const getAvailableDays = () => {
     const usedDays = availability.map((av) => av.day_of_week);
-    return DAYS_OF_WEEK.filter(
+    console.log('=== DEBUG AVAILABLE DAYS ===');
+    console.log('usedDays:', usedDays);
+    console.log('editingAvailability day:', editingAvailability?.day_of_week);
+
+    // Test específico para domingo
+    const sundayAvailable = !usedDays.includes(0) || (editingAvailability && 0 === editingAvailability.day_of_week);
+    console.log('Sunday (0) available?', sundayAvailable);
+    console.log('usedDays includes 0?', usedDays.includes(0));
+    console.log('editing sunday?', editingAvailability && 0 === editingAvailability.day_of_week);
+
+    const availableDays = DAYS_OF_WEEK.filter(
       (day) => !usedDays.includes(day.value) || (editingAvailability && day.value === editingAvailability.day_of_week),
     );
+
+    console.log(
+      'availableDays:',
+      availableDays.map((d) => ({ value: d.value, label: d.label })),
+    );
+    return availableDays;
   };
 
   const addTimeBlock = () => {
@@ -318,8 +408,11 @@ export default function DisponibilidadPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Día de la semana *</label>
+                  <label htmlFor="day_of_week" className="block text-sm font-medium text-gray-700 mb-2">
+                    Día de la semana *
+                  </label>
                   <select
+                    id="day_of_week"
                     name="day_of_week"
                     value={formData.day_of_week}
                     onChange={handleInputChange}
@@ -383,10 +476,11 @@ export default function DisponibilidadPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="advance_hours" className="block text-sm font-medium text-gray-700 mb-2">
                     Anticipación mínima para agendar (horas) *
                   </label>
                   <Input
+                    id="advance_hours"
                     name="advance_hours"
                     type="number"
                     value={formData.advance_hours}
@@ -397,10 +491,11 @@ export default function DisponibilidadPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="cancel_hours" className="block text-sm font-medium text-gray-700 mb-2">
                     Anticipación mínima para cancelar (horas) *
                   </label>
                   <Input
+                    id="cancel_hours"
                     name="cancel_hours"
                     type="number"
                     value={formData.cancel_hours}
@@ -448,10 +543,22 @@ export default function DisponibilidadPage() {
               <CardContent className="p-6">
                 {/* Action buttons in top right corner */}
                 <div className="absolute top-4 right-4 flex items-center space-x-1">
-                  <Button size="sm" variant="outline" onClick={() => handleEdit(av)} className="h-10 w-10 p-0">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    aria-label="Editar disponibilidad"
+                    data-testid="edit-button"
+                    onClick={() => handleEdit(av)}
+                    className="h-10 w-10 p-0">
                     <TbEdit className="w-5 h-5" />
                   </Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDelete(av.id)} className="h-10 w-10 p-0">
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    aria-label="Eliminar disponibilidad"
+                    data-testid="delete-button"
+                    onClick={() => handleDelete(av.id)}
+                    className="h-10 w-10 p-0">
                     <TbTrash className="w-5 h-5" />
                   </Button>
                 </div>

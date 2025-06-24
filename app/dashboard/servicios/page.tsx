@@ -104,6 +104,13 @@ export default function ServiciosPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Validar campos requeridos
+    if (!formData.name || !formData.price || !formData.duration_minutes) {
+      toast.error('Por favor completa todos los campos requeridos');
+      setSubmitting(false);
+      return;
+    }
+    
     setSubmitting(true);
 
     try {
@@ -404,6 +411,7 @@ export default function ServiciosPage() {
                     <Button
                       size="sm"
                       variant="destructive"
+                      aria-label="Eliminar"
                       onClick={() => handleDelete(service.id)}
                       className="sm:w-auto">
                       <TbTrash className="w-4 h-4 sm:mr-0 mr-1" />
