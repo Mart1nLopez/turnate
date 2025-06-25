@@ -320,15 +320,18 @@ export default function AgendarPage() {
 
       console.log('Datos que se envían al Google Apps Script:', dataToSend);
 
+      const formBody = Object.entries(dataToSend)
+        .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
+        .join('&');
       // Enviar los datos al Google Apps Script
       const res = await fetch(
-        'https://script.google.com/macros/s/AKfycbzHZxvmsNYZLraFot0Nvmn7nh7VP2wICbfRvMbywdLeERU86kkvnZUUA4T8TZLTmC2_vg/exec',
+        'https://script.google.com/macros/s/AKfycbyOxLrPe9bj-utt5_FAn9Z77YxJdvugTt368pdlDlPn3LbZLcnQ616ihVMOXxHe0Umb/exec',
         {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
           },
-          body: JSON.stringify(dataToSend),
+          body: formBody,
         },
       );
 
