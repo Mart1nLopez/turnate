@@ -14,9 +14,18 @@ interface ClientFormProps {
   onSubmit: () => void;
   submitting: boolean;
   error: string | null;
+  onEmailBlur?: () => void;
 }
 
-export default function ClientForm({ formData, onChange, onBack, onSubmit, submitting, error }: ClientFormProps) {
+export default function ClientForm({
+  formData,
+  onChange,
+  onBack,
+  onSubmit,
+  submitting,
+  error,
+  onEmailBlur,
+}: ClientFormProps) {
   return (
     <Card>
       <CardHeader>
@@ -24,20 +33,6 @@ export default function ClientForm({ formData, onChange, onBack, onSubmit, submi
         <CardDescription>Completa tu información para confirmar la cita</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Nombre completo *</label>
-          <div className="relative">
-            <TbUser className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              name="name"
-              value={formData.name}
-              onChange={onChange}
-              placeholder="Tu nombre completo"
-              className="pl-10"
-              required
-            />
-          </div>
-        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
           <div className="relative">
@@ -47,7 +42,22 @@ export default function ClientForm({ formData, onChange, onBack, onSubmit, submi
               type="email"
               value={formData.email}
               onChange={onChange}
+              onBlur={onEmailBlur}
               placeholder="tu@email.com"
+              className="pl-10"
+              required
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Nombre completo *</label>
+          <div className="relative">
+            <TbUser className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Input
+              name="name"
+              value={formData.name}
+              onChange={onChange}
+              placeholder="Tu nombre completo"
               className="pl-10"
               required
             />

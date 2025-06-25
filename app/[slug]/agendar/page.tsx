@@ -222,6 +222,7 @@ export default function AgendarPage() {
 
   const checkExistingClient = async (email: string) => {
     const { data } = await supabase.from('clients').select('*').eq('email', email).single();
+    console.log('Existing client data:', data);
     return data;
   };
 
@@ -461,6 +462,20 @@ export default function AgendarPage() {
   // Cambia canContinue a booleano explícito
   const canContinue = Boolean(selectedService && selectedDate && selectedTime);
 
+  // Nueva función para autocompletar datos del cliente
+  const handleEmailBlur = async () => {
+    if (!formData.email.trim()) return;
+    const existingClient = await checkExistingClient(formData.email);
+    if (existingClient) {
+      setFormData((prev) => ({
+        ...prev,
+        name: existingClient.name || '',
+        phone: existingClient.phone || '',
+      }));
+      console.log('Datos de cliente autocompletados.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -578,6 +593,7 @@ export default function AgendarPage() {
               onSubmit={handleSubmit}
               submitting={submitting}
               error={error}
+              onEmailBlur={handleEmailBlur}
             />
           </div>
         </div>
