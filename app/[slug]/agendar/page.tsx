@@ -322,7 +322,7 @@ export default function AgendarPage() {
 
       // Enviar los datos al Google Apps Script
       const res = await fetch(
-        'https://script.google.com/macros/s/AKfycbzx8kzMhX3_R3JLlmsXQwcRxfmNa54_Us3017RGmPK00Odg404mMX9sIZk3xPrsQ5oqrw/exec',
+        'https://script.google.com/macros/s/AKfycbzHZxvmsNYZLraFot0Nvmn7nh7VP2wICbfRvMbywdLeERU86kkvnZUUA4T8TZLTmC2_vg/exec',
         {
           method: 'POST',
           headers: {

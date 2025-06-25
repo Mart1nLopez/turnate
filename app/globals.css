@@ -223,3 +223,36 @@ html {
     overscroll-behavior: contain;
   }
 }
+
+/* Efectos 3D para dashboard mockup */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.rotate-y-12 {
+  transform: rotateY(-12deg) rotateX(5deg);
+}
+
+.rotate-y-8 {
+  transform: rotateY(-8deg) rotateX(3deg);
+}
+
+.rotate-x-2 {
+  transform: rotateY(-12deg) rotateX(5deg);
+}
+
+.rotate-x-1 {
+  transform: rotateY(-8deg) rotateX(3deg);
+}
+
+/* Sombra mejorada para el dashboard */
+.dashboard-shadow {
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Bordes ajustados para móvil */
+.border-6 {
+  border-width: 6px;
+}

@@ -1,10 +1,22 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { LuCalendar, LuClock, LuGlobe, LuUsers, LuTrendingUp } from 'react-icons/lu';
+import {
+  LuCalendar,
+  LuClock,
+  LuGlobe,
+  LuUsers,
+  LuTrendingUp,
+  LuSettings,
+  LuStar,
+  LuMail,
+  LuImage,
+} from 'react-icons/lu';
 import { Button } from '@/components/ui/button';
 import Footer from '@/components/home/Footer';
 import TestimonialCard from '@/components/home/TestimonialCard';
 import HashRedirect from '@/components/professionalPage/HashRedirect';
+import DashboardMockup from '@/components/home/DashboardMockup';
+import TypingAnimation from '@/components/ui/typing-animation';
 
 export default function LandingPage() {
   return (
@@ -52,14 +64,55 @@ export default function LandingPage() {
         </header>
 
         {/* Sección Hero */}
-        <section className="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center gap-12">
+        <section className="container mx-auto px-2 py-16 md:py-24 flex flex-col md:flex-row items-center gap-10">
           <div className="flex-1 space-y-6">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-              Gestiona tu negocio con facilidad
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-balance">
+              Gestiona tu{' '}
+              <TypingAnimation
+                words={[
+                  'negocio',
+                  'barbería',
+                  'clínica',
+                  'peluquería',
+                  'taller mecánico',
+                  'spa',
+                  'kinesiología',
+                  'centro médico',
+                  'estética',
+                  'masoterapia',
+                  'odontología',
+                  'psicología',
+                  'nutrición',
+                  'veterinaria',
+                  'salón de belleza',
+                  'gimnasio',
+                  'yoga',
+                  'pilates',
+                  'terapia',
+                  'consulta médica',
+                  'laboratorio',
+                  'radiología',
+                  'quiropráctica',
+                  'podología',
+                  'dermatología',
+                  'oftalmología',
+                  'fisioterapia',
+                  'acupuntura',
+                  'estudio de tatuajes',
+                  'manicure',
+                  'pedicure',
+                  'coaching',
+                  'consultorio',
+                  'centro estético',
+                ]}
+                className="text-primary"
+              />{' '}
+              <br/>
+              con facilidad
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl">
-              La plataforma que simplifica la gestión de citas para profesionales. Aumenta tus ingresos y mejora la
-              experiencia de tus clientes.
+              Plataforma completa para profesionales independientes: gestiona citas, servicios, disponibilidad y
+              clientes con tu propia página web personalizada y sistema de agendamiento automático.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Link href="/auth/register">
@@ -70,14 +123,8 @@ export default function LandingPage() {
               </Link>*/}
             </div>
           </div>
-          <div className="relative h-[400px] md:h-[400px] w-full md:flex-1 rounded-xl overflow-hidden shadow-2xl">
-            <Image
-              src="https://place-hold.it/800x600/blue/white?text=App+Mockup"
-              alt="Aplicación Turnate en un dispositivo"
-              fill
-              className="object-cover"
-              priority
-            />
+          <div className="relative h-[400px] md:h-[400px] w-full md:flex-1 flex items-center justify-center md:my-5 my-12">
+            <DashboardMockup />
           </div>
         </section>
 
@@ -85,20 +132,21 @@ export default function LandingPage() {
         <section id="beneficios" className="bg-muted py-16 md:py-24">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Beneficios principales</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Todo lo que necesitas en una plataforma</h2>
               <p className="text-muted-foreground">
-                Turnate te ofrece todas las herramientas que necesitas para gestionar tu negocio de manera eficiente
+                Desde la gestión de horarios hasta tu presencia online, Turnate incluye todas las herramientas
+                profesionales para hacer crecer tu negocio
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               <div className="bg-card p-6 rounded-xl shadow-md hover:shadow-lg transition">
                 <div className="bg-accent p-3 size-12 flex items-center justify-center rounded-lg mb-4">
-                  <LuClock className="h-6 w-6 text-primary" />
+                  <LuCalendar className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Gestión de disponibilidad</h3>
+                <h3 className="text-xl font-bold mb-2">Gestión completa de citas</h3>
                 <p className="text-muted-foreground">
-                  Configura fácilmente tus horarios, descansos y días libres sin complicaciones.
+                  Administra todas tus citas con filtros avanzados, cancelaciones y confirmaciones automáticas.
                 </p>
               </div>
 
@@ -106,19 +154,19 @@ export default function LandingPage() {
                 <div className="bg-accent p-3 size-12 flex items-center justify-center rounded-lg mb-4">
                   <LuGlobe className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Página personalizada</h3>
+                <h3 className="text-xl font-bold mb-2">Página web personalizada</h3>
                 <p className="text-muted-foreground">
-                  Crea tu página web con tu marca, servicios y precios para destacar entre la competencia.
+                  Tu propia página con galería de imágenes, servicios, reseñas y sistema de agendamiento integrado.
                 </p>
               </div>
 
               <div className="bg-card p-6 rounded-xl shadow-md hover:shadow-lg transition">
                 <div className="bg-accent p-3 size-12 flex items-center justify-center rounded-lg mb-4">
-                  <LuCalendar className="h-6 w-6 text-primary" />
+                  <LuStar className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Agendamiento online</h3>
+                <h3 className="text-xl font-bold mb-2">Sistema de reseñas</h3>
                 <p className="text-muted-foreground">
-                  Permite a tus clientes reservar citas 24/7 desde cualquier dispositivo de manera sencilla.
+                  Los clientes pueden dejar reseñas automáticamente después de cada cita completada.
                 </p>
               </div>
             </div>
@@ -130,46 +178,69 @@ export default function LandingPage() {
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row gap-12 items-center">
               <div className="w-full md:flex-1">
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                  Características diseñadas para mejorar tu rendimiento
-                </h2>
+                <h2 className="text-3xl md:text-4xl font-bold mb-6">Funcionalidades avanzadas para profesionales</h2>
                 <ul className="space-y-4">
                   <li className="flex items-start gap-3">
-                    <LuCalendar className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
+                    <LuSettings className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-semibold">Recordatorios automáticos</span>
+                      <span className="font-semibold">Configuraciones empresariales</span>
                       <p className="text-muted-foreground text-sm">
-                        Reduce las cancelaciones con notificaciones automáticas a tus clientes.
+                        Autoconfirmación de citas, políticas de cancelación, horas de anticipación.
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <LuImage className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-semibold">Gestión de servicios con imágenes</span>
+                      <p className="text-muted-foreground text-sm">
+                        Crea servicios personalizados con precios, duración, descripciones e imágenes atractivas.
                       </p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
                     <LuUsers className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-semibold">Historial de clientes</span>
+                      <span className="font-semibold">Perfil profesional completo</span>
                       <p className="text-muted-foreground text-sm">
-                        Guarda detalles importantes sobre tus clientes para personalizar el servicio.
+                        Perfil personalizable con biografía, redes sociales, galería de trabajos y información de
+                        contacto.
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <LuClock className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-semibold">Disponibilidad flexible</span>
+                      <p className="text-muted-foreground text-sm">
+                        Configura horarios semanales con múltiples bloques de tiempo, descansos y días libres
+                        específicos.
                       </p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
                     <LuTrendingUp className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-semibold">Estadísticas y reportes</span>
+                      <span className="font-semibold">Dashboard con analíticas</span>
                       <p className="text-muted-foreground text-sm">
-                        Analiza el rendimiento de tu negocio con informes detallados.
+                        Estadísticas detalladas de citas, ingresos, clientes y servicios más populares para tomar
+                        decisiones.
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <LuMail className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-semibold">Notificaciones automáticas</span>
+                      <p className="text-muted-foreground text-sm">
+                        Envío automático de confirmaciones y recordatorios por email con configuración personalizable.
                       </p>
                     </div>
                   </li>
                 </ul>
               </div>
-              <div className="w-full md:flex-1 relative h-[300px] md:h-[400px] rounded-xl overflow-hidden shadow-xl">
-                <Image
-                  src="https://place-hold.it/800x600/darkblue/white?text=Dashboard+Mockup"
-                  alt="Dashboard de Turnate"
-                  fill
-                  className="object-cover"
-                />
+              <div className="relative h-[400px] md:h-[400px] w-full md:flex-1 flex items-center justify-center md:my-5 my-12">
+                <DashboardMockup />
               </div>
             </div>
           </div>
@@ -205,9 +276,10 @@ export default function LandingPage() {
         {/* Sección CTA final */}
         <section className="py-16 md:py-24">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Comienza a transformar tu negocio hoy mismo</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Digitaliza tu negocio profesional hoy mismo</h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              Únete a cientos de profesionales que ya confían en Turnate
+              Únete a profesionales de toda Chile que ya transformaron su manera de trabajar con Turnate. Tu página web
+              profesional, sistema de citas y dashboard administrativo te esperan.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="auth/register">
