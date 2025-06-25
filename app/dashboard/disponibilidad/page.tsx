@@ -68,10 +68,6 @@ export default function DisponibilidadPage() {
         day_of_week: typeof item.day_of_week === 'string' ? parseInt(item.day_of_week) : item.day_of_week,
       }));
 
-      console.log('=== LOADED AVAILABILITY ===');
-      console.log('Raw data:', data);
-      console.log('Processed data:', processedData);
-
       setAvailability(processedData);
     } catch (error) {
       console.error('Error loading availability:', error);
@@ -90,8 +86,6 @@ export default function DisponibilidadPage() {
       const availableDays = DAYS_OF_WEEK.filter((day) => !availability.map((av) => av.day_of_week).includes(day.value));
 
       if (availableDays.length > 0 && availableDays[0].value !== formData.day_of_week) {
-        console.log('=== UPDATING DEFAULT DAY ===');
-        console.log('From:', formData.day_of_week, 'To:', availableDays[0].value);
         setFormData((prev) => ({
           ...prev,
           day_of_week: availableDays[0].value,
@@ -108,13 +102,6 @@ export default function DisponibilidadPage() {
     );
     const defaultDay = availableDays.length > 0 ? availableDays[0].value : 1;
 
-    console.log('=== RESET FORM ===');
-    console.log(
-      'availableDays:',
-      availableDays.map((d) => ({ value: d.value, label: d.label })),
-    );
-    console.log('defaultDay:', defaultDay);
-
     setFormData({
       day_of_week: defaultDay,
       time_blocks: [{ start_time: '09:00', end_time: '18:00' }],
@@ -129,13 +116,6 @@ export default function DisponibilidadPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const newValue = name === 'day_of_week' ? parseInt(value) : value;
-
-    if (name === 'day_of_week') {
-      console.log('=== DAY CHANGE ===');
-      console.log('Original value:', value, 'tipo:', typeof value);
-      console.log('Parsed value:', newValue, 'tipo:', typeof newValue);
-      console.log('Día seleccionado:', getDayName(parseInt(value)));
-    }
 
     setFormData((prev) => ({
       ...prev,
@@ -170,35 +150,14 @@ export default function DisponibilidadPage() {
 
       const selectedDayOfWeek = formData.day_of_week;
 
-      console.log('=== DEBUG VALIDATION ===');
-      console.log('selectedDayOfWeek:', selectedDayOfWeek, 'tipo:', typeof selectedDayOfWeek);
-      console.log('Día seleccionado:', getDayName(selectedDayOfWeek));
-      console.log(
-        'availability days:',
-        availability.map((av) => ({
-          id: av.id,
-          day_of_week: av.day_of_week,
-          day_name: getDayName(av.day_of_week),
-          tipo: typeof av.day_of_week,
-        })),
-      );
-      console.log('editingAvailability:', editingAvailability?.id);
-
       // Verificar si ya existe disponibilidad para este día (solo si no estamos editando)
       if (!editingAvailability) {
         const existingAvailability = availability.find((av) => {
           const matches = av.day_of_week === selectedDayOfWeek;
-          console.log(
-            `Comparando ${av.day_of_week} (${getDayName(av.day_of_week)}) === ${selectedDayOfWeek} (${getDayName(selectedDayOfWeek)}): ${matches}`,
-          );
           return matches;
         });
 
-        console.log('existingAvailability found:', existingAvailability);
-
         if (existingAvailability) {
-          console.log('ERROR: Ya existe disponibilidad para:', getDayName(selectedDayOfWeek));
-          console.log('Pero encontrado:', getDayName(existingAvailability.day_of_week));
           toast.error(`Ya tienes configurada la disponibilidad para ${getDayName(selectedDayOfWeek)}`);
           return;
         }
@@ -301,24 +260,11 @@ export default function DisponibilidadPage() {
 
   const getAvailableDays = () => {
     const usedDays = availability.map((av) => av.day_of_week);
-    console.log('=== DEBUG AVAILABLE DAYS ===');
-    console.log('usedDays:', usedDays);
-    console.log('editingAvailability day:', editingAvailability?.day_of_week);
-
-    // Test específico para domingo
-    const sundayAvailable = !usedDays.includes(0) || (editingAvailability && 0 === editingAvailability.day_of_week);
-    console.log('Sunday (0) available?', sundayAvailable);
-    console.log('usedDays includes 0?', usedDays.includes(0));
-    console.log('editing sunday?', editingAvailability && 0 === editingAvailability.day_of_week);
 
     const availableDays = DAYS_OF_WEEK.filter(
       (day) => !usedDays.includes(day.value) || (editingAvailability && day.value === editingAvailability.day_of_week),
     );
 
-    console.log(
-      'availableDays:',
-      availableDays.map((d) => ({ value: d.value, label: d.label })),
-    );
     return availableDays;
   };
 

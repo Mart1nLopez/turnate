@@ -211,7 +211,8 @@ export default function ServiciosPage() {
 
       // Eliminar imagen asociada si existe
       if (serviceToDelete?.image_url) {
-        console.log('🗑️ Eliminando imagen del servicio...');
+        // comentado para el test
+        // console.log('🗑️ Eliminando imagen del servicio...');
         await deleteImageFromStorage(serviceToDelete.image_url);
       }
 
