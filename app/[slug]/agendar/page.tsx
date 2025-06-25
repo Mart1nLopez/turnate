@@ -306,6 +306,44 @@ export default function AgendarPage() {
     setError(null);
 
     try {
+      // Preparar los datos para enviar
+      const dataToSend = {
+        clientName: formData.name,
+        clientEmail: formData.email,
+        clientPhone: formData.phone,
+        service: selectedService.name,
+        date: formData.date,
+        time: formData.time,
+        professionalName: professional.name,
+        professionalEmail: professional.email,
+      };
+
+      console.log('Datos que se envían al Google Apps Script:', dataToSend);
+
+      // Enviar los datos al Google Apps Script
+      const res = await fetch(
+        'https://script.google.com/macros/s/AKfycbzx8kzMhX3_R3JLlmsXQwcRxfmNa54_Us3017RGmPK00Odg404mMX9sIZk3xPrsQ5oqrw/exec',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(dataToSend),
+        },
+      );
+
+      const result = await res.text();
+      toast.success('Cita confirmada. Te hemos enviado un correo de confirmación.');
+      console.log('Respuesta del script:', result);
+    } catch (error) {
+      console.error('Error al enviar los datos al script:', error);
+      setError('Error al enviar los datos. Por favor intenta nuevamente.');
+      setSubmitting(false);
+      toast.error('Error al enviar los datos. Por favor intenta nuevamente.');
+      return;
+    }
+
+    try {
       const client = await createOrUpdateClient();
       const startDateTime = new Date(`${formData.date}T${formData.time}`);
       const endDateTime = new Date(startDateTime.getTime() + selectedService.duration_minutes * 60000);

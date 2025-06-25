@@ -13,14 +13,14 @@ export default function Header({ professional, slug }: HeaderProps) {
     <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-md">
       <div className="container mx-auto flex items-center justify-between p-2 sm:p-3 md:py-4 lg:px-4">
         <div className="flex items-center">
-          <div className="flex items-center">
+          <a href="#hero" className="flex items-center">
             <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center mr-4">
               <span className="text-white font-medium text-sm">{professional.name?.charAt(0) || 'P'}</span>
             </div>
             <div>
               <span className="text-xl sm:text-2xl font-bold">{professional.name}</span>
             </div>
-          </div>
+          </a>
         </div>
 
         <nav className="nav">
