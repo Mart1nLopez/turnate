@@ -52,7 +52,7 @@ export const SocialButtons: React.FC<SocialButtonsProps> = ({ socials, size = 'm
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className={`bg-gray-100 rounded-full flex items-center justify-center text-gray-600 transition-all duration-300 hover:text-white hover:scale-110 ${sizeMap[size]} ${colorMap[platform]}`}
+            className={`bg-gray-100 border border-gray-200 rounded-full flex items-center justify-center text-gray-600 transition-all duration-300 hover:text-white hover:scale-110 ${sizeMap[size]} ${colorMap[platform]}`}
             aria-label={`Seguir en ${platform}`}>
             <Icon
               className={

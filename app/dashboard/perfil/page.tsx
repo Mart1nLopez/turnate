@@ -59,7 +59,47 @@ export default function PerfilPage() {
   const [slugError, setSlugError] = useState<string>('');
   const [checkingSlug, setCheckingSlug] = useState(false);
   const [nameError, setNameError] = useState<string>('');
+  const [slugCharacterError, setSlugCharacterError] = useState<string>('');
   const slugTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Rutas reservadas que no se pueden usar como slug
+  const reservedRoutes = [
+    'dashboard',
+    'auth',
+    'api',
+    'review',
+    'admin',
+    'app',
+    'blog',
+    'help',
+    'support',
+    'contact',
+    'about',
+    'terms',
+    'privacy',
+    'login',
+    'register',
+    'logout',
+    'profile',
+    'settings',
+    'config',
+    'setup',
+    'demo',
+    'test',
+    'www',
+    'mail',
+    'email',
+    'ftp',
+    'static',
+    'assets',
+    'public',
+    'home',
+    'index',
+    'sitemap',
+    'robots',
+    'favicon',
+    'manifest',
+  ];
 
   const loadProfessional = useCallback(async () => {
     try {
@@ -116,6 +156,17 @@ export default function PerfilPage() {
       }
     }
 
+    // Validar límite de caracteres para el slug
+    if (name === 'slug') {
+      if (value.length > 20) {
+        setSlugCharacterError('El slug no puede exceder los 20 caracteres');
+        toast.error('El slug no puede exceder los 20 caracteres');
+        return; // No actualizar el estado si excede el límite
+      } else {
+        setSlugCharacterError('');
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -169,8 +220,8 @@ export default function PerfilPage() {
       console.log('🖼️ Imágenes existentes:', images.length);
 
       // Validar que no haya errores en el slug antes de enviar
-      if (slugError) {
-        toast.error('Corrige el error en el slug antes de continuar');
+      if (slugError || slugCharacterError) {
+        toast.error('Corrige los errores en el slug antes de continuar');
         setSubmitting(false);
         return;
       }
@@ -319,6 +370,13 @@ export default function PerfilPage() {
       return;
     }
 
+    // Validar que no sea una ruta reservada
+    if (reservedRoutes.includes(newSlug.toLowerCase())) {
+      setSlugError('Este slug está reservado y no se puede usar');
+      setCheckingSlug(false);
+      return;
+    }
+
     const isAvailable = await checkSlugAvailability(newSlug);
 
     if (!isAvailable) {
@@ -429,10 +487,11 @@ export default function PerfilPage() {
                   onChange={handleInputChange}
                   placeholder="tu-nombre-unico"
                   className={`pl-10 ${
-                    slugError ? 'border-red-500'
+                    slugError || slugCharacterError ? 'border-red-500'
                     : checkingSlug ? 'border-yellow-500'
                     : ''
                   }`}
+                  maxLength={20}
                   required
                 />
                 {checkingSlug && (
@@ -441,10 +500,19 @@ export default function PerfilPage() {
                   </div>
                 )}
               </div>
-              {slugError && <p className="text-red-500 text-sm mt-1">{slugError}</p>}
-              {!slugError && !checkingSlug && formData.slug && (
-                <p className="text-green-600 text-sm mt-1">✓ Slug disponible</p>
-              )}
+              <div className="flex justify-between items-start mt-1">
+                <div className="flex flex-col">
+                  {(slugError || slugCharacterError) && (
+                    <p className="text-red-500 text-sm">{slugError || slugCharacterError}</p>
+                  )}
+                  {!slugError && !slugCharacterError && !checkingSlug && formData.slug && (
+                    <p className="text-green-600 text-sm">✓ Slug disponible</p>
+                  )}
+                </div>
+                <p className={`text-xs ${formData.slug.length > 15 ? 'text-orange-500' : 'text-gray-500'}`}>
+                  {formData.slug.length}/20 caracteres
+                </p>
+              </div>
               <p className="text-gray-500 text-xs mt-1">
                 Tu URL será: {process.env.NEXT_PUBLIC_APP_URL || 'https://turnate.cl'}/{formData.slug}
               </p>

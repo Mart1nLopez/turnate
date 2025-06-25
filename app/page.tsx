@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { LuCalendar, LuClock, LuGlobe, LuUsers, LuTrendingUp } from 'react-icons/lu';
+import { Button } from '@/components/ui/button';
 import Footer from '@/components/home/Footer';
 import TestimonialCard from '@/components/home/TestimonialCard';
 import HashRedirect from '@/components/professionalPage/HashRedirect';
@@ -37,14 +38,14 @@ export default function LandingPage() {
 
             <div className="flex items-center gap-2 sm:gap-3">
               <Link href="/auth/login">
-                <button className="text-sm sm:text-base font-medium hover:text-primary transition nav-underline">
+                <Button variant="ghost" size="sm" className="text-sm sm:text-base font-medium">
                   Iniciar sesión
-                </button>
+                </Button>
               </Link>
               <Link href="/auth/register">
-                <button className="text-sm sm:text-base font-medium text-primary-foreground bg-primary px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-primary/90 transition">
+                <Button size="sm" className="text-sm sm:text-base font-medium">
                   Registrarse
-                </button>
+                </Button>
               </Link>
             </div>
           </div>
@@ -62,15 +63,11 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Link href="/auth/register">
-                <button className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium hover:bg-primary/90 transition animate-bounce">
-                  Comenzar ahora
-                </button>
+                <Button className="p-6 text-base">Comenzar ahora</Button>
               </Link>
-              <Link href="/demo">
-                <button className="border border-input px-6 py-3 rounded-lg font-medium hover:bg-muted transition">
-                  Ver demo
-                </button>
-              </Link>
+              {/*<Link href="/demo">
+                <Button variant="outline" className="p-6 text-base">Ver demo</Button>
+              </Link>*/}
             </div>
           </div>
           <div className="relative h-[400px] md:h-[400px] w-full md:flex-1 rounded-xl overflow-hidden shadow-2xl">
@@ -214,14 +211,14 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="auth/register">
-                <button className="bg-primary text-primary-foreground px-8 py-4 rounded-lg font-medium text-lg hover:bg-primary/90 transition">
+                <Button size="lg" className="text-lg py-6">
                   Registrarse
-                </button>
+                </Button>
               </Link>
               <Link href="/contact" id="contacto">
-                <button className="border border-input px-8 py-4 rounded-lg font-medium text-lg hover:bg-muted transition">
+                <Button variant="outline" size="lg" className="text-lg py-6">
                   Contactar con ventas
-                </button>
+                </Button>
               </Link>
             </div>
           </div>

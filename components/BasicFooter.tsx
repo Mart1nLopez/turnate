@@ -1,4 +1,4 @@
-export default function FooterAuth() {
+export default function Footer() {
   return (
     <footer>
       <div className="py-4 border-t border-border text-center text-sm text-muted-foreground">

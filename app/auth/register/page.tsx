@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LuMail, LuPhone, LuUser, LuLock, LuEye, LuEyeOff, LuCreditCard } from 'react-icons/lu';
 import Link from 'next/link';
-import HeaderAuth from '@/components/auth/HeaderAuth';
-import FooterAuth from '@/components/auth/FooterAuth';
+import BasicHeader from '@/components/BasicHeader';
+import BasicFooter from '@/components/BasicFooter';
 import { AuthService } from '@/services/authService';
 import { supabase } from '@/lib/supabase';
 import { validateRut, formatRutOnInput } from '@/lib/rut-validator';
@@ -251,7 +251,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <HeaderAuth />
+      <BasicHeader />
       <main className="min-h-screen bg-gray-100 flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
@@ -452,7 +452,8 @@ export default function RegisterPage() {
                   <span className="bg-background px-2 text-muted-foreground">o</span>
                 </div>
               </div>
-
+              {/* Botones de terceros */}
+              {/*
               <div className="space-y-2">
                 <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full">
                   <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -481,7 +482,7 @@ export default function RegisterPage() {
                   </svg>
                   Continuar con Apple
                 </button>
-              </div>
+              </div> */}
 
               <div className="text-center text-sm text-muted-foreground">
                 ¿Ya tienes una cuenta?{' '}
@@ -504,7 +505,7 @@ export default function RegisterPage() {
           </div>
         </div>
       </main>
-      <FooterAuth />
+      <BasicFooter />
     </div>
   );
 }

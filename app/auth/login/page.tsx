@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AuthService } from '@/services/authService';
 import { LuMail, LuLock, LuEye, LuEyeOff } from 'react-icons/lu';
-import HeaderAuth from '@/components/auth/HeaderAuth';
-import FooterAuth from '@/components/auth/FooterAuth';
+import BasicHeader from '@/components/BasicHeader';
+import BasicFooter from '@/components/BasicFooter';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -41,7 +41,8 @@ export default function LoginPage() {
     }
   };
 
-  {/*
+  {
+    /*
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     setError(null);
@@ -54,11 +55,12 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-  */}
+  */
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
-      <HeaderAuth />
+      <BasicHeader />
 
       <main className="flex-1 flex items-center bg-gray-100 justify-center p-4 md:p-8">
         <div className="w-full max-w-md">
@@ -224,7 +226,7 @@ export default function LoginPage() {
         </div>
       </main>
 
-      <FooterAuth />
+      <BasicFooter />
     </div>
   );
 }
