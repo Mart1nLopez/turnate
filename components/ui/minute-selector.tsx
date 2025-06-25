@@ -38,6 +38,9 @@ export function MinuteSelector({
 
   const currentMinutes = getCurrentMinutes();
 
+  // Generar un id único para este campo
+  const id = `minute-selector-${Math.random().toString(36).substr(2, 9)}`;
+
   // Función para actualizar los minutos
   const updateMinutes = (newMinutes: string) => {
     onChange(newMinutes);
@@ -84,7 +87,7 @@ export function MinuteSelector({
   return (
     <div className={cn('relative', className)}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-2">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
@@ -102,7 +105,8 @@ export function MinuteSelector({
             'transition-colors duration-200',
             disabled && 'bg-gray-50 text-gray-400 cursor-not-allowed',
             !disabled && 'bg-white hover:border-gray-400',
-          )}>
+          )}
+          id={id}>
           <div className="flex items-center">
             <TbClock className="w-4 h-4 mr-2 text-gray-400" />
             <span className={cn('text-sm', !currentMinutes && 'text-gray-400')}>{formatDisplayMinutes()}</span>
