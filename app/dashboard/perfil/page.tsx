@@ -10,6 +10,9 @@ import {
   TbBrandFacebook,
   TbDeviceFloppy,
   TbLink,
+  TbQrcode,
+  TbQrcodeOff,
+  TbCopy,
 } from 'react-icons/tb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +24,7 @@ import { supabase, getCurrentProfessional } from '@/lib/supabase';
 import { deleteMultipleImages, uploadCarouselImages } from '@/lib/storage';
 import { Professional } from '@/types';
 import { toast } from 'sonner';
+import QRCode from 'react-qr-code';
 
 interface ProfileForm {
   name: string;
@@ -60,7 +64,9 @@ export default function PerfilPage() {
   const [checkingSlug, setCheckingSlug] = useState(false);
   const [nameError, setNameError] = useState<string>('');
   const [slugCharacterError, setSlugCharacterError] = useState<string>('');
+  const [showQR, setShowQR] = useState(false);
   const slugTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const qrRef = useRef<HTMLDivElement>(null);
 
   // Rutas reservadas que no se pueden usar como slug
   const reservedRoutes = [
@@ -386,6 +392,68 @@ export default function PerfilPage() {
     setCheckingSlug(false);
   };
 
+  // Función para descargar el QR como imagen PNG
+  const handleDownloadQR = () => {
+    if (!qrRef.current) return;
+    const svg = qrRef.current.querySelector('svg');
+    if (!svg) return;
+    const serializer = new XMLSerializer();
+    const svgString = serializer.serializeToString(svg);
+    const canvas = document.createElement('canvas');
+    const img = new window.Image();
+    const size = 256;
+    canvas.width = size;
+    canvas.height = size;
+    img.onload = function () {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, size, size);
+        ctx.drawImage(img, 0, 0, size, size);
+        const pngFile = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.href = pngFile;
+        downloadLink.download = 'qr-turnate.png';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+      }
+    };
+    img.src = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(svgString)));
+  };
+
+  // Copiar el QR al portapapeles como imagen PNG
+  const handleCopyQR = async () => {
+    if (!qrRef.current) return;
+    const svg = qrRef.current.querySelector('svg');
+    if (!svg) return;
+    const serializer = new XMLSerializer();
+    const svgString = serializer.serializeToString(svg);
+    const canvas = document.createElement('canvas');
+    const img = new window.Image();
+    const size = 256;
+    canvas.width = size;
+    canvas.height = size;
+    img.onload = async function () {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, size, size);
+        ctx.drawImage(img, 0, 0, size, size);
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+          try {
+            await navigator.clipboard.write([new window.ClipboardItem({ 'image/png': blob })]);
+            toast.success('QR copiado al portapapeles como imagen');
+          } catch {
+            toast.error('No se pudo copiar la imagen. Usa Chrome, Edge o navegadores modernos.');
+          }
+        }, 'image/png');
+      }
+    };
+    img.src = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(svgString)));
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -412,20 +480,63 @@ export default function PerfilPage() {
           <CardDescription>Esta es la URL que puedes compartir con tus clientes</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center space-x-3">
-            <Input value={getPublicUrl()} readOnly className="flex-1 bg-gray-50" />
+          <div className="flex flex-col md:flex-row md:items-center md:space-x-3 space-y-3 md:space-y-0">
+            <div className="flex-1 flex items-center space-x-3">
+              <Input value={getPublicUrl()} readOnly className="flex-1 bg-gray-50" />
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(getPublicUrl());
+                  toast.success('URL copiada al portapapeles');
+                }}
+                variant="outline">
+                <TbCopy className="w-4 h-4 mr-2" />
+                Link
+              </Button>
+              <Button onClick={() => window.open(getPublicUrl(), '_blank')} variant="default">
+                Ver página
+              </Button>
+            </div>
             <Button
-              onClick={() => {
-                navigator.clipboard.writeText(getPublicUrl());
-                toast.success('URL copiada al portapapeles');
-              }}
-              variant="outline">
-              Copiar
-            </Button>
-            <Button onClick={() => window.open(getPublicUrl(), '_blank')} variant="default">
-              Ver página
+              className="text-xl text-blue-700 hover:text-blue-800"
+              variant='outline'
+              type="button"
+              onClick={() => setShowQR((prev) => !prev)}>
+              {showQR ? <TbQrcodeOff /> : <><TbQrcode /></>}
             </Button>
           </div>
+          {showQR && (
+            <div className="flex flex-col items-center mt-4">
+              <span className="text-xs text-gray-500 mb-1">Presiona el QR para copiarlo</span>
+              <div
+                ref={qrRef}
+                style={{
+                  background: 'white',
+                  padding: 16,
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px #0001',
+                }}
+                onClick={handleCopyQR}
+                title="Copiar QR al portapapeles">
+                <QRCode
+                  value={getPublicUrl()}
+                  size={192}
+                  style={{ height: 'auto', maxWidth: '100%', width: '192px' }}
+                  bgColor="#FFFFFF"
+                  fgColor="#000000"
+                  level="M"
+                />
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-2 text-xs px-3 py-1 h-7"
+                onClick={handleDownloadQR}
+                type="button">
+                Descargar Imagen
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

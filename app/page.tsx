@@ -67,28 +67,28 @@ export default function LandingPage() {
         <section className="container mx-auto px-2 py-16 md:py-24 flex flex-col md:flex-row items-center gap-10">
           <div className="flex-1 space-y-6">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-balance">
-              Gestiona tu{' '}
+              Gestiona tu <br />
               <TypingAnimation
                 words={[
-                  'negocio',
-                  'barbería',
-                  'clínica',
-                  'peluquería',
-                  'taller mecánico',
-                  'spa',
-                  'centro médico',
-                  'estética',
-                  'veterinaria',
-                  'consulta',
-                  'oftalmología',
-                  'estudio',
-                  'manicure',
-                  'consultorio',
-                  'centro estético',
+                  'Negocio',
+                  'Barbería',
+                  'Clínica',
+                  'Peluquería',
+                  'Taller Mecánico',
+                  'Spa',
+                  'Centro Médico',
+                  'Estética',
+                  'Veterinaria',
+                  'Consulta',
+                  'Oftalmología',
+                  'Estudio',
+                  'Manicure',
+                  'Consultorio',
+                  'Centro Estético',
                 ]}
                 className="text-primary"
               />{' '}
-              <br/>
+              <br />
               con facilidad
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl">
