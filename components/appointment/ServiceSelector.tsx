@@ -18,7 +18,7 @@ export default function ServiceSelector({ services, selectedService, onSelect }:
         <CardDescription>Selecciona el servicio que necesitas</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3 max-h-80 overflow-y-auto">
+        <div className="space-y-3 max-h-100 overflow-y-auto">
           {services.map((service) => (
             <div
               key={service.id}
