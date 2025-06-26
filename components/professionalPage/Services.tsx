@@ -23,18 +23,18 @@ export default function Services({ services, slug }: ServiciosProps) {
             {services.map((service) => (
               <article
                 key={service.id}
-                className="bg-white border border-gray-300 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:shadow-blue-200 hover:scale-105 transition-all duration-200 ease-in-out cursor-pointer max-w-sm mx-auto w-max"
+                className="bg-white border border-gray-300 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:shadow-blue-200 hover:scale-105 transition-all duration-200 ease-in-out cursor-pointer max-w-sm mx-auto w-70"
                 onClick={() => {
                   window.location.href = `/${slug}/agendar?service=${service.id}`;
                 }}>
                 <figure className="mb-4">
-                  <div className="relative w-64 h-64 mb-3 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center mx-auto">
+                  <div className="relative w-55 h-55 mb-3 rounded-xl overflow-hidden bg-gray-200 flex items-center justify-center mx-auto">
                     <Image
                       src={service.image_url || '/img/appointments-default.svg'}
                       alt={service.name}
                       fill
                       sizes="(max-width: 768px) 256px, 512px"
-                      className="object-cover p-3 rounded-2xl"
+                      className="object-cover p-1 rounded-2xl"
                     />
                   </div>
                   <figcaption className="font-semibold mt-3 text-gray-900">{service.name}</figcaption>
@@ -49,7 +49,7 @@ export default function Services({ services, slug }: ServiciosProps) {
                 </div>
 
                 {service.description && (
-                  <p className="text-sm text-gray-600 mt-2 line-clamp-2">{service.description}</p>
+                  <p className="text-sm text-gray-600 mt-2 line-clamp-2 text-balance">{service.description}</p>
                 )}
               </article>
             ))}
