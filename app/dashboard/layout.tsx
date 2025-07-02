@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import LoadingSpinner from '@/components/ui/loading-spinner';
@@ -44,6 +44,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   const checkAuth = useCallback(async () => {
     try {
@@ -128,20 +129,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Navigation */}
         <nav className="mt-5 px-3">
           <div className="space-y-1">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={() => {
-                  console.log('Navegando a:', item.href);
-                  // Cerrar sidebar en móvil después de hacer clic
-                  setSidebarOpen(false);
-                }}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 transition-colors cursor-pointer">
-                <item.icon className="mr-3 h-5 w-5" />
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              // Determinar si la ruta actual es la activa
+              const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => {
+                    setSidebarOpen(false);
+                  }}
+                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer
+                    ${isActive ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}>
+                  <item.icon className={`mr-3 h-5 w-5 ${isActive ? 'text-blue-600' : ''}`} />
+                  {item.name}
+                </Link>
+              );
+            })}
           </div>
         </nav>
 
