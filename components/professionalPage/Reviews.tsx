@@ -69,8 +69,8 @@ export default function Reviews({ reviews, averageRating }: ResenasProps) {
                 <CardTitle className="text-center">Calificación general</CardTitle>
               </CardHeader>
               <CardContent className="text-center">
-                <div className="text-5xl font-bold text-primary mb-4">{averageRating.toFixed(1)}</div>
-                <div className="flex items-center justify-center mb-4 scale-150">{renderStars(averageRating)}</div>
+                <div className="text-4xl font-bold text-primary mb-4">{averageRating.toFixed(1)}</div>
+                <div className="flex items-center justify-center mb-4 scale-120">{renderStars(averageRating)}</div>
                 <p className="text-muted-foreground">
                   Basado en {reviews.length} {reviews.length === 1 ? 'reseña' : 'reseñas'}
                 </p>

@@ -48,7 +48,8 @@ export interface Appointment {
   client_id?: string;
   start_time: string;
   end_time: string;
-  status: 'confirmed' | 'cancelled_by_pro';
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled_by_pro' | 'cancelled_by_client';
+  notes?: string;
   created_at: string;
   service?: Service;
   client?: Client;

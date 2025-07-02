@@ -326,7 +326,7 @@ export default function AgendarPage() {
         .join('&');
       // Enviar los datos al Google Apps Script
       const res = await fetch(
-        'https://script.google.com/macros/s/AKfycbyOxLrPe9bj-utt5_FAn9Z77YxJdvugTt368pdlDlPn3LbZLcnQ616ihVMOXxHe0Umb/exec',
+        process.env.NEXT_PUBLIC_CONFIRMATION_SCRIPT!,
         {
           method: 'POST',
           headers: {
