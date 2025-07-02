@@ -9,7 +9,7 @@ import { Service } from '@/types';
 
 export interface AdvancedFilters {
   search: string;
-  status: 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled_by_pro' | 'cancelled_by_client';
+  status: 'all' | 'confirmed' | 'completed' | 'cancelled_by_pro' | 'cancelled_by_client';
   dateRange: 'all' | 'today' | 'tomorrow' | 'week' | 'month' | 'past' | 'custom';
   customDateFrom: string;
   customDateTo: string;
@@ -125,7 +125,6 @@ export default function AdvancedFiltersComponent({
                 onChange={(e) => handleFilterChange('status', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="all">Todos los estados</option>
-                <option value="pending">Pendientes</option>
                 <option value="confirmed">Confirmadas</option>
                 <option value="completed">Completadas</option>
                 <option value="cancelled_by_pro">Canceladas por mí</option>

@@ -20,7 +20,7 @@ type AppointmentWithDetails = Appointment & {
 
 export interface AdvancedFilters {
   search: string;
-  status: 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled_by_pro' | 'cancelled_by_client';
+  status: 'all' | 'confirmed' | 'completed' | 'cancelled_by_pro' | 'cancelled_by_client';
   dateRange: 'all' | 'today' | 'tomorrow' | 'week' | 'month' | 'past' | 'custom';
   customDateFrom: string;
   customDateTo: string;

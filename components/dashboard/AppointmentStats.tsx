@@ -8,7 +8,7 @@ import {
   TbCheck,
   TbSquareCheck,
   TbX,
-  TbLoader,
+  TbUserX,
 } from 'react-icons/tb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
@@ -30,12 +30,10 @@ export default function AppointmentStats({ appointments }: AppointmentStatsProps
 
   // Estadísticas generales
   const totalAppointments = appointments.length;
-  const pendingCount = appointments.filter((apt) => apt.status === 'pending').length;
   const confirmedCount = appointments.filter((apt) => apt.status === 'confirmed').length;
   const completedCount = appointments.filter((apt) => apt.status === 'completed').length;
-  const cancelledCount = appointments.filter(
-    (apt) => apt.status === 'cancelled_by_pro' || apt.status === 'cancelled_by_client',
-  ).length;
+  const cancelledByProCount = appointments.filter((apt) => apt.status === 'cancelled_by_pro').length;
+  const cancelledByClientCount = appointments.filter((apt) => apt.status === 'cancelled_by_client').length;
 
   // Ingresos
   const totalRevenue = appointments
@@ -43,7 +41,7 @@ export default function AppointmentStats({ appointments }: AppointmentStatsProps
     .reduce((sum, apt) => sum + (apt.service?.price || 0), 0);
 
   const potentialRevenue = appointments
-    .filter((apt) => apt.status === 'confirmed' || apt.status === 'pending')
+    .filter((apt) => apt.status === 'confirmed')
     .reduce((sum, apt) => sum + (apt.service?.price || 0), 0);
 
   // Estadísticas de hoy
@@ -57,7 +55,7 @@ export default function AppointmentStats({ appointments }: AppointmentStatsProps
   tomorrow.setDate(tomorrow.getDate() + 1);
   const upcomingAppointments = appointments.filter((apt) => {
     const aptDate = parseISO(apt.start_time);
-    return aptDate >= today && aptDate <= tomorrow && (apt.status === 'confirmed' || apt.status === 'pending');
+    return aptDate >= today && aptDate <= tomorrow && apt.status === 'confirmed';
   });
 
   const stats = [
@@ -83,7 +81,7 @@ export default function AppointmentStats({ appointments }: AppointmentStatsProps
       icon: TbTrendingUp,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
-      description: `${confirmedCount + pendingCount} citas pendientes`,
+      description: `${confirmedCount} citas confirmadas`,
     },
     {
       title: 'Próximas 24h',
@@ -97,12 +95,6 @@ export default function AppointmentStats({ appointments }: AppointmentStatsProps
 
   const statusStats = [
     {
-      label: 'Pendientes',
-      count: pendingCount,
-      icon: TbLoader,
-      color: 'text-yellow-600',
-    },
-    {
       label: 'Confirmadas',
       count: confirmedCount,
       icon: TbCheck,
@@ -115,9 +107,15 @@ export default function AppointmentStats({ appointments }: AppointmentStatsProps
       color: 'text-blue-600',
     },
     {
-      label: 'Canceladas',
-      count: cancelledCount,
+      label: 'Canceladas (por ti)',
+      count: cancelledByProCount,
       icon: TbX,
+      color: 'text-red-600',
+    },
+    {
+      label: 'Canceladas (por el cliente)',
+      count: cancelledByClientCount,
+      icon: TbUserX,
       color: 'text-red-600',
     },
   ];
@@ -191,9 +189,9 @@ export default function AppointmentStats({ appointments }: AppointmentStatsProps
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-purple-600">
-                  {todayAppointments.filter((apt) => apt.status === 'confirmed' || apt.status === 'pending').length}
+                  {todayAppointments.filter((apt) => apt.status === 'confirmed').length}
                 </p>
-                <p className="text-sm text-gray-600">Pendientes hoy</p>
+                <p className="text-sm text-gray-600">Confirmadas hoy</p>
               </div>
             </div>
           </CardContent>

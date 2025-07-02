@@ -10,7 +10,6 @@ import {
   TbCheck,
   TbEye,
   TbSquareCheck,
-  TbLoader,
 } from 'react-icons/tb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,13 +55,6 @@ export default function AppointmentsByDay({
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending':
-        return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-            <TbLoader className="w-3 h-3 mr-1" />
-            Pendiente
-          </span>
-        );
       case 'confirmed':
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -173,7 +165,7 @@ export default function AppointmentsByDay({
                   const appointmentDate = parseISO(appointment.start_time);
                   const now = new Date();
                   const canCancel =
-                    (appointment.status === 'confirmed' || appointment.status === 'pending') &&
+                    (appointment.status === 'confirmed') &&
                     isAfter(appointmentDate, now);
                   const canComplete = appointment.status === 'confirmed' && isBefore(appointmentDate, now);
 
