@@ -10,7 +10,6 @@ import { Appointment, Service, Client } from '@/types';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from 'sonner';
 import AppointmentsByDay from '@/components/dashboard/AppointmentsByDay';
-import AppointmentsListView from '@/components/dashboard/AppointmentsListView';
 import AdvancedFiltersComponent from '@/components/dashboard/AdvancedFilters';
 import AppointmentStats from '@/components/dashboard/AppointmentStats';
 import { useAppointmentFilters } from '@/hooks/useAppointmentFilters';
@@ -26,7 +25,6 @@ export default function CitasPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtersCollapsed, setFiltersCollapsed] = useState(true);
-  const [viewMode, setViewMode] = useState<'day' | 'list'>('day');
   const { confirm, ConfirmDialog } = useConfirmDialog();
 
   // Usar el hook personalizado para filtros
@@ -149,14 +147,6 @@ export default function CitasPage() {
           <h1 className="text-2xl font-bold text-gray-900">Gestión de Citas</h1>
           <p className="text-gray-600">Administra todas tus citas programadas</p>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button variant={viewMode === 'day' ? 'default' : 'outline'} onClick={() => setViewMode('day')} size="sm">
-            Por días
-          </Button>
-          <Button variant={viewMode === 'list' ? 'default' : 'outline'} onClick={() => setViewMode('list')} size="sm">
-            Lista
-          </Button>
-        </div>
       </div>
 
       {/* Estadísticas */}
@@ -176,7 +166,7 @@ export default function CitasPage() {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>
-              Citas ({filteredAppointments.length})
+              Citas
               {filteredAppointments.length !== appointments.length && (
                 <span className="text-sm font-normal text-gray-500 ml-2">(filtradas de {appointments.length})</span>
               )}
@@ -190,25 +180,17 @@ export default function CitasPage() {
           <CardDescription>
             {filteredAppointments.length === 0 ?
               'No se encontraron citas con los filtros aplicados'
-            : `Mostrando ${filteredAppointments.length} ${filteredAppointments.length === 1 ? 'cita' : 'citas'} en vista ${viewMode === 'day' ? 'por días' : 'de lista'}`
-            }
+            : `Mostrando ${filteredAppointments.length} ${filteredAppointments.length === 1 ? 'cita' : 'citas'} en total`}
+            
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {viewMode === 'day' ?
-            <AppointmentsByDay
-              appointments={filteredAppointments}
-              onViewDetails={(id) => router.push(`/dashboard/citas/${id}`)}
-              onCancelAppointment={cancelAppointment}
-              onCompleteAppointment={completeAppointment}
-            />
-          : <AppointmentsListView
-              appointments={filteredAppointments}
-              onViewDetails={(id) => router.push(`/dashboard/citas/${id}`)}
-              onCancelAppointment={cancelAppointment}
-              onCompleteAppointment={completeAppointment}
-            />
-          }
+          <AppointmentsByDay
+            appointments={filteredAppointments}
+            onViewDetails={(id) => router.push(`/dashboard/citas/${id}`)}
+            onCancelAppointment={cancelAppointment}
+            onCompleteAppointment={completeAppointment}
+          />
         </CardContent>
       </Card>
 

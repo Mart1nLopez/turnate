@@ -164,9 +164,9 @@ export default function PerfilPage() {
 
     // Validar límite de caracteres para el slug
     if (name === 'slug') {
-      if (value.length > 20) {
-        setSlugCharacterError('El slug no puede exceder los 20 caracteres');
-        toast.error('El slug no puede exceder los 20 caracteres');
+      if (value.length > 25) {
+        setSlugCharacterError('El slug no puede exceder los 25 caracteres');
+        toast.error('El slug no puede exceder los 25 caracteres');
         return; // No actualizar el estado si excede el límite
       } else {
         setSlugCharacterError('');
@@ -602,7 +602,7 @@ export default function PerfilPage() {
                     : checkingSlug ? 'border-yellow-500'
                     : ''
                   }`}
-                  maxLength={20}
+                  maxLength={25}
                   required
                 />
                 {checkingSlug && (
@@ -621,7 +621,7 @@ export default function PerfilPage() {
                   )}
                 </div>
                 <p className={`text-xs ${formData.slug.length > 15 ? 'text-orange-500' : 'text-gray-500'}`}>
-                  {formData.slug.length}/20 caracteres
+                  {formData.slug.length}/25 caracteres
                 </p>
               </div>
               <p className="text-gray-500 text-xs mt-1">
