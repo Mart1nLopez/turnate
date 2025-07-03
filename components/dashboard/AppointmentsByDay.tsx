@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { Appointment, Service, Client } from '@/types';
-import { format, parseISO, isBefore, isAfter, startOfDay } from 'date-fns';
+import { format, parseISO, isAfter, startOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 type AppointmentWithDetails = Appointment & {
@@ -167,7 +167,10 @@ export default function AppointmentsByDay({
                   const canCancel =
                     (appointment.status === 'confirmed') &&
                     isAfter(appointmentDate, now);
-                  const canComplete = appointment.status === 'confirmed' && isBefore(appointmentDate, now);
+                    const serviceDuration = appointment.service?.duration_minutes || 0;
+                    const appointmentEnd = new Date(appointmentDate.getTime() + serviceDuration * 60000);
+                    const canComplete =
+                    appointment.status === 'confirmed' && isAfter(now, appointmentEnd);
 
                   return (
                     <div

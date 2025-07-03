@@ -270,14 +270,14 @@ export default function PerfilPage() {
       const updateData = {
         name: formData.name,
         slug: formData.slug,
-        bio: formData.bio || undefined,
+        bio: formData.bio || null,
         phone: formData.phone,
-        location: formData.location || undefined,
-        map_embed_url: formData.map_embed_url || undefined,
+        location: formData.location || null,
+        map_embed_url: formData.map_embed_url || null,
         social_links: {
-          instagram: formData.instagram || undefined,
-          whatsapp: formData.whatsapp || undefined,
-          facebook: formData.facebook || undefined,
+          instagram: formData.instagram || null,
+          whatsapp: formData.whatsapp || null,
+          facebook: formData.facebook || null,
         },
         carrusel_images: allImages,
       };
