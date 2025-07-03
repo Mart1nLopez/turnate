@@ -28,13 +28,16 @@ export default function CancelAppointmentPage() {
   const [error, setError] = useState<string | null>(null);
 
   const loadAppointment = useCallback(async () => {
+    console.log('🔍 [LOAD] Iniciando carga de cita con token:', token);
     try {
       if (!token) {
+        console.log('❌ [LOAD] Token inválido o faltante');
         setError('Token de cancelación inválido');
         setLoading(false);
         return;
       }
 
+      console.log('📡 [LOAD] Consultando Supabase para cita con token:', token);
       // Buscar la cita usando el token
       const { data: appointmentData, error: appointmentError } = await supabase
         .from('appointments')
@@ -50,18 +53,40 @@ export default function CancelAppointmentPage() {
         .eq('status', 'confirmed')
         .single();
 
+      console.log('📊 [LOAD] Respuesta de Supabase:', {
+        data: appointmentData,
+        error: appointmentError,
+      });
+
       if (appointmentError || !appointmentData) {
-        console.error('Error loading appointment:', appointmentError);
+        console.error('❌ [LOAD] Error al cargar cita:', appointmentError);
+        console.log('📄 [LOAD] Datos recibidos:', appointmentData);
         setError('No se encontró la cita o ya fue cancelada');
         setLoading(false);
         return;
       }
 
+      console.log('✅ [LOAD] Cita encontrada exitosamente:', {
+        id: appointmentData.id,
+        status: appointmentData.status,
+        client: appointmentData.client?.name,
+        professional: appointmentData.professional?.name,
+        service: appointmentData.service?.name,
+        start_time: appointmentData.start_time,
+      });
+
       // Verificar que la cita no haya pasado
       const appointmentDate = new Date(appointmentData.start_time);
       const now = new Date();
 
+      console.log('⏰ [LOAD] Verificando fechas:', {
+        appointmentDate: appointmentDate.toISOString(),
+        now: now.toISOString(),
+        isPast: appointmentDate < now,
+      });
+
       if (appointmentDate < now) {
+        console.log('❌ [LOAD] Cita ya pasó');
         setError('No puedes cancelar una cita que ya pasó');
         setLoading(false);
         return;
@@ -71,49 +96,92 @@ export default function CancelAppointmentPage() {
       const hoursUntilAppointment = (appointmentDate.getTime() - now.getTime()) / (1000 * 60 * 60);
       const minCancelHours = appointmentData.professional?.cancel_hours || 24;
 
+      console.log('⏳ [LOAD] Verificando tiempo de cancelación:', {
+        hoursUntilAppointment: hoursUntilAppointment.toFixed(2),
+        minCancelHours,
+        canCancel: hoursUntilAppointment >= minCancelHours,
+      });
+
       if (hoursUntilAppointment < minCancelHours) {
+        console.log('❌ [LOAD] Muy poco tiempo para cancelar');
         setError(`No puedes cancelar con menos de ${minCancelHours} horas de anticipación`);
         setLoading(false);
         return;
       }
 
+      console.log('✅ [LOAD] Todas las validaciones pasaron, estableciendo cita');
       setAppointment(appointmentData);
     } catch (error) {
-      console.error('Error loading appointment:', error);
+      console.error('💥 [LOAD] Error general al cargar cita:', error);
+      console.log('📊 [LOAD] Detalles del error:', {
+        message: error instanceof Error ? error.message : 'Error desconocido',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       setError('Error al cargar la información de la cita');
     } finally {
+      console.log('🏁 [LOAD] Finalizando proceso de carga');
       setLoading(false);
     }
   }, [token]);
 
   useEffect(() => {
+    console.log('🔄 [EFFECT] Componente montado, iniciando carga de cita');
     loadAppointment();
   }, [loadAppointment]);
 
   const handleCancel = async () => {
-    if (!appointment) return;
+    if (!appointment) {
+      console.log('❌ [CANCEL] No hay cita para cancelar');
+      return;
+    }
 
-    console.log('Iniciando proceso de cancelación para cita:', appointment?.id);
+    console.log('🚀 [CANCEL] Iniciando proceso de cancelación para cita:', {
+      id: appointment.id,
+      token: token,
+      status: appointment.status,
+    });
+
     setCancelling(true);
     setError(null);
 
     try {
       // Actualizar el estado de la cita
-      console.log('Actualizando estado de la cita en la base de datos...');
-      const { error: updateError } = await supabase
+      console.log('📝 [CANCEL] Actualizando estado de la cita en Supabase...');
+      console.log('📊 [CANCEL] Datos a actualizar:', {
+        appointmentId: appointment.id,
+        newStatus: 'cancelled_by_client',
+        invalidateToken: true,
+      });
+
+      const { data: updateData, error: updateError } = await supabase
         .from('appointments')
         .update({
           status: 'cancelled_by_client',
           cancellation_token: null, // Invalidar el token
         })
-        .eq('id', appointment.id);
+        .eq('id', appointment.id)
+        .select(); // Agregamos select para ver qué se actualizó
+
+      console.log('📊 [CANCEL] Respuesta de actualización Supabase:', {
+        data: updateData,
+        error: updateError,
+      });
 
       if (updateError) {
-        console.error('Error actualizando la cita:', updateError);
+        console.error('❌ [CANCEL] Error actualizando la cita:', updateError);
+        console.log('📊 [CANCEL] Detalles del error de actualización:', {
+          code: updateError.code,
+          message: updateError.message,
+          details: updateError.details,
+          hint: updateError.hint,
+        });
         throw updateError;
       }
 
+      console.log('✅ [CANCEL] Cita actualizada exitosamente en Supabase');
+
       // Enviar notificación al profesional
+      console.log('📧 [CANCEL] Preparando notificación por email...');
       try {
         const startDateTime = new Date(appointment.start_time);
         const dateOnly = startDateTime.toISOString().split('T')[0]; // YYYY-MM-DD format
@@ -134,11 +202,15 @@ export default function CancelAppointmentPage() {
           professionalEmail: appointment.professional?.email || '',
         };
 
+        console.log('📧 [CANCEL] Datos preparados para Google Apps Script:', dataToSend);
+
         const formBody = Object.entries(dataToSend)
           .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
           .join('&');
 
-        console.log('Enviando datos al Google Apps Script:', dataToSend);
+        console.log('📧 [CANCEL] URL del script:', process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT);
+        console.log('📧 [CANCEL] Body codificado:', formBody);
+
         const response = await fetch(process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!, {
           method: 'POST',
           headers: {
@@ -146,18 +218,43 @@ export default function CancelAppointmentPage() {
           },
           body: formBody,
         });
-        console.log('Respuesta del Google Apps Script:', response.status, response.statusText);
+
+        console.log('📧 [CANCEL] Respuesta del Google Apps Script:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok,
+        });
+
+        if (response.ok) {
+          const responseText = await response.text();
+          console.log('📧 [CANCEL] Contenido de respuesta:', responseText);
+        }
       } catch (emailError) {
-        console.error('Error enviando notificación al profesional:', emailError);
+        console.error('❌ [CANCEL] Error enviando notificación al profesional:', emailError);
+        console.log('📊 [CANCEL] Detalles del error de email:', {
+          message: emailError instanceof Error ? emailError.message : 'Error desconocido',
+          stack: emailError instanceof Error ? emailError.stack : undefined,
+        });
         // No fallar el proceso si el email falla
       }
 
+      console.log('✅ [CANCEL] Estableciendo estado como cancelado');
       setCancelled(true);
-      console.log('Proceso completado, cita cancelada y notificación enviada.');
+      console.log('🎉 [CANCEL] Proceso completado exitosamente, cita cancelada y notificación enviada.');
     } catch (error) {
-      console.error('Error general al cancelar la cita:', error);
+      console.error('💥 [CANCEL] Error general al cancelar la cita:', error);
+      console.log('📊 [CANCEL] Detalles del error general:', {
+        message: error instanceof Error ? error.message : 'Error desconocido',
+        stack: error instanceof Error ? error.stack : undefined,
+        code: error && typeof error === 'object' && 'code' in error ? (error as { code?: string }).code : undefined,
+        details:
+          error && typeof error === 'object' && 'details' in error ?
+            (error as { details?: string }).details
+          : undefined,
+      });
       setError('Error al cancelar la cita. Por favor intenta nuevamente.');
     } finally {
+      console.log('🏁 [CANCEL] Finalizando proceso de cancelación');
       setCancelling(false);
     }
   };
