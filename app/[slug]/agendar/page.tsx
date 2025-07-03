@@ -334,13 +334,7 @@ export default function AgendarPage() {
 
       // Enviar email de confirmación con el token de cancelación
       try {
-        const formattedDate =
-          selectedDate?.toLocaleDateString('es-CL', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-          }) || '';
+        const dateOnly = selectedDate ? selectedDate.toISOString().split('T')[0] : ''; // YYYY-MM-DD format
 
         const dataToSend = {
           action: 'schedule',
@@ -348,7 +342,7 @@ export default function AgendarPage() {
           clientEmail: formData.email,
           clientPhone: formData.phone,
           service: selectedService.name,
-          date: formattedDate,
+          date: dateOnly, // Enviar en formato YYYY-MM-DD
           time: selectedTime,
           professionalName: professional.name,
           professionalEmail: professional.email,

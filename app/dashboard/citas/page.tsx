@@ -160,14 +160,10 @@ export default function CitasPage() {
 
       // Enviar email de agradecimiento y solicitud de reseña vía Google Apps Script
       try {
-        const formattedDate = new Date(appointmentToComplete.start_time).toLocaleDateString('es-CL', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-        });
+        const startDateTime = new Date(appointmentToComplete.start_time);
+        const dateOnly = startDateTime.toISOString().split('T')[0]; // YYYY-MM-DD format
 
-        const formattedTime = new Date(appointmentToComplete.start_time).toLocaleTimeString('es-CL', {
+        const formattedTime = startDateTime.toLocaleTimeString('es-CL', {
           hour: '2-digit',
           minute: '2-digit',
         });
@@ -177,7 +173,7 @@ export default function CitasPage() {
           clientName: appointmentToComplete.client.name,
           clientEmail: appointmentToComplete.client.email,
           service: appointmentToComplete.service.name,
-          date: formattedDate,
+          date: dateOnly, // Enviar en formato YYYY-MM-DD
           time: formattedTime,
           professionalName: professional.name,
           appointmentId: appointmentId,

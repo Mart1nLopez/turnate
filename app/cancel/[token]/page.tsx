@@ -115,14 +115,10 @@ export default function CancelAppointmentPage() {
 
       // Enviar notificación al profesional
       try {
-        const formattedDate = new Date(appointment.start_time).toLocaleDateString('es-CL', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-        });
+        const startDateTime = new Date(appointment.start_time);
+        const dateOnly = startDateTime.toISOString().split('T')[0]; // YYYY-MM-DD format
 
-        const formattedTime = new Date(appointment.start_time).toLocaleTimeString('es-CL', {
+        const formattedTime = startDateTime.toLocaleTimeString('es-CL', {
           hour: '2-digit',
           minute: '2-digit',
         });
@@ -132,7 +128,7 @@ export default function CancelAppointmentPage() {
           clientName: appointment.client?.name || '',
           clientEmail: appointment.client?.email || '',
           service: appointment.service?.name || '',
-          date: formattedDate,
+          date: dateOnly, // Enviar en formato YYYY-MM-DD
           time: formattedTime,
           professionalName: appointment.professional?.name || '',
           professionalEmail: appointment.professional?.email || '',
