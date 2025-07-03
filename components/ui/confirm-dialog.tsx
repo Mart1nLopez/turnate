@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TbX, TbAlertTriangle, TbTrash, TbExclamationMark, TbInfoCircle } from 'react-icons/tb';
+import { TbX, TbAlertTriangle, TbTrash, TbCalendarExclamation, TbInfoCircle } from 'react-icons/tb';
 import { Button } from './button';
 import { cn } from '@/lib/utils';
 
@@ -57,7 +57,7 @@ export function ConfirmDialog({
       case 'destructive':
         return <TbTrash className="w-6 h-6 text-red-600" />;
       case 'warning':
-        return <TbExclamationMark className="w-6 h-6 text-yellow-600" />;
+        return <TbCalendarExclamation className="w-6 h-6 text-orange-600" />;
       case 'info':
         return <TbInfoCircle className="w-6 h-6 text-blue-600" />;
       default:
@@ -83,7 +83,7 @@ export function ConfirmDialog({
       case 'destructive':
         return 'destructive' as const;
       case 'warning':
-        return 'default' as const;
+        return 'destructive' as const;
       default:
         return 'default' as const;
     }

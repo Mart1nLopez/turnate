@@ -89,7 +89,7 @@ export default function AppointmentStats({ appointments }: AppointmentStatsProps
       icon: TbClock,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
-      description: 'Citas confirmadas/pendientes',
+      description: 'Citas confirmadas (pendientes)',
     },
   ];
 

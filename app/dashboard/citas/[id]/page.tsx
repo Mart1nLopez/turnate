@@ -82,6 +82,29 @@ export default function CitaDetalleePage() {
     if (!confirmed) return;
 
     try {
+      // Verificar que tenemos todos los datos necesarios
+      if (!appointment.client || !appointment.service) {
+        toast.error('No se encontraron los datos necesarios para enviar la notificación');
+        return;
+      }
+
+      // Obtener datos del profesional
+      const { professional } = await getCurrentProfessional();
+      if (!professional) {
+        toast.error('Error al obtener datos del profesional');
+        return;
+      }
+
+      // Formatear fecha y hora
+      const startDateTime = new Date(appointment.start_time);
+      const formattedDate = startDateTime.toISOString().split('T')[0]; // YYYY-MM-DD
+      const formattedTime = startDateTime.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+
+      // Actualizar estado en Supabase
       const { error } = await supabase
         .from('appointments')
         .update({ status: 'cancelled_by_pro' })
@@ -89,8 +112,41 @@ export default function CitaDetalleePage() {
 
       if (error) throw error;
 
+      // Enviar notificación de cancelación al cliente vía Google Apps Script
+      try {
+        const dataToSend = {
+          action: 'cancel',
+          clientName: appointment.client.name,
+          clientEmail: appointment.client.email,
+          service: appointment.service.name,
+          date: formattedDate,
+          time: formattedTime,
+          professionalName: professional.name,
+        };
+
+        const formBody = Object.entries(dataToSend)
+          .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
+          .join('&');
+
+        const response = await fetch(process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formBody,
+        });
+
+        const result = await response.text();
+        console.log('Respuesta del script de cancelación:', result);
+      } catch (emailError) {
+        console.error('Error enviando notificación de cancelación:', emailError);
+        // No fallar todo el proceso si el email falla
+        toast.warning('Cita cancelada, pero no se pudo enviar la notificación por email');
+      }
+
+      // Actualizar estado local
       setAppointment((prev) => (prev ? { ...prev, status: 'cancelled_by_pro' } : null));
-      toast.success('Cita cancelada exitosamente');
+      toast.success('Cita cancelada exitosamente y notificación enviada al cliente');
     } catch (error) {
       console.error('Error cancelling appointment:', error);
       toast.error('Error al cancelar la cita');

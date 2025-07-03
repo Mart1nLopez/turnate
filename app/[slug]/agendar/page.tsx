@@ -309,6 +309,7 @@ export default function AgendarPage() {
     try {
       // Preparar los datos para enviar
       const dataToSend = {
+        action: 'schedule',
         clientName: formData.name,
         clientEmail: formData.email,
         clientPhone: formData.phone,
@@ -326,7 +327,7 @@ export default function AgendarPage() {
         .join('&');
       // Enviar los datos al Google Apps Script
       const res = await fetch(
-        process.env.NEXT_PUBLIC_CONFIRMATION_SCRIPT!,
+        process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!,
         {
           method: 'POST',
           headers: {
