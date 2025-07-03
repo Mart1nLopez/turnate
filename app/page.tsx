@@ -40,9 +40,9 @@ export default function LandingPage() {
               <a href="#beneficios" className="nav-underline">
                 Beneficios
               </a>
-              <a href="#precios" className="nav-underline">
+              {/*<a href="#precios" className="nav-underline">
                 Precios
-              </a>
+              </a>*/}
               <a href="#contacto" className="nav-underline">
                 Contacto
               </a>
