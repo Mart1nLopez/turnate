@@ -124,7 +124,8 @@ export default function CitasPage() {
   const completeAppointment = async (appointmentId: string) => {
     const confirmed = await confirm({
       title: '¿Marcar cita como completada?',
-      description: 'La cita será marcada como completada y se registrará en tus ingresos.',
+      description:
+        'La cita será marcada como completada y se enviará un email al cliente para que pueda dejar una reseña.',
       confirmText: 'Marcar completada',
       cancelText: 'Cancelar',
       variant: 'default',
@@ -133,15 +134,82 @@ export default function CitasPage() {
     if (!confirmed) return;
 
     try {
+      // Obtener los datos completos de la cita antes de completarla
+      const appointmentToComplete = appointments.find((apt) => apt.id === appointmentId);
+      if (
+        !appointmentToComplete ||
+        !appointmentToComplete.client ||
+        !appointmentToComplete.service ||
+        !appointmentToComplete.review_token
+      ) {
+        toast.error('No se encontraron los datos necesarios para enviar el email de reseña');
+        return;
+      }
+
+      // Obtener datos del profesional
+      const { professional } = await getCurrentProfessional();
+      if (!professional) {
+        toast.error('Error al obtener datos del profesional');
+        return;
+      }
+
+      // Actualizar estado en Supabase
       const { error } = await supabase.from('appointments').update({ status: 'completed' }).eq('id', appointmentId);
 
       if (error) throw error;
+
+      // Enviar email de agradecimiento y solicitud de reseña vía Google Apps Script
+      try {
+        const formattedDate = new Date(appointmentToComplete.start_time).toLocaleDateString('es-CL', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        });
+
+        const formattedTime = new Date(appointmentToComplete.start_time).toLocaleTimeString('es-CL', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+
+        const dataToSend = {
+          action: 'review_request',
+          clientName: appointmentToComplete.client.name,
+          clientEmail: appointmentToComplete.client.email,
+          service: appointmentToComplete.service.name,
+          date: formattedDate,
+          time: formattedTime,
+          professionalName: professional.name,
+          appointmentId: appointmentId,
+          reviewToken: appointmentToComplete.review_token,
+          appUrl: window.location.origin,
+        };
+
+        const formBody = Object.entries(dataToSend)
+          .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
+          .join('&');
+
+        const response = await fetch(process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formBody,
+        });
+
+        const result = await response.text();
+        console.log('Respuesta del script de reseña:', result);
+      } catch (emailError) {
+        console.error('Error enviando email de reseña:', emailError);
+        // No fallar todo el proceso si el email falla
+        toast.warning('Cita completada, pero no se pudo enviar el email de reseña');
+      }
 
       setAppointments((prev) =>
         prev.map((apt) => (apt.id === appointmentId ? { ...apt, status: 'completed' as const } : apt)),
       );
 
-      toast.success('Cita marcada como completada');
+      toast.success('Cita marcada como completada y email de reseña enviado al cliente');
     } catch (error) {
       console.error('Error completing appointment:', error);
       toast.error('Error al completar la cita');

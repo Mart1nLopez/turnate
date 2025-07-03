@@ -93,11 +93,13 @@ export default function CancelAppointmentPage() {
   const handleCancel = async () => {
     if (!appointment) return;
 
+    console.log('Iniciando proceso de cancelación para cita:', appointment?.id);
     setCancelling(true);
     setError(null);
 
     try {
       // Actualizar el estado de la cita
+      console.log('Actualizando estado de la cita en la base de datos...');
       const { error: updateError } = await supabase
         .from('appointments')
         .update({
@@ -106,7 +108,10 @@ export default function CancelAppointmentPage() {
         })
         .eq('id', appointment.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Error actualizando la cita:', updateError);
+        throw updateError;
+      }
 
       // Enviar notificación al profesional
       try {
@@ -137,21 +142,24 @@ export default function CancelAppointmentPage() {
           .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
           .join('&');
 
-        await fetch(process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!, {
+        console.log('Enviando datos al Google Apps Script:', dataToSend);
+        const response = await fetch(process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
           body: formBody,
         });
+        console.log('Respuesta del Google Apps Script:', response.status, response.statusText);
       } catch (emailError) {
-        console.error('Error enviando notificación:', emailError);
+        console.error('Error enviando notificación al profesional:', emailError);
         // No fallar el proceso si el email falla
       }
 
       setCancelled(true);
+      console.log('Proceso completado, cita cancelada y notificación enviada.');
     } catch (error) {
-      console.error('Error cancelling appointment:', error);
+      console.error('Error general al cancelar la cita:', error);
       setError('Error al cancelar la cita. Por favor intenta nuevamente.');
     } finally {
       setCancelling(false);

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { TbStar, TbStarFilled, TbUser, TbCalendar, TbCheck } from 'react-icons/tb';
+import { useParams } from 'next/navigation';
+import { TbStar, TbStarFilled, TbUser, TbCalendar, TbCheck, TbX } from 'react-icons/tb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,8 +27,7 @@ type AppointmentWithDetails = Appointment & {
 
 export default function ReviewPage() {
   const params = useParams();
-  const router = useRouter();
-  const appointmentId = params.appointmentId as string;
+  const token = params.token as string;
 
   const [appointment, setAppointment] = useState<AppointmentWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,12 +44,13 @@ export default function ReviewPage() {
 
   const loadAppointment = useCallback(async () => {
     try {
-      if (!appointmentId) {
-        router.push('/');
+      if (!token) {
+        setError('Token de reseña inválido');
+        setLoading(false);
         return;
       }
 
-      // Obtener la cita con todos los detalles
+      // Buscar la cita usando el review_token
       const { data: appointmentData, error: appointmentError } = await supabase
         .from('appointments')
         .select(
@@ -61,13 +61,14 @@ export default function ReviewPage() {
           client:clients(*)
         `,
         )
-        .eq('id', appointmentId)
+        .eq('review_token', token)
         .eq('status', 'completed')
         .single();
 
       if (appointmentError || !appointmentData) {
         console.error('Error loading appointment:', appointmentError);
-        router.push('/');
+        setError('No se encontró la cita o el enlace de reseña es inválido');
+        setLoading(false);
         return;
       }
 
@@ -81,7 +82,7 @@ export default function ReviewPage() {
       const { data: reviewData } = await supabase
         .from('reviews')
         .select('id')
-        .eq('appointment_id', appointmentId)
+        .eq('appointment_id', appointmentData.id)
         .single();
 
       if (reviewData) {
@@ -89,11 +90,11 @@ export default function ReviewPage() {
       }
     } catch (error) {
       console.error('Error loading appointment:', error);
-      router.push('/');
+      setError('Error al cargar la información de la cita');
     } finally {
       setLoading(false);
     }
-  }, [appointmentId, router]);
+  }, [token]);
 
   useEffect(() => {
     loadAppointment();
@@ -145,8 +146,9 @@ export default function ReviewPage() {
     setError(null);
 
     try {
+      // Crear la reseña
       const { error: submitError } = await supabase.from('reviews').insert({
-        appointment_id: appointmentId,
+        appointment_id: appointment.id,
         professional_id: appointment.professional!.id,
         client_name: formData.clientName.trim(),
         rating: formData.rating,
@@ -154,6 +156,9 @@ export default function ReviewPage() {
       });
 
       if (submitError) throw submitError;
+
+      // Invalidar el review_token después de usar
+      await supabase.from('appointments').update({ review_token: null }).eq('id', appointment.id);
 
       setSubmitted(true);
     } catch (error) {
@@ -186,83 +191,117 @@ export default function ReviewPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <LoadingSpinner size="lg" text="Cargando información..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <TbX className="w-6 h-6 text-red-600" />
+            </div>
+            <CardTitle className="text-red-900">Error</CardTitle>
+            <CardDescription className="text-red-700">{error}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/" className="w-full">
+              <Button className="w-full">Volver al inicio</Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (!appointment) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Cita no encontrada</h1>
-          <p className="text-gray-600 mb-6">
-            No se pudo encontrar la cita o no estás autorizado para dejar una reseña.
-          </p>
-          <Link href="/">
-            <Button>Volver al inicio</Button>
-          </Link>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <TbX className="w-6 h-6 text-red-600" />
+            </div>
+            <CardTitle className="text-red-900">Cita no encontrada</CardTitle>
+            <CardDescription className="text-red-700">
+              No se pudo encontrar la cita o el enlace de reseña es inválido.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/" className="w-full">
+              <Button className="w-full">Volver al inicio</Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (existingReview) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md mx-auto">
-          <Card>
-            <CardContent className="text-center py-8">
-              <TbCheck className="w-16 h-16 text-green-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Reseña ya enviada</h2>
-              <p className="text-gray-600 mb-6">Ya has dejado una reseña para esta cita. ¡Gracias por tu feedback!</p>
-              <Link href={`/${appointment.professional!.slug}`}>
-                <Button>Ver perfil del profesional</Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <TbCheck className="w-6 h-6 text-green-600" />
+            </div>
+            <CardTitle className="text-green-900">Reseña ya enviada</CardTitle>
+            <CardDescription className="text-green-700">
+              Ya has dejado una reseña para esta cita. ¡Gracias por tu feedback!
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href={`/${appointment.professional!.slug}`} className="w-full">
+              <Button className="w-full">Ver perfil del profesional</Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md mx-auto">
-          <Card>
-            <CardContent className="text-center py-8">
-              <TbCheck className="w-16 h-16 text-green-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">¡Reseña enviada!</h2>
-              <p className="text-gray-600 mb-6">
-                Gracias por tomarte el tiempo de dejar tu opinión. Tu reseña ayuda a otros clientes y al profesional a
-                mejorar.
-              </p>
-              <div className="space-y-3">
-                <Link href={`/${appointment.professional!.slug}`}>
-                  <Button className="w-full">Ver perfil del profesional</Button>
-                </Link>
-                <Link href={`/${appointment.professional!.slug}/agendar`}>
-                  <Button variant="outline" className="w-full">
-                    Agendar otra cita
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <TbCheck className="w-6 h-6 text-green-600" />
+            </div>
+            <CardTitle className="text-green-900">¡Reseña enviada!</CardTitle>
+            <CardDescription className="text-green-700">
+              Gracias por tomarte el tiempo de dejar tu opinión. Tu reseña ayuda a otros clientes y al profesional a
+              mejorar.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <Link href={`/${appointment.professional!.slug}`} className="w-full">
+                <Button className="w-full">Ver perfil del profesional</Button>
+              </Link>
+              <Link href={`/${appointment.professional!.slug}/agendar`} className="w-full">
+                <Button variant="outline" className="w-full">
+                  Agendar otra cita
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Deja tu reseña</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">¡Gracias por tu cita!</h1>
             <p className="text-gray-600">Comparte tu experiencia con {appointment.professional!.name}</p>
           </div>
 
@@ -390,6 +429,13 @@ export default function ReviewPage() {
               </form>
             </CardContent>
           </Card>
+
+          {/* Link para volver */}
+          <div className="mt-6 text-center">
+            <Link href="/" className="text-blue-600 hover:text-blue-700 text-sm">
+              ← Volver al inicio
+            </Link>
+          </div>
         </div>
       </div>
     </div>

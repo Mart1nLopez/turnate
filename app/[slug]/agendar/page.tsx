@@ -311,8 +311,9 @@ export default function AgendarPage() {
       const startDateTime = new Date(`${formData.date}T${formData.time}`);
       const endDateTime = new Date(startDateTime.getTime() + selectedService.duration_minutes * 60000);
 
-      // Generar token de cancelación único
+      // Generar tokens únicos
       const cancellationToken = crypto.randomUUID();
+      const reviewToken = crypto.randomUUID();
 
       const { error } = await supabase
         .from('appointments')
@@ -324,6 +325,7 @@ export default function AgendarPage() {
           end_time: endDateTime.toISOString(),
           status: 'confirmed',
           cancellation_token: cancellationToken,
+          review_token: reviewToken,
         })
         .select()
         .single();
