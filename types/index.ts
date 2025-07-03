@@ -50,6 +50,7 @@ export interface Appointment {
   end_time: string;
   status: 'confirmed' | 'completed' | 'cancelled_by_pro' | 'cancelled_by_client';
   notes?: string;
+  cancellation_token?: string;
   created_at: string;
   service?: Service;
   client?: Client;

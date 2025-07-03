@@ -69,7 +69,10 @@ export default function CitasPage() {
       // Actualizar estado en Supabase
       const { error } = await supabase
         .from('appointments')
-        .update({ status: 'cancelled_by_pro' })
+        .update({
+          status: 'cancelled_by_pro',
+          cancellation_token: null, // Invalidar el token al cancelar
+        })
         .eq('id', appointmentId);
 
       if (error) throw error;

@@ -307,51 +307,12 @@ export default function AgendarPage() {
     setError(null);
 
     try {
-      // Preparar los datos para enviar
-      const dataToSend = {
-        action: 'schedule',
-        clientName: formData.name,
-        clientEmail: formData.email,
-        clientPhone: formData.phone,
-        service: selectedService.name,
-        date: formData.date,
-        time: formData.time,
-        professionalName: professional.name,
-        professionalEmail: professional.email,
-      };
-
-      console.log('Datos que se envían al Google Apps Script:', dataToSend);
-
-      const formBody = Object.entries(dataToSend)
-        .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
-        .join('&');
-      // Enviar los datos al Google Apps Script
-      const res = await fetch(
-        process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: formBody,
-        },
-      );
-
-      const result = await res.text();
-      toast.success('Cita confirmada. Te hemos enviado un correo de confirmación.');
-      console.log('Respuesta del script:', result);
-    } catch (error) {
-      console.error('Error al enviar los datos al script:', error);
-      setError('Error al enviar los datos. Por favor intenta nuevamente.');
-      setSubmitting(false);
-      toast.error('Error al enviar los datos. Por favor intenta nuevamente.');
-      return;
-    }
-
-    try {
       const client = await createOrUpdateClient();
       const startDateTime = new Date(`${formData.date}T${formData.time}`);
       const endDateTime = new Date(startDateTime.getTime() + selectedService.duration_minutes * 60000);
+
+      // Generar token de cancelación único
+      const cancellationToken = crypto.randomUUID();
 
       const { error } = await supabase
         .from('appointments')
@@ -362,11 +323,57 @@ export default function AgendarPage() {
           start_time: startDateTime.toISOString(),
           end_time: endDateTime.toISOString(),
           status: 'confirmed',
+          cancellation_token: cancellationToken,
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      // Enviar email de confirmación con el token de cancelación
+      try {
+        const formattedDate =
+          selectedDate?.toLocaleDateString('es-CL', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          }) || '';
+
+        const dataToSend = {
+          action: 'schedule',
+          clientName: formData.name,
+          clientEmail: formData.email,
+          clientPhone: formData.phone,
+          service: selectedService.name,
+          date: formattedDate,
+          time: selectedTime,
+          professionalName: professional.name,
+          professionalEmail: professional.email,
+          cancellationToken: cancellationToken,
+          appUrl: window.location.origin,
+        };
+
+        const formBody = Object.entries(dataToSend)
+          .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v || ''))
+          .join('&');
+
+        const response = await fetch(process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formBody,
+        });
+
+        const result = await response.text();
+        console.log('Respuesta del script:', result);
+        toast.success('¡Cita agendada exitosamente! Te hemos enviado un correo de confirmación.');
+      } catch (emailError) {
+        console.error('Error enviando email de confirmación:', emailError);
+        // No fallar todo el proceso si el email falla
+        toast.warning('Cita creada exitosamente, pero no se pudo enviar el email de confirmación');
+      }
 
       // Reset y mostrar éxito
       setStep(1);
