@@ -19,9 +19,9 @@ export default function Footer() {
               <h3 className="text-xl font-semibold text-foreground mb-2">Síguenos</h3>
               <SocialButtons
                 socials={[
-                  { platform: 'twitter', url: 'https://www.twitter.com/turnate' },
+                  { platform: 'twitter', url: 'https://www.x.com/turnate' },
                   { platform: 'instagram', url: 'https://www.instagram.com/turnate' },
-                  { platform: 'youtube', url: 'https://www.youtube.com/turnate' },
+                  { platform: 'tiktok', url: 'https://www.tiktok.com/@turnate' },
                   { platform: 'linkedin', url: 'https://www.linkedin.com/company/turnate' },
                 ]}
                 size="md"
@@ -46,7 +46,9 @@ export default function Footer() {
 
         {/* Bottom section */}
         <div className="mt-4 pt-4 border-t text-center">
-          <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} Turnate. Todos los derechos reservados.</p>
+          <p className="text-sm text-muted-foreground">
+            &copy; {new Date().getFullYear()} Turnate. Todos los derechos reservados.
+          </p>
         </div>
       </div>
     </footer>

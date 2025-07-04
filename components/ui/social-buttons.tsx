@@ -1,6 +1,5 @@
 import React from 'react';
-import { TbBrandInstagram, TbBrandWhatsapp, TbBrandFacebook } from 'react-icons/tb';
-import { FaTiktok, FaYoutube, FaTwitter, FaLinkedin } from 'react-icons/fa';
+import { FaWhatsapp, FaXTwitter, FaInstagram, FaTiktok, FaYoutube, FaLinkedinIn, FaSquareFacebook } from "react-icons/fa6";
 
 export type SocialPlatform = 'instagram' | 'whatsapp' | 'facebook' | 'tiktok' | 'youtube' | 'twitter' | 'linkedin';
 
@@ -16,13 +15,13 @@ interface SocialButtonsProps {
 }
 
 const iconMap = {
-  instagram: TbBrandInstagram,
-  whatsapp: TbBrandWhatsapp,
-  facebook: TbBrandFacebook,
+  instagram: FaInstagram,
+  whatsapp: FaWhatsapp,
+  facebook: FaSquareFacebook,
   tiktok: FaTiktok,
   youtube: FaYoutube,
-  twitter: FaTwitter,
-  linkedin: FaLinkedin,
+  twitter: FaXTwitter,
+  linkedin: FaLinkedinIn,
 };
 
 const colorMap: Record<SocialPlatform, string> = {
@@ -31,7 +30,7 @@ const colorMap: Record<SocialPlatform, string> = {
   facebook: 'hover:bg-blue-600',
   tiktok: 'hover:bg-black',
   youtube: 'hover:bg-red-600',
-  twitter: 'hover:bg-blue-500',
+  twitter: 'hover:bg-black',
   linkedin: 'hover:bg-blue-700',
 };
 

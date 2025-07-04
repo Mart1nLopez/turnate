@@ -2,7 +2,7 @@
 
 import { extractMapUrl } from '@/lib/utils';
 import { Professional } from '@/types';
-import { SocialButtons } from '@/components/ui/social-buttons';
+import { SocialButtons, SocialPlatform } from '@/components/ui/social-buttons';
 
 interface ContactoProps {
   professional: Professional;
@@ -21,6 +21,8 @@ export default function Contacto({ professional }: ContactoProps) {
         return value.startsWith('http') ? value : `https://tiktok.com/@${value.replace('@', '')}`;
       case 'youtube':
         return value.startsWith('http') ? value : `https://youtube.com/@${value.replace('@', '')}`;
+      case 'twitter':
+        return value.startsWith('http') ? value : `https://twitter.com/${value.replace('@', '')}`;
       default:
         return '#';
     }
@@ -76,11 +78,16 @@ export default function Contacto({ professional }: ContactoProps) {
                   <h3 className="text-xl font-semibold text-gray-800 text-center">Síguenos</h3>
                   <div className="flex flex-col items-center justify-center">
                     <SocialButtons
-                      socials={Object.entries(socialLinks)
-                        .filter(([, value]) => !!value)
-                        .map(([platform, value]) => ({
-                          platform: platform as keyof typeof socialLinks,
-                          url: getSocialUrl(platform, value as string),
+                      socials={(
+                        ['instagram', 'tiktok', 'whatsapp', 'twitter', 'facebook', 'youtube'] as SocialPlatform[]
+                      )
+                        .filter((platform) => !!(socialLinks as Record<SocialPlatform, string | undefined>)[platform])
+                        .map((platform) => ({
+                          platform,
+                          url: getSocialUrl(
+                            platform,
+                            (socialLinks as Record<SocialPlatform, string | undefined>)[platform] as string,
+                          ),
                         }))}
                       size="lg"
                       className="justify-center items-center flex-wrap mb-6"

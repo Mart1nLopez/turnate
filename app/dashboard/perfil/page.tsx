@@ -1,19 +1,8 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import {
-  TbUser,
-  TbPhone,
-  TbMapPin,
-  TbBrandInstagram,
-  TbBrandWhatsapp,
-  TbBrandFacebook,
-  TbDeviceFloppy,
-  TbLink,
-  TbQrcode,
-  TbQrcodeOff,
-  TbCopy,
-} from 'react-icons/tb';
+import { TbUser, TbPhone, TbMapPin, TbDeviceFloppy, TbLink, TbQrcode, TbQrcodeOff, TbCopy } from 'react-icons/tb';
+import { FaInstagram, FaWhatsapp, FaSquareFacebook, FaTiktok, FaXTwitter, FaYoutube } from 'react-icons/fa6';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +25,9 @@ interface ProfileForm {
   instagram: string;
   whatsapp: string;
   facebook: string;
+  tiktok: string;
+  twitter: string;
+  youtube: string;
 }
 
 interface ProfileImage {
@@ -57,6 +49,9 @@ export default function PerfilPage() {
     instagram: '',
     whatsapp: '',
     facebook: '',
+    tiktok: '',
+    twitter: '',
+    youtube: '',
   });
   const [images, setImages] = useState<ProfileImage[]>([]);
   const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
@@ -135,6 +130,9 @@ export default function PerfilPage() {
         instagram: professional.social_links?.instagram || '',
         whatsapp: professional.social_links?.whatsapp || '',
         facebook: professional.social_links?.facebook || '',
+        tiktok: professional.social_links?.tiktok || '',
+        twitter: professional.social_links?.twitter || '',
+        youtube: professional.social_links?.youtube || '',
       });
       setImages(professional.carrusel_images || []);
     } catch (error) {
@@ -278,6 +276,9 @@ export default function PerfilPage() {
           instagram: formData.instagram || null,
           whatsapp: formData.whatsapp || null,
           facebook: formData.facebook || null,
+          tiktok: formData.tiktok || null,
+          twitter: formData.twitter || null,
+          youtube: formData.youtube || null,
         },
         carrusel_images: allImages,
       };
@@ -498,10 +499,15 @@ export default function PerfilPage() {
             </div>
             <Button
               className="text-xl text-blue-700 hover:text-blue-800"
-              variant='outline'
+              variant="outline"
               type="button"
               onClick={() => setShowQR((prev) => !prev)}>
-              {showQR ? <TbQrcodeOff /> : <><TbQrcode /></>}
+              {showQR ?
+                <TbQrcodeOff />
+              : <>
+                  <TbQrcode />
+                </>
+              }
             </Button>
           </div>
           {showQR && (
@@ -692,7 +698,7 @@ export default function PerfilPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Instagram</label>
                 <div className="relative">
-                  <TbBrandInstagram className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <FaInstagram className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     name="instagram"
                     value={formData.instagram}
@@ -706,7 +712,7 @@ export default function PerfilPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">WhatsApp</label>
                 <div className="relative">
-                  <TbBrandWhatsapp className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <FaWhatsapp className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     name="whatsapp"
                     value={formData.whatsapp}
@@ -720,12 +726,54 @@ export default function PerfilPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Facebook</label>
                 <div className="relative">
-                  <TbBrandFacebook className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <FaSquareFacebook className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     name="facebook"
                     value={formData.facebook}
                     onChange={handleInputChange}
                     placeholder="Tu página de Facebook"
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">TikTok</label>
+                <div className="relative">
+                  <FaTiktok className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    name="tiktok"
+                    value={formData.tiktok}
+                    onChange={handleInputChange}
+                    placeholder="@tu_usuario"
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Twitter</label>
+                <div className="relative">
+                  <FaXTwitter className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    name="twitter"
+                    value={formData.twitter}
+                    onChange={handleInputChange}
+                    placeholder="@usuario o enlace"
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">YouTube</label>
+                <div className="relative">
+                  <FaYoutube className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    name="youtube"
+                    value={formData.youtube}
+                    onChange={handleInputChange}
+                    placeholder="Canal o enlace"
                     className="pl-10"
                   />
                 </div>

@@ -11,6 +11,9 @@ export interface Professional {
     instagram?: string;
     whatsapp?: string;
     facebook?: string;
+    tiktok?: string;
+    twitter?: string;
+    youtube?: string;
   };
   carrusel_images?: {
     url: string;
