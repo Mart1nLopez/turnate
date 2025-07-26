@@ -5,8 +5,15 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { TbArrowLeft } from 'react-icons/tb';
 import { Button } from '@/components/ui/button';
 import LoadingSpinner from '@/components/ui/loading-spinner';
-import { supabase } from '@/lib/supabase';
-import { Professional, Service, Availability, Client, UnavailableDate } from '@/types';
+import {
+  getExistingAppointmentsForDay,
+  getClientByEmail,
+  updateClient,
+  createClient,
+  createAppointment,
+} from '@/services/appointmentService';
+import { useProfessionalBooking } from '@/hooks/useProfessionalBooking';
+import { Service, Client } from '@/types';
 import { generateTimeSlots, TimeSlot } from '@/lib/slots';
 import { format } from 'date-fns';
 import Link from 'next/link';
@@ -30,11 +37,19 @@ export default function AgendarPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [professional, setProfessional] = useState<Professional | null>(null);
-  const [services, setServices] = useState<Service[]>([]);
-  const [availability, setAvailability] = useState<Availability[]>([]);
-  const [unavailableDates, setUnavailableDates] = useState<UnavailableDate[]>([]);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const slug = params.slug as string;
+  const preSelectedServiceId = searchParams.get('service');
+
+  const {
+    professional,
+    services,
+    availability,
+    unavailableDates,
+    selectedService,
+    setSelectedService,
+    loading,
+    error: loadError,
+  } = useProfessionalBooking(slug, preSelectedServiceId);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
@@ -47,13 +62,9 @@ export default function AgendarPage() {
     date: '',
     time: '',
   });
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(1); // 1: selection, 2: client details
-
-  const slug = params.slug as string;
-  const preSelectedServiceId = searchParams.get('service');
 
   // Scroll suave para móvil
   const scrollToSection = (element: HTMLElement) => {
@@ -64,68 +75,12 @@ export default function AgendarPage() {
     });
   };
 
-  const loadData = useCallback(async () => {
-    try {
-      // Cargar profesional
-      const { data: professionalData, error: professionalError } = await supabase
-        .from('professionals')
-        .select('*')
-        .eq('slug', slug)
-        .single();
-
-      if (professionalError || !professionalData) {
-        console.error('Professional not found');
-        return;
-      }
-
-      setProfessional(professionalData);
-
-      // Cargar servicios
-      const { data: servicesData } = await supabase
-        .from('services')
-        .select('*')
-        .eq('professional_id', professionalData.id)
-        .order('created_at', { ascending: true });
-
-      setServices(servicesData || []);
-
-      // Cargar disponibilidad
-      const { data: availabilityData } = await supabase
-        .from('availability')
-        .select('*')
-        .eq('professional_id', professionalData.id);
-
-      setAvailability(availabilityData || []);
-
-      // Cargar fechas no disponibles
-      const { data: unavailableDatesData } = await supabase
-        .from('unavailable_dates')
-        .select('*')
-        .eq('professional_id', professionalData.id);
-
-      setUnavailableDates(unavailableDatesData || []);
-
-      // Pre-seleccionar servicio si viene en la URL
-      if (preSelectedServiceId && servicesData) {
-        const preSelectedService = servicesData.find((s) => s.id === preSelectedServiceId);
-        if (preSelectedService) {
-          setSelectedService(preSelectedService);
-          setFormData((prev) => ({ ...prev, serviceId: preSelectedService.id }));
-        }
-      }
-    } catch (error) {
-      console.error('Error loading data:', error);
-      router.push('/');
-    } finally {
-      setLoading(false);
-    }
-  }, [slug, preSelectedServiceId, router]);
-
   useEffect(() => {
-    if (slug) {
-      loadData();
+    // Si el servicio fue preseleccionado por el hook, actualiza el formData
+    if (selectedService) {
+      setFormData((prev) => ({ ...prev, serviceId: selectedService.id }));
     }
-  }, [slug, loadData]);
+  }, [selectedService]);
 
   const generateTimeSlotsForDay = useCallback(
     async (date: Date, service: Service) => {
@@ -144,21 +99,11 @@ export default function AgendarPage() {
 
       try {
         const dateString = date.toISOString().split('T')[0];
-
-        // Obtener citas existentes para este día
-        const { data: existingAppointments } = await supabase
-          .from('appointments')
-          .select('*')
-          .eq('professional_id', professional.id)
-          .gte('start_time', `${dateString}T00:00:00`)
-          .lt('start_time', `${dateString}T23:59:59`)
-          .eq('status', 'confirmed');
-
-        // Generar slots usando la función de slots con fechas no disponibles
+        const existingAppointments = await getExistingAppointmentsForDay(professional.id, dateString);
         const slots = generateTimeSlots(
           date,
           dayAvailability,
-          existingAppointments || [],
+          existingAppointments,
           service.duration_minutes,
           unavailableDates,
         );
@@ -220,42 +165,12 @@ export default function AgendarPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const checkExistingClient = async (email: string) => {
-    const { data } = await supabase.from('clients').select('*').eq('email', email).single();
-    console.log('Existing client data:', data);
-    return data;
-  };
-
   const createOrUpdateClient = async (): Promise<Client> => {
-    const existingClient = await checkExistingClient(formData.email);
-
+    const existingClient = await getClientByEmail(formData.email);
     if (existingClient) {
-      const { data, error } = await supabase
-        .from('clients')
-        .update({
-          name: formData.name,
-          phone: formData.phone,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', existingClient.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      return await updateClient(existingClient.id, formData.name, formData.phone);
     } else {
-      const { data, error } = await supabase
-        .from('clients')
-        .insert({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      return await createClient(formData.name, formData.email, formData.phone);
     }
   };
 
@@ -315,22 +230,15 @@ export default function AgendarPage() {
       const cancellationToken = crypto.randomUUID();
       const reviewToken = crypto.randomUUID();
 
-      const { error } = await supabase
-        .from('appointments')
-        .insert({
-          professional_id: professional.id,
-          service_id: selectedService.id,
-          client_id: client.id,
-          start_time: startDateTime.toISOString(),
-          end_time: endDateTime.toISOString(),
-          status: 'confirmed',
-          cancellation_token: cancellationToken,
-          review_token: reviewToken,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
+      await createAppointment({
+        professionalId: professional.id,
+        serviceId: selectedService.id,
+        clientId: client.id,
+        startTime: startDateTime.toISOString(),
+        endTime: endDateTime.toISOString(),
+        cancellationToken,
+        reviewToken,
+      });
 
       // Enviar email de confirmación con el token de cancelación
       try {
@@ -466,16 +374,17 @@ export default function AgendarPage() {
   // Cambia canContinue a booleano explícito
   const canContinue = Boolean(selectedService && selectedDate && selectedTime);
 
-  // Nueva función para autocompletar datos del cliente
+  // función para autocompletar datos del cliente
   const handleEmailBlur = async () => {
     if (!formData.email.trim()) return;
-    const existingClient = await checkExistingClient(formData.email);
+    const existingClient = await getClientByEmail(formData.email);
     if (existingClient) {
       setFormData((prev) => ({
         ...prev,
         name: existingClient.name || '',
         phone: existingClient.phone || '',
       }));
+      toast.info('Datos autocompletados.');
       console.log('Datos de cliente autocompletados.');
     }
   };
@@ -493,6 +402,20 @@ export default function AgendarPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Profesional no encontrado</h1>
+          <Link href="/">
+            <Button>Volver al inicio</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar error de carga si existe
+  if (loadError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{loadError}</h1>
           <Link href="/">
             <Button>Volver al inicio</Button>
           </Link>

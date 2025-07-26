@@ -9,7 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ImageUpload } from '@/components/ui/image-upload';
 import LoadingSpinner from '@/components/ui/loading-spinner';
-import { supabase, getCurrentProfessional } from '@/lib/supabase';
+import {
+  getProfessionalProfile,
+  updateProfessionalProfile,
+  checkSlugAvailability as checkSlugAvailabilityService,
+} from '@/services/professionalService';
+import { generateSlugWithRandomSuffix } from '@/lib/utils';
 import { deleteMultipleImages, uploadCarouselImages } from '@/lib/storage';
 import { Professional } from '@/types';
 import { toast } from 'sonner';
@@ -100,25 +105,12 @@ export default function PerfilPage() {
     'robots',
     'favicon',
     'manifest',
+    'confirmado',
   ];
 
   const loadProfessional = useCallback(async () => {
     try {
-      // Obtener el usuario autenticado para logs
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      console.log('🔍 Usuario autenticado:', user?.id);
-
-      const { professional, error } = await getCurrentProfessional();
-      if (error || !professional) throw error;
-
-      console.log('👤 Profesional cargado:', {
-        professionalId: professional.id,
-        userId: user?.id,
-        areEqual: professional.id === user?.id,
-      });
-
+      const professional = await getProfessionalProfile();
       setProfessional(professional);
       setFormData({
         name: professional.name || '',
@@ -190,8 +182,8 @@ export default function PerfilPage() {
     }
 
     // Si es el nombre y el slug está vacío, generar slug automáticamente
-    if (name === 'name' && (!formData.slug || formData.slug === generateSlugFromName(formData.name))) {
-      const newSlug = generateSlugFromName(value);
+    if (name === 'name' && (!formData.slug || formData.slug === generateSlugWithRandomSuffix(formData.name))) {
+      const newSlug = generateSlugWithRandomSuffix(value);
       setFormData((prev) => ({
         ...prev,
         name: value,
@@ -268,31 +260,26 @@ export default function PerfilPage() {
       const updateData = {
         name: formData.name,
         slug: formData.slug,
-        bio: formData.bio || null,
+        bio: formData.bio || undefined,
         phone: formData.phone,
-        location: formData.location || null,
-        map_embed_url: formData.map_embed_url || null,
+        location: formData.location || undefined,
+        map_embed_url: formData.map_embed_url || undefined,
         social_links: {
-          instagram: formData.instagram || null,
-          whatsapp: formData.whatsapp || null,
-          facebook: formData.facebook || null,
-          tiktok: formData.tiktok || null,
-          twitter: formData.twitter || null,
-          youtube: formData.youtube || null,
+          instagram: formData.instagram || undefined,
+          whatsapp: formData.whatsapp || undefined,
+          facebook: formData.facebook || undefined,
+          tiktok: formData.tiktok || undefined,
+          twitter: formData.twitter || undefined,
+          youtube: formData.youtube || undefined,
         },
         carrusel_images: allImages,
       };
 
       console.log('💾 Actualizando base de datos...');
-      const { error } = await supabase.from('professionals').update(updateData).eq('id', professional.id);
-
-      if (error) throw error;
-
-      // Actualizar el estado local
+      await updateProfessionalProfile(professional.id, updateData);
       setProfessional((prev) => (prev ? ({ ...prev, ...updateData } as Professional) : null));
       setImages(allImages);
       setNewImageFiles([]);
-
       console.log('✅ Perfil actualizado exitosamente');
       toast.success('Perfil actualizado exitosamente');
     } catch (error) {
@@ -316,47 +303,15 @@ export default function PerfilPage() {
   };
 
   const getPublicUrl = () => {
-    const slug = formData.slug || professional?.slug;
+    // Mostrar solo el slug guardado en la BD, no el que está en edición
+    const slug = professional?.slug;
     if (!slug) return '';
     return `${window.location.origin}/${slug}`;
   };
 
-  const generateSlugFromName = (name: string): string => {
-    return name
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Remover acentos
-      .replace(/[^a-z0-9\s-]/g, '') // Solo letras, números, espacios y guiones
-      .trim()
-      .replace(/\s+/g, '-') // Reemplazar espacios por guiones
-      .replace(/-+/g, '-'); // Remover guiones duplicados
-  };
-
   const checkSlugAvailability = async (slug: string): Promise<boolean> => {
-    if (!slug || slug.trim() === '') return false;
-
-    // Si es el mismo slug actual del profesional, es válido
     if (professional && slug === professional.slug) return true;
-
-    try {
-      const { error } = await supabase.from('professionals').select('id').eq('slug', slug).single();
-
-      if (error && error.code === 'PGRST116') {
-        // No se encontró ningún registro, el slug está disponible
-        return true;
-      }
-
-      if (error) {
-        console.error('Error checking slug:', error);
-        return false;
-      }
-
-      // Si se encontró un registro, el slug ya existe
-      return false;
-    } catch (error) {
-      console.error('Error checking slug availability:', error);
-      return false;
-    }
+    return await checkSlugAvailabilityService(slug, professional?.id);
   };
 
   const validateAndSetSlug = async (newSlug: string) => {
@@ -414,7 +369,7 @@ export default function PerfilPage() {
         const pngFile = canvas.toDataURL('image/png');
         const downloadLink = document.createElement('a');
         downloadLink.href = pngFile;
-        downloadLink.download = 'qr-turnate.png';
+        downloadLink.download = `qr-${professional?.slug}-turnate.png`;
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);

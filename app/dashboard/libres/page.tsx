@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import { TbCalendarOff, TbPlus, TbEdit, TbTrash, TbCalendar, TbX, TbCheck } from 'react-icons/tb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import LoadingSpinner from '@/components/ui/loading-spinner';
-import { supabase, getCurrentProfessional } from '@/lib/supabase';
+import { getCurrentProfessional } from '@/lib/supabase';
+import { useUnavailableDates } from '@/hooks/useUnavailableDates';
 import { UnavailableDate } from '@/types';
 import { toast } from 'sonner';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -30,8 +31,16 @@ interface DateRange {
 }
 
 export default function LibresPage() {
-  const [unavailableDates, setUnavailableDates] = useState<UnavailableDate[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    unavailableDates,
+    loading,
+    error: loadError,
+    createDates,
+    updateDates,
+    updateDate,
+    deleteDates,
+    // reload,
+  } = useUnavailableDates();
   const [showForm, setShowForm] = useState(false);
   const [editingDate, setEditingDate] = useState<UnavailableDate | null>(null);
   const { confirm, ConfirmDialog } = useConfirmDialog();
@@ -42,30 +51,7 @@ export default function LibresPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  const loadUnavailableDates = useCallback(async () => {
-    try {
-      const { professional } = await getCurrentProfessional();
-      if (!professional) return;
-
-      const { data, error } = await supabase
-        .from('unavailable_dates')
-        .select('*')
-        .eq('professional_id', professional.id)
-        .order('date', { ascending: true });
-
-      if (error) throw error;
-
-      setUnavailableDates(data || []);
-    } catch (error) {
-      console.error('Error loading unavailable dates:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadUnavailableDates();
-  }, [loadUnavailableDates]);
+  // unavailableDates y loading ahora vienen del hook
 
   const resetForm = () => {
     setFormData({
@@ -119,11 +105,11 @@ export default function LibresPage() {
       }
 
       if (editingDate) {
-        // MODO EDICIÓN: Verificar si estamos editando un rango o un día individual
+        // Verificar si estamos editando un rango o un día individual
         const originalRange = groupedDates.find((range) => range.dates.some((date) => date.id === editingDate.id));
 
         if (originalRange && originalRange.isRange) {
-          // EDICIÓN DE RANGO: Verificar si las fechas han cambiado o solo el motivo
+          // Verificar si las fechas han cambiado o solo el motivo
           const dateIds = originalRange.dates.map((d) => d.id);
 
           // Verificar si las fechas del rango han cambiado
@@ -138,20 +124,7 @@ export default function LibresPage() {
             // Si solo cambió el motivo (o no cambió nada), actualizar directamente
             if (originalRange.reason !== formData.reason) {
               // Solo actualizar el motivo de todas las fechas del rango
-              const { error: updateError } = await supabase
-                .from('unavailable_dates')
-                .update({ reason: formData.reason })
-                .in('id', dateIds);
-
-              if (updateError) {
-                console.error('Error updating range reason:', updateError);
-                throw new Error('No se pudo actualizar el motivo del rango');
-              }
-
-              // Actualizar el estado local
-              setUnavailableDates((prev) =>
-                prev.map((date) => (dateIds.includes(date.id) ? { ...date, reason: formData.reason } : date)),
-              );
+              await updateDates(dateIds, { reason: formData.reason });
             }
             // Si no cambió nada, no hacer nada
           } else {
@@ -197,15 +170,7 @@ export default function LibresPage() {
             if (datesToKeep.length > 0) {
               const idsToUpdate = originalRange.dates.filter((d) => datesToKeep.includes(d.date)).map((d) => d.id);
 
-              const { error: updateError } = await supabase
-                .from('unavailable_dates')
-                .update({ reason: formData.reason })
-                .in('id', idsToUpdate);
-
-              if (updateError) {
-                console.error('Error updating existing dates reason:', updateError);
-                throw new Error('No se pudo actualizar el motivo de las fechas existentes');
-              }
+              await updateDates(idsToUpdate, { reason: formData.reason });
             }
 
             // PASO 2: Crear solo las fechas completamente nuevas
@@ -217,61 +182,25 @@ export default function LibresPage() {
                 reason: formData.reason,
               }));
 
-              const { data: insertedData, error: insertError } = await supabase
-                .from('unavailable_dates')
-                .insert(datesToInsert)
-                .select();
-
-              if (insertError) {
-                console.error('Error creating new dates:', insertError);
-                throw new Error('No se pudo crear las nuevas fechas del rango');
-              }
-
-              newData = insertedData || [];
+              const insertedData = await createDates(datesToInsert.map((d) => ({ date: d.date, reason: d.reason })));
+              newData = insertedData;
             }
 
             // PASO 3: Eliminar las fechas que ya no están en el nuevo rango
             if (datesToRemove.length > 0) {
               const idsToRemove = datesToRemove.map((d) => d.id);
-              const { error: deleteError } = await supabase.from('unavailable_dates').delete().in('id', idsToRemove);
-
-              if (deleteError) {
+              try {
+                await deleteDates(idsToRemove);
+              } catch (deleteError) {
                 console.error('Error deleting removed dates:', deleteError);
                 // ROLLBACK: Si falló la eliminación, intentar eliminar las fechas recién creadas
                 if (newData.length > 0) {
                   const newIds = newData.map((d) => d.id);
-                  await supabase.from('unavailable_dates').delete().in('id', newIds);
+                  await deleteDates(newIds);
                 }
                 throw new Error('Error al actualizar el rango. Se ha revertido la operación.');
               }
             }
-
-            // PASO 4: Actualizar el estado local
-            setUnavailableDates((prev) => {
-              let updated = [...prev];
-
-              // Actualizar motivo de fechas existentes que se mantienen
-              if (datesToKeep.length > 0) {
-                updated = updated.map((date) =>
-                  datesToKeep.includes(date.date) && dateIds.includes(date.id) ?
-                    { ...date, reason: formData.reason }
-                  : date,
-                );
-              }
-
-              // Eliminar fechas que ya no están en el rango
-              if (datesToRemove.length > 0) {
-                const idsToRemoveSet = new Set(datesToRemove.map((d) => d.id));
-                updated = updated.filter((date) => !idsToRemoveSet.has(date.id));
-              }
-
-              // Agregar nuevas fechas
-              if (newData.length > 0) {
-                updated = [...updated, ...newData];
-              }
-
-              return updated.sort((a, b) => a.date.localeCompare(b.date));
-            });
           }
         } else {
           // EDICIÓN DE DÍA INDIVIDUAL: Verificar si algo ha cambiado antes de actualizar
@@ -283,8 +212,8 @@ export default function LibresPage() {
           const reasonChanged = editingDate.reason !== newReason;
 
           if (!dateChanged && !reasonChanged) {
-            // No hay cambios, no hacer nada
-            // (Pero aún mostrar mensaje de éxito para mejor UX)
+            toast.info('No se han realizado cambios en la fecha o el motivo');
+            return;
           } else {
             // Verificar si la nueva fecha ya existe (solo si la fecha cambió)
             if (dateChanged) {
@@ -297,27 +226,11 @@ export default function LibresPage() {
             }
 
             // Si hay cambios y no hay conflictos, proceder con la actualización
-            const { error } = await supabase
-              .from('unavailable_dates')
-              .update({
-                date: newDate,
-                reason: newReason,
-              })
-              .eq('id', editingDate.id);
-
-            if (error) {
-              console.error('Error updating individual date:', error);
-              throw new Error('No se pudo actualizar el día libre');
-            }
-
-            // Actualizar el estado solo si la operación fue exitosa
-            setUnavailableDates((prev) =>
-              prev.map((date) => (date.id === editingDate.id ? { ...date, date: newDate, reason: newReason } : date)),
-            );
+            await updateDate(editingDate.id, { date: newDate, reason: newReason });
           }
         }
       } else {
-        // MODO CREACIÓN: Crear nuevas fechas no disponibles (día individual o rango)
+        // Crear nuevas fechas no disponibles (día individual o rango)
         const datesToInsert = [];
 
         // Usar una implementación más robusta para iterar fechas
@@ -346,14 +259,7 @@ export default function LibresPage() {
           return;
         }
 
-        const { data, error } = await supabase.from('unavailable_dates').insert(datesToInsert).select();
-
-        if (error) {
-          console.error('Error creating new unavailable dates:', error);
-          throw new Error('No se pudieron crear los días libres');
-        }
-
-        setUnavailableDates((prev) => [...prev, ...data].sort((a, b) => a.date.localeCompare(b.date)));
+        await createDates(datesToInsert.map((d) => ({ date: d.date, reason: d.reason })));
       }
 
       resetForm();
@@ -412,15 +318,7 @@ export default function LibresPage() {
     try {
       const dateIds = range.dates.map((d) => d.id);
 
-      const { error } = await supabase.from('unavailable_dates').delete().in('id', dateIds);
-
-      if (error) {
-        console.error('Error deleting unavailable dates:', error);
-        throw new Error('No se pudieron eliminar los días libres');
-      }
-
-      // Solo actualizar el estado si la eliminación fue exitosa
-      setUnavailableDates((prev) => prev.filter((date) => !dateIds.includes(date.id)));
+      await deleteDates(dateIds);
       toast.success(`${range.isRange ? 'Período' : 'Día'} libre eliminado exitosamente`);
     } catch (error) {
       console.error('Error deleting unavailable dates:', error);
@@ -517,6 +415,16 @@ export default function LibresPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <LoadingSpinner size="lg" text="Cargando días libres..." />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{loadError}</h1>
+        </div>
       </div>
     );
   }
@@ -648,6 +556,7 @@ export default function LibresPage() {
                     className="h-10 w-10 p-0"
                     title={dateRange.isRange ? 'Editar rango completo' : 'Editar día'}>
                     <TbEdit className="w-5 h-5" />
+                    <div dangerouslySetInnerHTML={{ __html: '<!-- App web hecha por Lucas Álvarez -->' }} />
                   </Button>
                   <Button
                     size="sm"

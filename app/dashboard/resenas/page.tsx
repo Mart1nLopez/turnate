@@ -1,99 +1,12 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
 import { TbStar, TbUser, TbCalendar, TbStarFilled, TbMessage } from 'react-icons/tb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import LoadingSpinner from '@/components/ui/loading-spinner';
-import { supabase, getCurrentProfessional } from '@/lib/supabase';
-import { Review } from '@/types';
-
-interface ReviewWithDetails extends Review {
-  appointment?: {
-    start_time: string;
-    service?: {
-      name: string;
-    };
-  };
-}
-
-interface ReviewStats {
-  totalReviews: number;
-  averageRating: number;
-  ratingDistribution: { [key: number]: number };
-}
+import { useProfessionalReviews } from '@/hooks/useProfessionalReviews';
 
 export default function ResenasPage() {
-  const [reviews, setReviews] = useState<ReviewWithDetails[]>([]);
-  const [stats, setStats] = useState<ReviewStats>({
-    totalReviews: 0,
-    averageRating: 0,
-    ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
-  });
-  const [loading, setLoading] = useState(true);
-
-  const loadReviews = useCallback(async () => {
-    try {
-      const { professional } = await getCurrentProfessional();
-      if (!professional) return;
-
-      const { data, error } = await supabase
-        .from('reviews')
-        .select(
-          `
-          *,
-          appointment:appointments(
-            start_time,
-            service:services(name)
-          )
-        `,
-        )
-        .eq('professional_id', professional.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const reviewsData = data || [];
-      setReviews(reviewsData);
-      calculateStats(reviewsData);
-    } catch (error) {
-      console.error('Error loading reviews:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadReviews();
-  }, [loadReviews]);
-
-  const calculateStats = (reviewsData: ReviewWithDetails[]) => {
-    const totalReviews = reviewsData.length;
-
-    if (totalReviews === 0) {
-      setStats({
-        totalReviews: 0,
-        averageRating: 0,
-        ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
-      });
-      return;
-    }
-
-    const totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0);
-    const averageRating = totalRating / totalReviews;
-
-    const ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    reviewsData.forEach((review) => {
-      if (review.rating >= 1 && review.rating <= 5) {
-        ratingDistribution[review.rating as keyof typeof ratingDistribution]++;
-      }
-    });
-
-    setStats({
-      totalReviews,
-      averageRating,
-      ratingDistribution,
-    });
-  };
+  const { reviews, stats, loading, error } = useProfessionalReviews();
 
   const renderStars = (rating: number, size: 'sm' | 'md' | 'lg' = 'md') => {
     const sizeClasses = {
@@ -133,6 +46,14 @@ export default function ResenasPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <LoadingSpinner size="lg" text="Cargando reseñas..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-red-500">{error}</p>
       </div>
     );
   }

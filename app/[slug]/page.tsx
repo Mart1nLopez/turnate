@@ -4,18 +4,15 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import LoadingSpinner from '@/components/ui/loading-spinner';
-import { supabase } from '@/lib/supabase';
-import { Professional, Service, Review } from '@/types';
+import {
+  getProfessionalBySlug,
+  getServicesByProfessionalId,
+  getReviewsByProfessionalId,
+  ReviewWithClient,
+} from '@/services/professionalPublicService';
+import { Professional, Service } from '@/types';
 import Link from 'next/link';
 import { Header, Carrusel, Services, Contacto, Reviews, Footer } from '@/components/professionalPage';
-
-interface ReviewWithClient extends Review {
-  appointment?: {
-    service?: {
-      name: string;
-    };
-  };
-}
 
 export default function ProfessionalPublicPage() {
   const params = useParams();
@@ -28,53 +25,17 @@ export default function ProfessionalPublicPage() {
 
   const loadProfessionalData = useCallback(async () => {
     try {
-      // Cargar profesional
-      const { data: professionalData, error: professionalError } = await supabase
-        .from('professionals')
-        .select('*')
-        .eq('slug', slug)
-        .single();
-
-      if (professionalError || !professionalData) {
-        console.error('Professional not found');
-        return;
-      }
-
+      const professionalData = await getProfessionalBySlug(slug);
       setProfessional(professionalData);
-
-      console.log('Professional data loaded:', professionalData);
-
-      // Cargar servicios
-      const { data: servicesData } = await supabase
-        .from('services')
-        .select('*')
-        .eq('professional_id', professionalData.id)
-        .order('created_at', { ascending: true });
-
-      setServices(servicesData || []);
-
-      // Cargar reseñas
-      const { data: reviewsData } = await supabase
-        .from('reviews')
-        .select(
-          `
-          *,
-          appointment:appointments(
-            service:services(name)
-          )
-        `,
-        )
-        .eq('professional_id', professionalData.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      const reviews = reviewsData || [];
-      setReviews(reviews);
-
-      // Calcular promedio de calificaciones
-      if (reviews.length > 0) {
-        const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-        setAverageRating(totalRating / reviews.length);
+      const [servicesData, reviewsData] = await Promise.all([
+        getServicesByProfessionalId(professionalData.id),
+        getReviewsByProfessionalId(professionalData.id, 10),
+      ]);
+      setServices(servicesData);
+      setReviews(reviewsData);
+      if (reviewsData.length > 0) {
+        const totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0);
+        setAverageRating(totalRating / reviewsData.length);
       }
     } catch (error) {
       console.error('Error loading professional data:', error);

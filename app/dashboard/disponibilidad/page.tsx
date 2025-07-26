@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { TbClock, TbEdit, TbTrash, TbPlus, TbCalendar, TbX, TbCheck } from 'react-icons/tb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { TimeSelector } from '@/components/ui/time-selector';
 import { MinuteSelector } from '@/components/ui/minute-selector';
-import { supabase, getCurrentProfessional } from '@/lib/supabase';
+import { getCurrentProfessional } from '@/lib/supabase';
+import { useAvailability } from '@/hooks/useAvailability';
 import { Availability, TimeBlock } from '@/types';
 import { toast } from 'sonner';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
@@ -33,8 +34,9 @@ const DAYS_OF_WEEK = [
 ];
 
 export default function DisponibilidadPage() {
-  const [availability, setAvailability] = useState<Availability[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [professionalId, setProfessionalId] = useState<string | null>(null);
+  const { availability, loading, loadAvailability, addAvailability, editAvailability, removeAvailability } =
+    useAvailability(professionalId || '');
   const [showForm, setShowForm] = useState(false);
   const [editingAvailability, setEditingAvailability] = useState<Availability | null>(null);
   const { confirm, ConfirmDialog } = useConfirmDialog();
@@ -48,37 +50,16 @@ export default function DisponibilidadPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  const loadAvailability = useCallback(async () => {
-    try {
+  useEffect(() => {
+    (async () => {
       const { professional } = await getCurrentProfessional();
-      if (!professional) return;
-
-      const { data, error } = await supabase
-        .from('availability')
-        .select('*')
-        .eq('professional_id', professional.id)
-        .eq('is_available', true) // Solo disponibilidades activas
-        .order('day_of_week', { ascending: true });
-
-      if (error) throw error;
-
-      // Asegurar que day_of_week sean números
-      const processedData = (data || []).map((item) => ({
-        ...item,
-        day_of_week: typeof item.day_of_week === 'string' ? parseInt(item.day_of_week) : item.day_of_week,
-      }));
-
-      setAvailability(processedData);
-    } catch (error) {
-      console.error('Error loading availability:', error);
-    } finally {
-      setLoading(false);
-    }
+      if (professional) setProfessionalId(professional.id);
+    })();
   }, []);
 
   useEffect(() => {
-    loadAvailability();
-  }, [loadAvailability]);
+    if (professionalId) loadAvailability();
+  }, [professionalId, loadAvailability]);
 
   // Efecto para actualizar el día por defecto cuando cambia la disponibilidad
   useEffect(() => {
@@ -126,39 +107,31 @@ export default function DisponibilidadPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-
     try {
-      const { professional } = await getCurrentProfessional();
-      if (!professional) throw new Error('No professional found');
-
       // Validar que todos los bloques de tiempo sean válidos
       for (const block of formData.time_blocks) {
         if (block.start_time >= block.end_time) {
           toast.error('La hora de inicio debe ser anterior a la hora de fin en todos los bloques');
+          setSubmitting(false);
           return;
         }
       }
-
       // Validar que no haya superposiciones entre bloques
       const sortedBlocks = [...formData.time_blocks].sort((a, b) => a.start_time.localeCompare(b.start_time));
       for (let i = 0; i < sortedBlocks.length - 1; i++) {
         if (sortedBlocks[i].end_time > sortedBlocks[i + 1].start_time) {
           toast.error('Los bloques de horario no pueden superponerse');
+          setSubmitting(false);
           return;
         }
       }
-
       const selectedDayOfWeek = formData.day_of_week;
-
       // Verificar si ya existe disponibilidad para este día (solo si no estamos editando)
       if (!editingAvailability) {
-        const existingAvailability = availability.find((av) => {
-          const matches = av.day_of_week === selectedDayOfWeek;
-          return matches;
-        });
-
+        const existingAvailability = availability.find((av) => av.day_of_week === selectedDayOfWeek);
         if (existingAvailability) {
           toast.error(`Ya tienes configurada la disponibilidad para ${getDayName(selectedDayOfWeek)}`);
+          setSubmitting(false);
           return;
         }
       } else {
@@ -166,41 +139,26 @@ export default function DisponibilidadPage() {
         const existingAvailability = availability.find(
           (av) => av.day_of_week === selectedDayOfWeek && av.id !== editingAvailability.id,
         );
-
         if (existingAvailability) {
           toast.error(`Ya tienes configurada la disponibilidad para ${getDayName(selectedDayOfWeek)}`);
+          setSubmitting(false);
           return;
         }
       }
-
       const availabilityData = {
         day_of_week: selectedDayOfWeek,
         time_blocks: formData.time_blocks,
         break_minutes: parseInt(formData.break_minutes),
         advance_hours: parseInt(formData.advance_hours),
         cancel_hours: parseInt(formData.cancel_hours),
-        professional_id: professional.id,
+        professional_id: professionalId!,
         is_available: true,
       };
-
       if (editingAvailability) {
-        // Actualizar disponibilidad existente
-        const { error } = await supabase.from('availability').update(availabilityData).eq('id', editingAvailability.id);
-
-        if (error) throw error;
-
-        setAvailability((prev) =>
-          prev.map((av) => (av.id === editingAvailability.id ? ({ ...av, ...availabilityData } as Availability) : av)),
-        );
+        await editAvailability(editingAvailability.id, availabilityData);
       } else {
-        // Crear nueva disponibilidad
-        const { data, error } = await supabase.from('availability').insert([availabilityData]).select().single();
-
-        if (error) throw error;
-
-        setAvailability((prev) => [...prev, data].sort((a, b) => a.day_of_week - b.day_of_week));
+        await addAvailability(availabilityData);
       }
-
       resetForm();
       toast.success(
         editingAvailability ? 'Disponibilidad actualizada exitosamente' : 'Disponibilidad creada exitosamente',
@@ -234,15 +192,9 @@ export default function DisponibilidadPage() {
       cancelText: 'Cancelar',
       variant: 'destructive',
     });
-
     if (!confirmed) return;
-
     try {
-      const { error } = await supabase.from('availability').delete().eq('id', availabilityId);
-
-      if (error) throw error;
-
-      setAvailability((prev) => prev.filter((av) => av.id !== availabilityId));
+      await removeAvailability(availabilityId);
       toast.success('Disponibilidad eliminada exitosamente');
     } catch (error) {
       console.error('Error deleting availability:', error);

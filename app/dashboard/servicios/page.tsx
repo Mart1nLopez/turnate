@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import { TbPlus, TbEdit, TbTrash, TbCurrencyDollar, TbClock, TbPhoto, TbX } from 'react-icons/tb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import LoadingSpinner from '@/components/ui/loading-spinner';
-import { supabase, getCurrentProfessional } from '@/lib/supabase';
+import { getCurrentProfessional } from '@/lib/supabase';
+import { useServices } from '@/hooks/useServices';
 import { uploadServiceImage, deleteImageFromStorage } from '@/lib/storage';
 import { Service } from '@/types';
 import { formatCurrency } from '@/lib/utils';
@@ -25,8 +26,14 @@ interface ServiceForm {
 }
 
 export default function ServiciosPage() {
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    services,
+    loading,
+    error: loadError,
+    createService,
+    updateService,
+    deleteService,
+  } = useServices();
   const [showForm, setShowForm] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const { confirm, ConfirmDialog } = useConfirmDialog();
@@ -40,31 +47,6 @@ export default function ServiciosPage() {
   const [submitting, setSubmitting] = useState(false);
   const [newImageFile, setNewImageFile] = useState<File | null>(null);
   const [removeExistingImage, setRemoveExistingImage] = useState(false);
-
-  const loadServices = useCallback(async () => {
-    try {
-      const { professional } = await getCurrentProfessional();
-      if (!professional) return;
-
-      const { data, error } = await supabase
-        .from('services')
-        .select('*')
-        .eq('professional_id', professional.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      setServices(data || []);
-    } catch (error) {
-      console.error('Error loading services:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadServices();
-  }, [loadServices]);
 
   const resetForm = () => {
     setFormData({
@@ -110,7 +92,7 @@ export default function ServiciosPage() {
       setSubmitting(false);
       return;
     }
-    
+
     setSubmitting(true);
 
     try {
@@ -147,23 +129,9 @@ export default function ServiciosPage() {
       };
 
       if (editingService) {
-        // Actualizar servicio existente
-        const { error } = await supabase.from('services').update(serviceData).eq('id', editingService.id);
-
-        if (error) throw error;
-
-        setServices((prev) =>
-          prev.map((service) =>
-            service.id === editingService.id ? ({ ...service, ...serviceData } as Service) : service,
-          ),
-        );
+        await updateService(editingService.id, serviceData);
       } else {
-        // Crear nuevo servicio
-        const { data, error } = await supabase.from('services').insert([serviceData]).select().single();
-
-        if (error) throw error;
-
-        setServices((prev) => [data, ...prev]);
+        await createService(serviceData);
       }
 
       resetForm();
@@ -205,18 +173,11 @@ export default function ServiciosPage() {
     if (!confirmed) return;
 
     try {
-      const { error } = await supabase.from('services').delete().eq('id', serviceId);
-
-      if (error) throw error;
-
+      await deleteService(serviceId);
       // Eliminar imagen asociada si existe
       if (serviceToDelete?.image_url) {
-        // comentado para el test
-        // console.log('🗑️ Eliminando imagen del servicio...');
         await deleteImageFromStorage(serviceToDelete.image_url);
       }
-
-      setServices((prev) => prev.filter((service) => service.id !== serviceId));
       toast.success('Servicio eliminado exitosamente');
     } catch (error) {
       console.error('Error deleting service:', error);
@@ -228,6 +189,16 @@ export default function ServiciosPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <LoadingSpinner size="lg" text="Cargando servicios..." />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{loadError}</h1>
+        </div>
       </div>
     );
   }
@@ -288,6 +259,7 @@ export default function ServiciosPage() {
                       value={formData.price}
                       onChange={handleInputChange}
                       placeholder="15000"
+                      min="0"
                       className="pl-10"
                       required
                     />
@@ -304,6 +276,7 @@ export default function ServiciosPage() {
                       value={formData.duration_minutes}
                       onChange={handleInputChange}
                       placeholder="30"
+                      min="0"
                       className="pl-10"
                       required
                     />

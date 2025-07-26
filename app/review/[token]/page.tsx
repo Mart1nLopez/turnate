@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { TbStar, TbStarFilled, TbUser, TbCalendar, TbCheck, TbX } from 'react-icons/tb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,129 +8,36 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import LoadingSpinner from '@/components/ui/loading-spinner';
-import { supabase } from '@/lib/supabase';
-import { Appointment, Professional, Service, Client } from '@/types';
+import { useReview } from '@/hooks/useReview';
 import { formatCurrency } from '@/lib/utils';
 import Link from 'next/link';
-
-interface ReviewFormData {
-  clientName: string;
-  rating: number;
-  comment: string;
-}
-
-type AppointmentWithDetails = Appointment & {
-  professional?: Professional;
-  service?: Service;
-  client?: Client;
-};
 
 export default function ReviewPage() {
   const params = useParams();
   const token = params.token as string;
-
-  const [appointment, setAppointment] = useState<AppointmentWithDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [existingReview, setExistingReview] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<ReviewFormData>({
+  const [formData, setFormData] = useState({
     clientName: '',
     rating: 0,
     comment: '',
   });
   const [hoveredRating, setHoveredRating] = useState(0);
 
-  const loadAppointment = useCallback(async () => {
-    console.log('🔍 [REVIEW_LOAD] Iniciando carga de cita con token:', token);
-    try {
-      if (!token) {
-        console.log('❌ [REVIEW_LOAD] Token inválido o faltante');
-        setError('Token de reseña inválido');
-        setLoading(false);
-        return;
-      }
+  const {
+    appointment,
+    loading,
+    submitting,
+    submitted,
+    existingReview,
+    error,
+    setError,
+    loadAppointment,
+    handleSubmit,
+  } = useReview(token);
 
-      console.log('📡 [REVIEW_LOAD] Consultando Supabase para cita con token:', token);
-      // Buscar la cita usando el review_token
-      const { data: appointmentData, error: appointmentError } = await supabase
-        .from('appointments')
-        .select(
-          `
-          *,
-          professional:professionals(*),
-          service:services(*),
-          client:clients(*)
-        `,
-        )
-        .eq('review_token', token)
-        .eq('status', 'completed')
-        .single();
-
-      console.log('📊 [REVIEW_LOAD] Respuesta de Supabase:', {
-        data: appointmentData,
-        error: appointmentError,
-      });
-
-      if (appointmentError || !appointmentData) {
-        console.error('❌ [REVIEW_LOAD] Error al cargar cita:', appointmentError);
-        console.log('📄 [REVIEW_LOAD] Datos recibidos:', appointmentData);
-        setError('No se encontró la cita o el enlace de reseña es inválido');
-        setLoading(false);
-        return;
-      }
-
-      console.log('✅ [REVIEW_LOAD] Cita encontrada exitosamente:', {
-        id: appointmentData.id,
-        status: appointmentData.status,
-        client: appointmentData.client?.name,
-        professional: appointmentData.professional?.name,
-        service: appointmentData.service?.name,
-        start_time: appointmentData.start_time,
-      });
-
-      setAppointment(appointmentData);
-      setFormData((prev) => ({
-        ...prev,
-        clientName: appointmentData.client?.name || '',
-      }));
-
-      console.log('📝 [REVIEW_LOAD] Verificando si ya existe una reseña...');
-      // Verificar si ya existe una reseña para esta cita
-      const { data: reviewData, error: reviewError } = await supabase
-        .from('reviews')
-        .select('id')
-        .eq('appointment_id', appointmentData.id)
-        .single();
-
-      console.log('📊 [REVIEW_LOAD] Verificación de reseña existente:', {
-        reviewData,
-        reviewError,
-        hasExistingReview: !!reviewData,
-      });
-
-      if (reviewData) {
-        console.log('⚠️ [REVIEW_LOAD] Ya existe una reseña para esta cita');
-        setExistingReview(true);
-      }
-    } catch (error) {
-      console.error('💥 [REVIEW_LOAD] Error general al cargar cita:', error);
-      console.log('📊 [REVIEW_LOAD] Detalles del error:', {
-        message: error instanceof Error ? error.message : 'Error desconocido',
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      setError('Error al cargar la información de la cita');
-    } finally {
-      console.log('🏁 [REVIEW_LOAD] Finalizando proceso de carga');
-      setLoading(false);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    console.log('🔄 [REVIEW_EFFECT] Componente montado, iniciando carga de cita');
+  // Cargar cita al montar
+  useState(() => {
     loadAppointment();
-  }, [loadAppointment]);
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -143,117 +50,30 @@ export default function ReviewPage() {
 
   const validateForm = (): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
-
     if (!formData.clientName.trim()) {
       errors.push('El nombre es requerido');
     }
-
     if (formData.rating === 0) {
       errors.push('Debes seleccionar una calificación');
     }
-
     if (formData.comment.trim().length > 500) {
       errors.push('El comentario no puede exceder 500 caracteres');
     }
-
     return {
       isValid: errors.length === 0,
       errors,
     };
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!appointment) {
-      console.log('❌ [REVIEW_SUBMIT] No hay cita para enviar reseña');
-      return;
-    }
-
-    console.log('🚀 [REVIEW_SUBMIT] Iniciando proceso de envío de reseña:', {
-      appointmentId: appointment.id,
-      rating: formData.rating,
-      clientName: formData.clientName,
-      hasComment: !!formData.comment.trim(),
-    });
-
-    // Validar formulario
+    if (!appointment) return;
     const validation = validateForm();
     if (!validation.isValid) {
-      console.log('❌ [REVIEW_SUBMIT] Validación falló:', validation.errors);
       setError(validation.errors.join(', '));
       return;
     }
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      console.log('📝 [REVIEW_SUBMIT] Insertando reseña en Supabase...');
-      const reviewData = {
-        appointment_id: appointment.id,
-        professional_id: appointment.professional!.id,
-        client_name: formData.clientName.trim(),
-        rating: formData.rating,
-        comment: formData.comment.trim() || null,
-      };
-
-      console.log('📊 [REVIEW_SUBMIT] Datos de reseña a insertar:', reviewData);
-
-      // Crear la reseña
-      const { data: insertData, error: submitError } = await supabase.from('reviews').insert(reviewData).select();
-
-      console.log('📊 [REVIEW_SUBMIT] Respuesta de inserción:', {
-        data: insertData,
-        error: submitError,
-      });
-
-      if (submitError) {
-        console.error('❌ [REVIEW_SUBMIT] Error al insertar reseña:', submitError);
-        throw submitError;
-      }
-
-      console.log('✅ [REVIEW_SUBMIT] Reseña insertada exitosamente');
-
-      console.log('📝 [REVIEW_SUBMIT] Invalidando review_token...');
-      // Invalidar el review_token después de usar
-      const { data: updateData, error: updateError } = await supabase
-        .from('appointments')
-        .update({ review_token: null })
-        .eq('id', appointment.id)
-        .select();
-
-      console.log('📊 [REVIEW_SUBMIT] Respuesta de invalidación de token:', {
-        data: updateData,
-        error: updateError,
-      });
-
-      if (updateError) {
-        console.error('⚠️ [REVIEW_SUBMIT] Error al invalidar token (pero reseña ya fue creada):', updateError);
-      }
-
-      console.log('🎉 [REVIEW_SUBMIT] Proceso completado exitosamente');
-      setSubmitted(true);
-    } catch (error) {
-      console.error('💥 [REVIEW_SUBMIT] Error al enviar reseña:', error);
-      console.log('📊 [REVIEW_SUBMIT] Detalles del error:', {
-        message: error instanceof Error ? error.message : 'Error desconocido',
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-
-      let errorMessage = 'Error al enviar la reseña. Por favor intenta nuevamente.';
-
-      if (error instanceof Error) {
-        if (error.message.includes('duplicate')) {
-          errorMessage = 'Ya has dejado una reseña para esta cita.';
-        }
-      }
-
-      setError(errorMessage);
-    } finally {
-      console.log('🏁 [REVIEW_SUBMIT] Finalizando proceso de envío');
-      setSubmitting(false);
-    }
+    await handleSubmit(formData);
   };
 
   const formatDate = (dateString: string) => {
@@ -430,7 +250,7 @@ export default function ReviewPage() {
               <CardDescription>Tu reseña será visible públicamente y ayudará a otros clientes</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={onSubmit} className="space-y-6">
                 {/* Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tu nombre *</label>

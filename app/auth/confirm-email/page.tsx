@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { TbMail, TbCheck, TbRefresh } from 'react-icons/tb';
+import { generateSlugWithRandomSuffix } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -39,17 +40,8 @@ function ConfirmEmailContent() {
           }
         }
 
-        // Crear slug único
-        const baseSlug = name
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .replace(/[^a-z0-9\s-]/g, '')
-          .replace(/[\s_-]+/g, '-')
-          .replace(/^-+|-+$/g, '');
-
-        const randomSuffix = Math.random().toString(36).substring(2, 8);
-        const slug = `${baseSlug}-${randomSuffix}`;
+        // Crear slug único usando función utilitaria
+        const slug = generateSlugWithRandomSuffix(name);
 
         console.log('🔄 Creando perfil profesional con datos completos:', { name, rut, phone, email: user.email });
 
@@ -65,7 +57,7 @@ function ConfirmEmailContent() {
         if (error) {
           console.error('Error creando perfil profesional:', error);
           // Intentar con un slug diferente si falla
-          const newSlug = `${baseSlug}-${Date.now()}`;
+          const newSlug = generateSlugWithRandomSuffix(name);
           const { error: retryError } = await supabase.from('professionals').insert({
             user_id: user.id,
             name: name,

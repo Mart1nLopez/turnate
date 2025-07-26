@@ -5,19 +5,21 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import LoadingSpinner from '@/components/ui/loading-spinner';
-import { supabase, getCurrentProfessional } from '@/lib/supabase';
-import { Appointment, Service, Client } from '@/types';
+import { getCurrentProfessional } from '@/lib/supabase';
+import { Service } from '@/types';
+import { getServicesByProfessionalId } from '@/services/appointmentService';
+import {
+  getAppointmentsByProfessionalId,
+  cancelAppointmentByProfessional,
+  completeAppointment,
+  AppointmentWithDetails,
+} from '@/services/appointmentService';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { toast } from 'sonner';
 import AppointmentsByDay from '@/components/dashboard/AppointmentsByDay';
 import AdvancedFiltersComponent from '@/components/dashboard/AdvancedFilters';
 import AppointmentStats from '@/components/dashboard/AppointmentStats';
 import { useAppointmentFilters } from '@/hooks/useAppointmentFilters';
-
-type AppointmentWithDetails = Appointment & {
-  service?: Service;
-  client?: Client;
-};
 
 export default function CitasPage() {
   const router = useRouter();
@@ -43,42 +45,25 @@ export default function CitasPage() {
     if (!confirmed) return;
 
     try {
-      // Obtener los datos completos de la cita antes de cancelarla
       const appointmentToCancel = appointments.find((apt) => apt.id === appointmentId);
       if (!appointmentToCancel || !appointmentToCancel.client || !appointmentToCancel.service) {
         toast.error('No se encontraron los datos necesarios para enviar la notificación');
         return;
       }
-
-      // Obtener datos del profesional
       const { professional } = await getCurrentProfessional();
       if (!professional) {
         toast.error('Error al obtener datos del profesional');
         return;
       }
-
-      // Formatear fecha y hora
-      const startDateTime = new Date(appointmentToCancel.start_time);
-      const formattedDate = startDateTime.toISOString().split('T')[0]; // YYYY-MM-DD
-      const formattedTime = startDateTime.toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      });
-
-      // Actualizar estado en Supabase
-      const { error } = await supabase
-        .from('appointments')
-        .update({
-          status: 'cancelled_by_pro',
-          cancellation_token: null, // Invalidar el token al cancelar
-        })
-        .eq('id', appointmentId);
-
-      if (error) throw error;
-
-      // Enviar notificación de cancelación al cliente vía Google Apps Script
+      await cancelAppointmentByProfessional(appointmentId);
       try {
+        const startDateTime = new Date(appointmentToCancel.start_time);
+        const formattedDate = startDateTime.toISOString().split('T')[0];
+        const formattedTime = startDateTime.toLocaleTimeString('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        });
         const dataToSend = {
           action: 'cancel',
           clientName: appointmentToCancel.client.name,
@@ -88,11 +73,9 @@ export default function CitasPage() {
           time: formattedTime,
           professionalName: professional.name,
         };
-
         const formBody = Object.entries(dataToSend)
           .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
           .join('&');
-
         const response = await fetch(process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!, {
           method: 'POST',
           headers: {
@@ -100,20 +83,15 @@ export default function CitasPage() {
           },
           body: formBody,
         });
-
         const result = await response.text();
         console.log('Respuesta del script de cancelación:', result);
       } catch (emailError) {
         console.error('Error enviando notificación de cancelación:', emailError);
-        // No fallar todo el proceso si el email falla
         toast.warning('Cita cancelada, pero no se pudo enviar la notificación por email');
       }
-
-      // Actualizar estado local
       setAppointments((prev) =>
         prev.map((apt) => (apt.id === appointmentId ? { ...apt, status: 'cancelled_by_pro' as const } : apt)),
       );
-
       toast.success('Cita cancelada exitosamente y notificación enviada al cliente');
     } catch (error) {
       console.error('Error cancelling appointment:', error);
@@ -121,7 +99,7 @@ export default function CitasPage() {
     }
   };
 
-  const completeAppointment = async (appointmentId: string) => {
+  const completeAppointmentHandler = async (appointmentId: string) => {
     const confirmed = await confirm({
       title: '¿Marcar cita como completada?',
       description:
@@ -134,7 +112,6 @@ export default function CitasPage() {
     if (!confirmed) return;
 
     try {
-      // Obtener los datos completos de la cita antes de completarla
       const appointmentToComplete = appointments.find((apt) => apt.id === appointmentId);
       if (
         !appointmentToComplete ||
@@ -145,46 +122,34 @@ export default function CitasPage() {
         toast.error('No se encontraron los datos necesarios para enviar el email de reseña');
         return;
       }
-
-      // Obtener datos del profesional
       const { professional } = await getCurrentProfessional();
       if (!professional) {
         toast.error('Error al obtener datos del profesional');
         return;
       }
-
-      // Actualizar estado en Supabase
-      const { error } = await supabase.from('appointments').update({ status: 'completed' }).eq('id', appointmentId);
-
-      if (error) throw error;
-
-      // Enviar email de agradecimiento y solicitud de reseña vía Google Apps Script
+      await completeAppointment(appointmentId);
       try {
         const startDateTime = new Date(appointmentToComplete.start_time);
-        const dateOnly = startDateTime.toISOString().split('T')[0]; // YYYY-MM-DD format
-
+        const dateOnly = startDateTime.toISOString().split('T')[0];
         const formattedTime = startDateTime.toLocaleTimeString('es-CL', {
           hour: '2-digit',
           minute: '2-digit',
         });
-
         const dataToSend = {
           action: 'review_request',
           clientName: appointmentToComplete.client.name,
           clientEmail: appointmentToComplete.client.email,
           service: appointmentToComplete.service.name,
-          date: dateOnly, // Enviar en formato YYYY-MM-DD
+          date: dateOnly,
           time: formattedTime,
           professionalName: professional.name,
           appointmentId: appointmentId,
           reviewToken: appointmentToComplete.review_token,
           appUrl: window.location.origin,
         };
-
         const formBody = Object.entries(dataToSend)
           .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
           .join('&');
-
         const response = await fetch(process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!, {
           method: 'POST',
           headers: {
@@ -192,19 +157,15 @@ export default function CitasPage() {
           },
           body: formBody,
         });
-
         const result = await response.text();
         console.log('Respuesta del script de reseña:', result);
       } catch (emailError) {
         console.error('Error enviando email de reseña:', emailError);
-        // No fallar todo el proceso si el email falla
         toast.warning('Cita completada, pero no se pudo enviar el email de reseña');
       }
-
       setAppointments((prev) =>
         prev.map((apt) => (apt.id === appointmentId ? { ...apt, status: 'completed' as const } : apt)),
       );
-
       toast.success('Cita marcada como completada y email de reseña enviado al cliente');
     } catch (error) {
       console.error('Error completing appointment:', error);
@@ -216,31 +177,8 @@ export default function CitasPage() {
     try {
       const { professional } = await getCurrentProfessional();
       if (!professional) return;
-
-      // Cargar citas
-      const { data: appointmentsData, error: appointmentsError } = await supabase
-        .from('appointments')
-        .select(
-          `
-          *,
-          service:services(name, price, duration_minutes),
-          client:clients(name, email, phone)
-        `,
-        )
-        .eq('professional_id', professional.id)
-        .order('start_time', { ascending: false });
-
-      if (appointmentsError) throw appointmentsError;
-
-      // Cargar servicios para los filtros
-      const { data: servicesData, error: servicesError } = await supabase
-        .from('services')
-        .select('*')
-        .eq('professional_id', professional.id)
-        .order('name');
-
-      if (servicesError) throw servicesError;
-
+      const appointmentsData = await getAppointmentsByProfessionalId(professional.id);
+      const servicesData = await getServicesByProfessionalId(professional.id);
       setAppointments(appointmentsData || []);
       setServices(servicesData || []);
     } catch (error) {
@@ -313,7 +251,7 @@ export default function CitasPage() {
             appointments={filteredAppointments}
             onViewDetails={(id) => router.push(`/dashboard/citas/${id}`)}
             onCancelAppointment={cancelAppointment}
-            onCompleteAppointment={completeAppointment}
+            onCompleteAppointment={completeAppointmentHandler}
           />
         </CardContent>
       </Card>

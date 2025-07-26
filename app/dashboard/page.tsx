@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { TbCalendar, TbUsers, TbCurrencyDollar, TbTrendingUp, TbClock, TbUser } from 'react-icons/tb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import LoadingSpinner from '@/components/ui/loading-spinner';
-import { supabase, getCurrentProfessional } from '@/lib/supabase';
+import { getCurrentProfessional } from '@/lib/supabase';
+import { getDashboardStats, getTodayAppointments } from '@/services/dashboardService';
 import { Appointment, Service } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 
@@ -31,9 +32,12 @@ export default function DashboardPage() {
     try {
       const { professional } = await getCurrentProfessional();
       if (!professional) return;
-
-      // Obtener estadísticas
-      await Promise.all([loadStats(professional.id), loadTodayAppointments(professional.id)]);
+      const [statsData, todayApts] = await Promise.all([
+        getDashboardStats(professional.id),
+        getTodayAppointments(professional.id),
+      ]);
+      setStats(statsData);
+      setTodayAppointments(todayApts);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
@@ -44,92 +48,6 @@ export default function DashboardPage() {
   useEffect(() => {
     loadDashboardData();
   }, [loadDashboardData]);
-
-  const loadStats = async (professionalId: string) => {
-    const today = new Date();
-    const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
-    const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
-
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
-    startOfWeek.setHours(0, 0, 0, 0);
-
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
-    // Citas de hoy
-    const { count: todayCount } = await supabase
-      .from('appointments')
-      .select('*', { count: 'exact' })
-      .eq('professional_id', professionalId)
-      .eq('status', 'confirmed')
-      .gte('start_time', startOfDay)
-      .lte('start_time', endOfDay);
-
-    // Citas de esta semana
-    const { count: weeklyCount } = await supabase
-      .from('appointments')
-      .select('*', { count: 'exact' })
-      .eq('professional_id', professionalId)
-      .eq('status', 'confirmed')
-      .gte('start_time', startOfWeek.toISOString());
-
-    // Ingresos del mes (estimados)
-    const { data: monthlyAppointments } = await supabase
-      .from('appointments')
-      .select(
-        `
-        *,
-        service:services(price)
-      `,
-      )
-      .eq('professional_id', professionalId)
-      .eq('status', 'confirmed')
-      .gte('start_time', startOfMonth.toISOString());
-
-    const monthlyRevenue =
-      monthlyAppointments?.reduce((total, apt) => {
-        return total + (apt.service?.price || 0);
-      }, 0) || 0;
-
-    // Total clientes únicos
-    const { data: clients } = await supabase
-      .from('appointments')
-      .select('client_id')
-      .eq('professional_id', professionalId)
-      .not('client_id', 'is', null);
-
-    const uniqueClients = new Set(clients?.map((c) => c.client_id)).size;
-
-    setStats({
-      todayAppointments: todayCount || 0,
-      weeklyAppointments: weeklyCount || 0,
-      monthlyRevenue,
-      totalClients: uniqueClients,
-    });
-  };
-
-  const loadTodayAppointments = async (professionalId: string) => {
-    const today = new Date();
-    const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
-    const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
-
-    const { data: appointments } = await supabase
-      .from('appointments')
-      .select(
-        `
-        *,
-        service:services(name, duration_minutes),
-        client:clients(name)
-      `,
-      )
-      .eq('professional_id', professionalId)
-      .eq('status', 'confirmed')
-      .gte('start_time', startOfDay)
-      .lte('start_time', endOfDay)
-      .order('start_time', { ascending: true });
-
-    setTodayAppointments(appointments || []);
-  };
 
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('es-CL', {

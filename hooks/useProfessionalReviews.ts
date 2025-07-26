@@ -1,0 +1,54 @@
+import { useEffect, useState, useCallback } from 'react';
+import { getProfessionalReviews, getProfessionalReviewStats } from '@/services/reviewService';
+import { Review } from '@/types';
+
+interface ReviewWithDetails extends Review {
+  appointment?: {
+    start_time: string;
+    service?: {
+      name: string;
+    };
+  };
+}
+
+interface ReviewStats {
+  totalReviews: number;
+  averageRating: number;
+  ratingDistribution: { [key: number]: number };
+}
+
+export function useProfessionalReviews() {
+  const [reviews, setReviews] = useState<ReviewWithDetails[]>([]);
+  const [stats, setStats] = useState<ReviewStats>({
+    totalReviews: 0,
+    averageRating: 0,
+    ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadReviews = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const reviewsData = await getProfessionalReviews();
+      setReviews(reviewsData);
+      const statsData = await getProfessionalReviewStats(reviewsData);
+      setStats(statsData);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message || 'Error al cargar reseñas');
+      } else {
+        setError('Error al cargar reseñas');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadReviews();
+  }, [loadReviews]);
+
+  return { reviews, stats, loading, error, reload: loadReviews };
+}

@@ -9,6 +9,7 @@ import BasicFooter from '@/components/BasicFooter';
 import { AuthService } from '@/services/authService';
 import { supabase } from '@/lib/supabase';
 import { validateRut, formatRutOnInput } from '@/lib/rut-validator';
+import { generateSlugWithRandomSuffix } from '@/lib/utils';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -99,14 +100,6 @@ export default function RegisterPage() {
     };
   };
 
-  const createSlugFromName = (name: string): string => {
-    return name
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '') // Remover caracteres especiales
-      .replace(/[\s_-]+/g, '-') // Reemplazar espacios y guiones bajos con guiones
-      .replace(/^-+|-+$/g, ''); // Remover guiones al inicio y final
-  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -205,9 +198,7 @@ export default function RegisterPage() {
     },
   ) => {
     // Crear slug único
-    const baseSlug = createSlugFromName(data.name);
-    const randomSuffix = Math.random().toString(36).substring(2, 8);
-    const slug = `${baseSlug}-${randomSuffix}`;
+    const slug = generateSlugWithRandomSuffix(data.name);
 
     console.log('🔄 Creando profesional con slug:', slug);
 
@@ -226,7 +217,7 @@ export default function RegisterPage() {
       // Si falla por slug duplicado, intentar con un nuevo sufijo
       if (professionalError.message.includes('duplicate') || professionalError.message.includes('unique')) {
         console.log('🔄 Reintentando con nuevo slug...');
-        const newSlug = `${baseSlug}-${Date.now()}`;
+        const newSlug = generateSlugWithRandomSuffix(data.name);
         const { error: retryError } = await supabase.from('professionals').insert({
           user_id: userId,
           name: data.name,
