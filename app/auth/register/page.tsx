@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LuMail, LuPhone, LuUser, LuLock, LuEye, LuEyeOff, LuCreditCard } from 'react-icons/lu';
+import { LuMail, LuUser, LuLock, LuEye, LuEyeOff, LuCreditCard } from 'react-icons/lu';
+import PhoneInput from '@/components/ui/phone-input';
 import Link from 'next/link';
 import BasicHeader from '@/components/BasicHeader';
 import BasicFooter from '@/components/BasicFooter';
@@ -342,24 +343,19 @@ export default function RegisterPage() {
 
                 {/* Teléfono */}
                 <div className="space-y-2">
-                  <label
-                    htmlFor="phone"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Número Celular
-                  </label>
-                  <div className="relative">
-                    <LuPhone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      placeholder="+56 9 1234 5678"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
+                  <PhoneInput
+                    label="Número Celular"
+                    value={formData.phone}
+                    onChange={(value) => {
+                      setFormData({
+                        ...formData,
+                        phone: value,
+                      });
+                      // Limpiar error cuando el usuario empiece a escribir
+                      if (error) setError(null);
+                    }}
+                    required
+                  />
                 </div>
 
                 {/* Contraseña */}

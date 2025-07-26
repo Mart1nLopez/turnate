@@ -1,7 +1,8 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { TbUser, TbMail, TbPhone } from 'react-icons/tb';
+import { TbUser, TbMail } from 'react-icons/tb';
+import PhoneInput from '@/components/ui/phone-input';
 
 interface ClientFormProps {
   formData: {
@@ -15,6 +16,7 @@ interface ClientFormProps {
   submitting: boolean;
   error: string | null;
   onEmailBlur?: () => void;
+  onPhoneChange?: (value: string, isValid: boolean) => void;
 }
 
 export default function ClientForm({
@@ -25,6 +27,7 @@ export default function ClientForm({
   submitting,
   error,
   onEmailBlur,
+  onPhoneChange,
 }: ClientFormProps) {
   return (
     <Card>
@@ -64,19 +67,22 @@ export default function ClientForm({
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Teléfono *</label>
-          <div className="relative">
-            <TbPhone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              name="phone"
-              type="tel"
-              value={formData.phone}
-              onChange={onChange}
-              placeholder="+56 9 1234 5678"
-              className="pl-10"
-              required
-            />
-          </div>
+          <PhoneInput
+            label="Teléfono"
+            value={formData.phone}
+            onChange={(value, isValid) => {
+              if (onPhoneChange) {
+                onPhoneChange(value, isValid);
+              } else {
+                // Crear un evento sintético para mantener compatibilidad con el onChange actual
+                const syntheticEvent = {
+                  target: { name: 'phone', value },
+                } as React.ChangeEvent<HTMLInputElement>;
+                onChange(syntheticEvent);
+              }
+            }}
+            required
+          />
         </div>
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">

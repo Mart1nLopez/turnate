@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { TbUser, TbPhone, TbMapPin, TbDeviceFloppy, TbLink, TbQrcode, TbQrcodeOff, TbCopy } from 'react-icons/tb';
+import { TbUser, TbMapPin, TbDeviceFloppy, TbLink, TbQrcode, TbQrcodeOff, TbCopy } from 'react-icons/tb';
 import { FaInstagram, FaWhatsapp, FaSquareFacebook, FaTiktok, FaXTwitter, FaYoutube } from 'react-icons/fa6';
+import PhoneInput from '@/components/ui/phone-input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -534,18 +535,18 @@ export default function PerfilPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Teléfono *</label>
-                <div className="relative">
-                  <TbPhone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    placeholder="+56 9 1234 5678"
-                    className="pl-10"
-                    required
-                  />
-                </div>
+                <PhoneInput
+                  label="Teléfono"
+                  value={formData.phone}
+                  onChange={(value) => {
+                    // Actualizar el valor en el formData
+                    setFormData((prev) => ({
+                      ...prev,
+                      phone: value,
+                    }));
+                  }}
+                  required
+                />
               </div>
             </div>
 
@@ -667,13 +668,18 @@ export default function PerfilPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">WhatsApp</label>
                 <div className="relative">
-                  <FaWhatsapp className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    name="whatsapp"
+                  <FaWhatsapp className="absolute left-3 top-3 h-4 w-4 text-gray-400 z-10" />
+                  <PhoneInput
+                    label=""
                     value={formData.whatsapp}
-                    onChange={handleInputChange}
-                    placeholder="+56912345678"
-                    className="pl-10"
+                    onChange={(value) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        whatsapp: value,
+                      }));
+                    }}
+                    allClassName="pl-10"
+                    prefixClassName="border-l-1 border-gray-200 px-3"
                   />
                 </div>
               </div>
