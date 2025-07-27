@@ -4,11 +4,11 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Professional } from '@/types';
 
-interface CarruselProps {
+interface HeroProps {
   professional: Professional;
 }
 
-export default function Carrusel({ professional }: CarruselProps) {
+export default function Hero({ professional }: HeroProps) {
   const [index, setIndex] = useState(0);
 
   // Use professional images or default images

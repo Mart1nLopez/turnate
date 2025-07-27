@@ -12,7 +12,12 @@ import {
 } from '@/services/professionalPublicService';
 import { Professional, Service } from '@/types';
 import Link from 'next/link';
-import { Header, Carrusel, Services, Contacto, Reviews, Footer } from '@/components/professionalPage';
+import Contacto from '@/components/professionalPage/Contact';
+import Header from '@/components/professionalPage/Header';
+import Hero from '@/components/professionalPage/Hero';
+import Services from '@/components/professionalPage/Services';
+import Reviews from '@/components/professionalPage/Reviews';
+import Footer from '@/components/professionalPage/Footer';
 
 export default function ProfessionalPublicPage() {
   const params = useParams();
@@ -74,7 +79,7 @@ export default function ProfessionalPublicPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <Header professional={professional} slug={slug} />
-      <Carrusel professional={professional} />
+      <Hero professional={professional} />
       <Services services={services} slug={slug} />
       <Contacto professional={professional} />
       <Reviews reviews={reviews} averageRating={averageRating} />
