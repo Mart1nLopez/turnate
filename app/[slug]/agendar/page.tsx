@@ -66,15 +66,6 @@ export default function AgendarPage() {
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(1); // 1: selection, 2: client details
 
-  // Scroll suave para móvil
-  const scrollToSection = (element: HTMLElement) => {
-    element.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-      inline: 'nearest',
-    });
-  };
-
   useEffect(() => {
     // Si el servicio fue preseleccionado por el hook, actualiza el formData
     if (selectedService) {
@@ -127,13 +118,6 @@ export default function AgendarPage() {
     setFormData((prev) => ({ ...prev, serviceId: service.id }));
     setSelectedTime('');
 
-    // Scroll en móvil al calendario
-    if (window.innerWidth < 1024) {
-      setTimeout(() => {
-        const calendarElement = document.getElementById('calendar-section');
-        if (calendarElement) scrollToSection(calendarElement);
-      }, 100);
-    }
   };
 
   const handleDateSelect = (date: Date) => {
@@ -145,14 +129,6 @@ export default function AgendarPage() {
     // Formatear fecha de manera más segura
     const dateString = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`;
     setFormData((prev) => ({ ...prev, date: dateString, time: '' }));
-
-    // Scroll en móvil a las horas
-    if (window.innerWidth < 1024) {
-      setTimeout(() => {
-        const timeSlotsElement = document.getElementById('time-slots-section');
-        if (timeSlotsElement) scrollToSection(timeSlotsElement);
-      }, 100);
-    }
   };
 
   const handleTimeSelect = (time: string) => {
