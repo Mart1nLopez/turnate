@@ -77,44 +77,117 @@ export default function Reviews({ reviews, averageRating }: ResenasProps) {
               </CardContent>
             </Card>
 
-            {/* Reviews Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {reviews.map((review) => (
-                <Card key={review.id} className="h-full hover:shadow-lg transition-shadow duration-300">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                          <TbUser className="h-5 w-5 text-primary" />
+            {/* Reviews Grid con scroll horizontal si hay más de 3 reseñas */}
+            {reviews.length > 3 ?
+              <div className="relative w-full py-2">
+                <style>{`
+                  @keyframes scroll-reviews {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-50%); }
+                  }
+                  .reviews-marquee {
+                    display: flex;
+                    gap: 1.5rem;
+                    width: max-content;
+                  }
+                  /* Desktop: animación carrusel */
+                  @media (min-width: 768px) {
+                    .reviews-marquee {
+                      animation: scroll-reviews 60s linear infinite;
+                    }
+                    .reviews-marquee:hover {
+                      animation-play-state: paused;
+                    }
+                  }
+                  /* Mobile: scroll manual, sin animación */
+                  @media (max-width: 767px) {
+                    .reviews-scroll {
+                      overflow-x: auto;
+                      -webkit-overflow-scrolling: touch;
+                      scrollbar-width: none;
+                    }
+                    .reviews-scroll::-webkit-scrollbar {
+                      display: none;
+                    }
+                  }
+                `}</style>
+                <div className="reviews-scroll md:overflow-x-hidden">
+                  <div className="reviews-marquee">
+                    {[...reviews, ...reviews].map((review, idx) => (
+                      <Card
+                        key={review.id + '-' + idx}
+                        className="min-w-[320px] max-w-xs w-full h-full hover:shadow-lg transition-shadow duration-300 flex-shrink-0">
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                <TbUser className="h-5 w-5 text-primary" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-medium text-foreground truncate">{review.client_name}</p>
+                                <p className="text-sm text-muted-foreground">{formatDate(review.created_at)}</p>
+                              </div>
+                            </div>
+                            <div className="flex-shrink-0">{renderStars(review.rating)}</div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          {review.comment && (
+                            <blockquote className="text-muted-foreground italic border-l-4 border-primary/20 pl-4 mb-4">
+                              &quot;{review.comment}&quot;
+                            </blockquote>
+                          )}
+                          {review.appointment?.service?.name && (
+                            <div className="inline-flex items-center px-2 py-1 bg-primary/10 rounded-full">
+                              <span className="text-xs font-medium text-primary">
+                                {review.appointment.service.name}
+                              </span>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {reviews.map((review) => (
+                  <Card key={review.id} className="h-full hover:shadow-lg transition-shadow duration-300">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <TbUser className="h-5 w-5 text-primary" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground truncate">{review.client_name}</p>
+                            <p className="text-sm text-muted-foreground">{formatDate(review.created_at)}</p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-foreground truncate">{review.client_name}</p>
-                          <p className="text-sm text-muted-foreground">{formatDate(review.created_at)}</p>
+                        <div className="flex-shrink-0">{renderStars(review.rating)}</div>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent>
+                      {review.comment && (
+                        <blockquote className="text-muted-foreground italic border-l-4 border-primary/20 pl-4 mb-4">
+                          &quot;{review.comment}&quot;
+                        </blockquote>
+                      )}
+
+                      {review.appointment?.service?.name && (
+                        <div className="inline-flex items-center px-2 py-1 bg-primary/10 rounded-full">
+                          <span className="text-xs font-medium text-primary">{review.appointment.service.name}</span>
                         </div>
-                      </div>
-                      <div className="flex-shrink-0">{renderStars(review.rating)}</div>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent>
-                    {review.comment && (
-                      <blockquote className="text-muted-foreground italic border-l-4 border-primary/20 pl-4 mb-4">
-                        &quot;{review.comment}&quot;
-                      </blockquote>
-                    )}
-
-                    {review.appointment?.service?.name && (
-                      <div className="inline-flex items-center px-2 py-1 bg-primary/10 rounded-full">
-                        <span className="text-xs font-medium text-primary">{review.appointment.service.name}</span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            }
           </>
         }
       </div>
     </section>
   );
-};
+}
