@@ -13,6 +13,7 @@ interface TimeSlotSelectorProps {
   onTimeSelect: (time: string) => void;
   onContinue: () => void;
   canContinue: boolean;
+  continueBtnRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 export default function TimeSlotSelector({
@@ -22,12 +23,13 @@ export default function TimeSlotSelector({
   onTimeSelect,
   onContinue,
   canContinue,
+  continueBtnRef,
 }: TimeSlotSelectorProps) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Horarios</CardTitle>
-        <CardDescription className='text-balance'>
+        <CardDescription className="text-balance">
           {selectedDate ?
             `Horarios disponibles para ${selectedDate.toLocaleDateString('es-ES', {
               weekday: 'long',
@@ -38,8 +40,8 @@ export default function TimeSlotSelector({
         </CardDescription>
       </CardHeader>
       <CardContent id="time-slot-selector">
-        <div className='space-y-3'>
-          <div className='max-h-70 overflow-y-auto'>
+        <div className="space-y-3">
+          <div className="lg:max-h-70 lg:overflow-y-auto">
             {!selectedDate ?
               <p className="text-gray-500 text-center py-8">Selecciona una fecha para ver horarios disponibles</p>
             : timeSlots.length === 0 ?
@@ -61,7 +63,7 @@ export default function TimeSlotSelector({
               </div>
             }
           </div>
-          <Button onClick={onContinue} disabled={!canContinue} className="w-full mt-4">
+          <Button onClick={onContinue} disabled={!canContinue} className="w-full mt-4" ref={continueBtnRef}>
             Continuar
           </Button>
         </div>

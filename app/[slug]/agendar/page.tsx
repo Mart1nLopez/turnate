@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { TbArrowLeft } from 'react-icons/tb';
 import { Button } from '@/components/ui/button';
@@ -117,7 +117,6 @@ export default function AgendarPage() {
     setSelectedService(service);
     setFormData((prev) => ({ ...prev, serviceId: service.id }));
     setSelectedTime('');
-
   };
 
   const handleDateSelect = (date: Date) => {
@@ -365,6 +364,36 @@ export default function AgendarPage() {
     }
   };
 
+  // --- Refs para scroll en móvil ---
+  const calendarRef = useRef<HTMLDivElement | null>(null);
+  const timeSlotRef = useRef<HTMLDivElement | null>(null);
+  const continueBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Callbacks para scroll suave
+  const handleServiceSelected = (service: Service) => {
+    handleServiceSelect(service);
+    // Scroll al calendario después de seleccionar servicio
+    setTimeout(() => {
+      calendarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
+
+  const handleDateSelected = (date: Date) => {
+    handleDateSelect(date);
+    // Scroll a horarios después de seleccionar fecha
+    setTimeout(() => {
+      timeSlotRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
+
+  const handleTimeSelected = (time: string) => {
+    handleTimeSelect(time);
+    // Scroll al botón de continuar después de seleccionar hora
+    setTimeout(() => {
+      continueBtnRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -451,27 +480,35 @@ export default function AgendarPage() {
 
           {/* Mobile & Tablet Layout */}
           <div className="xl:hidden space-y-6">
-            <ServiceSelector services={services} selectedService={selectedService} onSelect={handleServiceSelect} />
+            {/* Servicio */}
+            <ServiceSelector services={services} selectedService={selectedService} onSelect={handleServiceSelected} />
+            {/* Calendario */}
             {selectedService && (
-              <DateCalendar
-                currentMonth={currentMonth}
-                getDaysInMonth={getDaysInMonth}
-                selectedDate={selectedDate}
-                onDateSelect={handleDateSelect}
-                navigateMonth={navigateMonth}
-                formatMonthYear={formatMonthYear}
-                selectedService={selectedService}
-              />
+              <div ref={calendarRef}>
+                <DateCalendar
+                  currentMonth={currentMonth}
+                  getDaysInMonth={getDaysInMonth}
+                  selectedDate={selectedDate}
+                  onDateSelect={handleDateSelected}
+                  navigateMonth={navigateMonth}
+                  formatMonthYear={formatMonthYear}
+                  selectedService={selectedService}
+                />
+              </div>
             )}
+            {/* Horarios */}
             {selectedDate && (
-              <TimeSlotSelector
-                selectedDate={selectedDate}
-                timeSlots={timeSlots}
-                selectedTime={selectedTime}
-                onTimeSelect={handleTimeSelect}
-                onContinue={() => setStep(2)}
-                canContinue={canContinue}
-              />
+              <div ref={timeSlotRef}>
+                <TimeSlotSelector
+                  selectedDate={selectedDate}
+                  timeSlots={timeSlots}
+                  selectedTime={selectedTime}
+                  onTimeSelect={handleTimeSelected}
+                  onContinue={() => setStep(2)}
+                  canContinue={canContinue}
+                  continueBtnRef={continueBtnRef}
+                />
+              </div>
             )}
           </div>
         </div>
