@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { SocialButtons } from '@/components/ui/social-buttons';
+import Link from 'next/link';
 
 export default function Footer() {
   return (
@@ -12,8 +13,10 @@ export default function Footer() {
           <div className="text-center md:text-left">
             {/* Logo y nombre de Turnate */}
             <div className="flex items-center justify-center md:justify-start gap-3 mb-3">
-              <Image src="/logo.svg" alt="Turnate Logo" width={32} height={32} className="w-8 h-8" />
-              <span className="text-2xl font-bold text-foreground">Turnate</span>
+              <Link href="/" className="flex items-center">
+                <Image src="/logo.svg" alt="Turnate Logo" width={32} height={32} className="w-8 h-8" />
+                <span className="text-2xl font-bold text-foreground">Turnate</span>
+              </Link>
             </div>
             <div>
               <h3 className="text-xl font-semibold text-foreground mb-2">Síguenos</h3>
