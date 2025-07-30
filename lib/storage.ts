@@ -231,3 +231,24 @@ export async function uploadServiceImage(file: File): Promise<string> {
     throw new Error('Error al subir la imagen del servicio');
   }
 }
+
+// Función para subir imagen de perfil de profesional
+export async function uploadProfileImage(file: File): Promise<string> {
+  console.log('👤 Subiendo imagen de perfil:', file.name);
+
+  // Opciones específicas para imágenes de perfil - optimizadas para avatares
+  const profileOptions: UploadImageOptions = {
+    maxSizeMB: 1.5, // Tamaño moderado para perfiles, buena calidad sin ser excesivo
+    maxWidthOrHeight: 512, // Resolución optimizada para avatares - suficiente para perfiles
+    quality: 0.88, // Alta calidad para imágenes de perfil profesional
+  };
+
+  try {
+    const url = await processAndUploadImage(file, profileOptions, 'perfil');
+    console.log('✅ Imagen de perfil subida exitosamente');
+    return url;
+  } catch (error) {
+    console.error('❌ Error uploading profile image:', error);
+    throw new Error('Error al subir la imagen del perfil');
+  }
+}

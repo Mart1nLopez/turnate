@@ -6,7 +6,7 @@ export interface Professional {
   rut: string;
   phone: string;
   bio?: string;
-  profile_image?: string; // URL to the profile image
+  profile_image?: string; // bucket url (professional-images/{professional_id}/{perfil}/image.jpg)
   social_links?: {
     instagram?: string;
     whatsapp?: string;
@@ -16,7 +16,7 @@ export interface Professional {
     youtube?: string;
   };
   carrusel_images?: {
-    url: string;
+    url: string; // bucket url (professional-images/{professional_id}/{carrusel}/image.jpg)
     alt: string;
   }[];
   location?: string;
@@ -31,7 +31,7 @@ export interface Service {
   description?: string;
   price: number;
   duration_minutes: number;
-  image_url?: string;
+  image_url?: string; // bucket url (professional-images/{professional_id}/{servicios}/image.jpg)
   created_at: string;
 }
 

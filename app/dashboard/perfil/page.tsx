@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ImageUpload } from '@/components/ui/image-upload';
+import { ProfileImageUpload } from '@/components/ui/profile-image-upload';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import {
   getProfessionalProfile,
@@ -16,7 +17,7 @@ import {
   checkSlugAvailability as checkSlugAvailabilityService,
 } from '@/services/professionalService';
 import { generateSlugWithRandomSuffix } from '@/lib/utils';
-import { deleteMultipleImages, uploadCarouselImages } from '@/lib/storage';
+import { deleteMultipleImages, deleteImageFromStorage, uploadCarouselImages, uploadProfileImage } from '@/lib/storage';
 import { Professional } from '@/types';
 import { toast } from 'sonner';
 import QRCode from 'react-qr-code';
@@ -61,6 +62,8 @@ export default function PerfilPage() {
   });
   const [images, setImages] = useState<ProfileImage[]>([]);
   const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [removeProfileImage, setRemoveProfileImage] = useState(false);
   const [slugError, setSlugError] = useState<string>('');
   const [checkingSlug, setCheckingSlug] = useState(false);
   const [nameError, setNameError] = useState<string>('');
@@ -241,6 +244,27 @@ export default function PerfilPage() {
         console.log('✅ Imágenes de carrusel subidas exitosamente:', newImageUrls);
       }
 
+      // Manejar imagen de perfil
+      let finalProfileImageUrl = professional.profile_image;
+
+      if (profileImageFile) {
+        // Subir nueva imagen de perfil
+        console.log('👤 Subiendo nueva imagen de perfil...');
+        finalProfileImageUrl = await uploadProfileImage(profileImageFile);
+        console.log('✅ Imagen de perfil subida exitosamente:', finalProfileImageUrl);
+
+        // Eliminar imagen de perfil anterior si existe
+        if (professional.profile_image) {
+          console.log('🗑️ Eliminando imagen de perfil anterior...');
+          await deleteImageFromStorage(professional.profile_image);
+        }
+      } else if (removeProfileImage && professional.profile_image) {
+        // Eliminar imagen de perfil existente
+        console.log('🗑️ Eliminando imagen de perfil existente...');
+        await deleteImageFromStorage(professional.profile_image);
+        finalProfileImageUrl = undefined;
+      }
+
       // Determinar qué imágenes eliminar (las que estaban antes pero ya no están)
       const currentImageUrls = professional.carrusel_images?.map((img) => img.url) || [];
       const keptImageUrls = images.map((img) => img.url);
@@ -265,6 +289,7 @@ export default function PerfilPage() {
         phone: formData.phone,
         location: formData.location || undefined,
         map_embed_url: formData.map_embed_url || undefined,
+        profile_image: finalProfileImageUrl,
         social_links: {
           instagram: formData.instagram || undefined,
           whatsapp: formData.whatsapp || undefined,
@@ -281,6 +306,8 @@ export default function PerfilPage() {
       setProfessional((prev) => (prev ? ({ ...prev, ...updateData } as Professional) : null));
       setImages(allImages);
       setNewImageFiles([]);
+      setProfileImageFile(null);
+      setRemoveProfileImage(false);
       console.log('✅ Perfil actualizado exitosamente');
       toast.success('Perfil actualizado exitosamente');
     } catch (error) {
@@ -301,6 +328,16 @@ export default function PerfilPage() {
       alt: 'Imagen del perfil',
     }));
     setImages(existingImages);
+  };
+
+  const handleProfileImageChange = (file: File | null) => {
+    setProfileImageFile(file);
+    setRemoveProfileImage(false); // Si selecciona una imagen, no queremos eliminar
+  };
+
+  const handleRemoveProfileImage = () => {
+    setProfileImageFile(null);
+    setRemoveProfileImage(true); // Marcar para eliminar la imagen actual
   };
 
   const getPublicUrl = () => {
@@ -601,6 +638,23 @@ export default function PerfilPage() {
                 rows={4}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Profile Photo */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Foto de Perfil</CardTitle>
+            <CardDescription>Agrega una foto profesional que se mostrará en tu página</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProfileImageUpload
+              currentImageUrl={professional?.profile_image}
+              onImageChange={handleProfileImageChange}
+              onRemoveImage={handleRemoveProfileImage}
+              disabled={submitting}
+              size="lg"
+            />
           </CardContent>
         </Card>
 
