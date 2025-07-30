@@ -36,27 +36,31 @@ export default function StatsCards({ stats, monthlyRevenue }: StatsCardsProps) {
   // Tomar el valor del mes actual del array monthlyRevenue (último elemento)
   const currentMonthRevenue = monthlyRevenue?.[monthlyRevenue.length - 1]?.revenue ?? 0;
 
+  // Para claridad en las descripciones
+  const today = new Date();
+  const monthName = today.toLocaleDateString('es-ES', { month: 'long' });
+
   const cards = [
     {
       title: 'Citas Hoy',
       value: stats.todayAppointments.toString(),
-      description: stats.todayAppointments === 1 ? 'cita programada' : 'citas programadas',
+      description: `${today.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`,
       icon: TbCalendar,
       color: '#2563eb', // Azul fuerte
       gradient: 'from-blue-500 to-blue-700',
     },
     {
-      title: 'Citas Semana',
-      value: stats.weeklyAppointments.toString(),
-      description: 'esta semana',
+      title: 'Período Actual',
+      value: stats.currentPeriodAppointments.toString(),
+      description: `próximos 30 días`,
       icon: TbCalendarWeek,
       color: '#a21caf', // Morado intenso
       gradient: 'from-fuchsia-500 to-purple-700',
     },
     {
-      title: 'Ingresos',
+      title: 'Ingresos Mes',
       value: formatCurrency(currentMonthRevenue),
-      description: 'este mes',
+      description: `todo ${monthName}`,
       icon: TbCurrencyDollar,
       color: '#22c55e', // Verde vibrante
       gradient: 'from-green-400 to-green-700',
@@ -64,39 +68,39 @@ export default function StatsCards({ stats, monthlyRevenue }: StatsCardsProps) {
     {
       title: 'Total Clientes',
       value: stats.totalClients.toString(),
-      description: 'clientes únicos',
+      description: 'únicos registrados',
       icon: TbUsers,
       color: '#f59e42', // Naranja brillante
       gradient: 'from-orange-400 to-orange-600',
     },
     {
-      title: 'Citas Agendadas',
+      title: 'Agendadas Mes',
       value: monthlyAppointments.toString(),
-      description: 'este mes',
+      description: `todo ${monthName}`,
       icon: TbTrendingUp,
       color: '#6366f1', // Indigo vibrante
       gradient: 'from-indigo-400 to-indigo-700',
     },
     {
-      title: 'Citas Completadas',
+      title: 'Completadas Mes',
       value: monthlyCompleted.toString(),
-      description: 'este mes',
+      description: `todo ${monthName}`,
       icon: TbChecks,
       color: '#059669', // Verde esmeralda fuerte
       gradient: 'from-emerald-400 to-emerald-700',
     },
     {
-      title: 'Citas Canceladas',
+      title: 'Canceladas Mes',
       value: monthlyCancelled.toString(),
-      description: 'este mes',
+      description: `todo ${monthName}`,
       icon: TbX,
       color: '#ef4444', // Rojo intenso
       gradient: 'from-red-500 to-red-700',
     },
     {
-      title: 'Tasa Conversión Mes',
+      title: 'Conversión Mes',
       value: `${monthlyConversionRate.toFixed(1)}%`,
-      description: 'completadas este mes',
+      description: `efectividad en ${monthName}`,
       icon: TbPercentage,
       color: '#06b6d4', // Cyan vibrante
       gradient: 'from-cyan-400 to-cyan-700',

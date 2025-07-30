@@ -1,16 +1,6 @@
 'use client';
 
-import {
-  TbCalendar,
-  TbClock,
-  TbUser,
-  TbPhone,
-  TbMail,
-  TbX,
-  TbCheck,
-  TbEye,
-  TbSquareCheck,
-} from 'react-icons/tb';
+import { TbCalendar, TbClock, TbUser, TbPhone, TbMail, TbX, TbCheck, TbEye, TbSquareCheck } from 'react-icons/tb';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
@@ -118,7 +108,8 @@ export default function AppointmentsByDay({
     return (
       <div className="text-center py-8 text-gray-500">
         <TbCalendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-        <p>No se encontraron citas</p>
+        <p className="text-lg font-medium mb-2">No hay citas para mostrar</p>
+        <p className="text-sm">Intenta ajustar los filtros o crear una nueva cita</p>
       </div>
     );
   }
@@ -151,9 +142,7 @@ export default function AppointmentsByDay({
                     {completedCount} completadas
                   </div>
                   {totalIncome > 0 && (
-                    <div className="flex items-center text-gray-600 font-medium">
-                      {formatCurrency(totalIncome)}
-                    </div>
+                    <div className="flex items-center text-gray-600 font-medium">{formatCurrency(totalIncome)}</div>
                   )}
                 </div>
               </div>
@@ -164,13 +153,11 @@ export default function AppointmentsByDay({
                   const { time } = formatDateTime(appointment.start_time);
                   const appointmentDate = parseISO(appointment.start_time);
                   const now = new Date();
-                  const canCancel =
-                    (appointment.status === 'confirmed') &&
-                    isAfter(appointmentDate, now);
-                    const serviceDuration = appointment.service?.duration_minutes || 0;
-                    const appointmentEnd = new Date(appointmentDate.getTime() + serviceDuration * 60000);
-                    const canComplete =
-                    appointment.status === 'confirmed' && isAfter(now, appointmentEnd);
+                  const canCancel = appointment.status === 'confirmed' && isAfter(appointmentDate, now);
+                  const canComplete =
+                    appointment.status === 'confirmed' &&
+                    !isAfter(appointmentDate, now) && // La cita ya pasó o está en curso
+                    isAfter(now, appointmentDate); // Pero no ha terminado
 
                   return (
                     <div

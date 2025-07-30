@@ -3,7 +3,7 @@ import { Appointment, Service } from '@/types';
 
 export interface DashboardStats {
   todayAppointments: number;
-  weeklyAppointments: number;
+  currentPeriodAppointments: number; // Cambiado de weeklyAppointments para ser más claro
   monthlyRevenue: number;
   totalClients: number;
   totalAppointments: number;
@@ -30,30 +30,33 @@ export async function getDashboardStats(professionalId: string): Promise<Dashboa
   const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
   const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
 
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay());
-  startOfWeek.setHours(0, 0, 0, 0);
-
+  // PERÍODOS CLARAMENTE DEFINIDOS para evitar inconsistencias:
+  // 1. HOY: desde 00:00 hasta 23:59 de hoy
+  // 2. PERÍODO ACTUAL: próximos 30 días desde hoy (consistente con página de citas)
+  // 3. MES COMPLETO: desde día 1 hasta último día del mes (para métricas mensuales)
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
 
-  // Citas de hoy
+  // 1. Citas de hoy solamente
   const { count: todayCount, error: todayError } = await supabase
     .from('appointments')
     .select('*', { count: 'exact' })
     .eq('professional_id', professionalId)
-    .eq('status', 'confirmed')
     .gte('start_time', startOfDay)
     .lte('start_time', endOfDay);
   if (todayError) throw new Error(todayError.message || 'Error al obtener las citas de hoy');
 
-  // Citas de esta semana
-  const { count: weeklyCount, error: weekError } = await supabase
+  // 2. Citas de los próximos 30 días desde hoy (período actual mostrado en la página de citas)
+  const thirtyDaysFromToday = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+  thirtyDaysFromToday.setHours(23, 59, 59, 999);
+
+  const { count: currentPeriodCount, error: periodError } = await supabase
     .from('appointments')
     .select('*', { count: 'exact' })
     .eq('professional_id', professionalId)
-    .eq('status', 'confirmed')
-    .gte('start_time', startOfWeek.toISOString());
-  if (weekError) throw new Error(weekError.message || 'Error al obtener las citas de la semana');
+    .gte('start_time', startOfDay) // Desde hoy
+    .lte('start_time', thirtyDaysFromToday.toISOString()); // Hasta 30 días adelante
+  if (periodError) throw new Error(periodError.message || 'Error al obtener las citas del período');
 
   // Total de citas del profesional (conteo real, sin límite)
   const { count: totalAppointments, error: totalError } = await supabase
@@ -81,13 +84,14 @@ export async function getDashboardStats(professionalId: string): Promise<Dashboa
   const conversionRate =
     totalAppointments && completedAppointments ? (completedAppointments / totalAppointments) * 100 : 0;
 
-  // Ingresos del mes (estimados)
+  // Ingresos desde INICIO del mes (no desde hoy, para la métrica mensual)
   const { data: monthlyAppointments, error: monthError } = await supabase
     .from('appointments')
     .select('*, service:services(price)')
     .eq('professional_id', professionalId)
     .eq('status', 'completed')
-    .gte('start_time', startOfMonth.toISOString());
+    .gte('start_time', startOfMonth.toISOString()) // Desde inicio de mes
+    .lte('start_time', endOfMonth.toISOString()); // Hasta fin de mes
   if (monthError) throw new Error(monthError.message || 'Error al obtener los ingresos del mes');
 
   const monthlyRevenue =
@@ -107,7 +111,7 @@ export async function getDashboardStats(professionalId: string): Promise<Dashboa
 
   return {
     todayAppointments: todayCount || 0,
-    weeklyAppointments: weeklyCount || 0,
+    currentPeriodAppointments: currentPeriodCount || 0,
     monthlyRevenue,
     totalClients: uniqueClients,
     totalAppointments: totalAppointments || 0,
@@ -128,7 +132,6 @@ export async function getTodayAppointments(
     .from('appointments')
     .select('*, service:services(name, duration_minutes), client:clients(name)')
     .eq('professional_id', professionalId)
-    .eq('status', 'confirmed')
     .gte('start_time', startOfDay)
     .lte('start_time', endOfDay)
     .order('start_time', { ascending: true });
@@ -146,8 +149,7 @@ export async function getMonthlyRevenue(professionalId: string): Promise<Monthly
     .eq('professional_id', professionalId)
     .eq('status', 'completed')
     .gte('start_time', sixMonthsAgo.toISOString())
-    .order('start_time', { ascending: true })
-    .limit(10000);
+    .order('start_time', { ascending: true });
 
   if (error) throw new Error(error.message || 'Error al obtener los ingresos mensuales');
 

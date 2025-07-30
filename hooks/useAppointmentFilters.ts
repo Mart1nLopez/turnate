@@ -1,17 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Appointment, Service, Client } from '@/types';
-import {
-  parseISO,
-  startOfDay,
-  addDays,
-  addWeeks,
-  addMonths,
-  isSameDay,
-  isWithinInterval,
-  isBefore,
-  getHours,
-  endOfDay,
-} from 'date-fns';
+import { parseISO, startOfDay, addDays, isSameDay, isWithinInterval, getHours, endOfDay } from 'date-fns';
 
 type AppointmentWithDetails = Appointment & {
   service?: Service;
@@ -21,7 +10,7 @@ type AppointmentWithDetails = Appointment & {
 export interface AdvancedFilters {
   search: string;
   status: 'all' | 'confirmed' | 'completed' | 'cancelled_by_pro' | 'cancelled_by_client';
-  dateRange: 'all' | 'today' | 'tomorrow' | 'week' | 'month' | 'past' | 'custom';
+  dateRange: 'next_30_days' | 'today' | 'tomorrow' | 'custom';
   customDateFrom: string;
   customDateTo: string;
   timeOfDay: 'all' | 'morning' | 'afternoon' | 'evening';
@@ -35,7 +24,7 @@ export interface AdvancedFilters {
 const defaultFilters: AdvancedFilters = {
   search: '',
   status: 'all',
-  dateRange: 'all',
+  dateRange: 'today',
   customDateFrom: '',
   customDateTo: '',
   timeOfDay: 'all',
@@ -98,10 +87,8 @@ export function useAppointmentFilters(appointments: AppointmentWithDetails[]) {
     const now = new Date();
     const today = startOfDay(now);
     const tomorrow = addDays(today, 1);
-    const weekFromNow = addWeeks(today, 1);
-    const monthFromNow = addMonths(today, 1);
 
-    if (filters.dateRange !== 'all') {
+    if (filters.dateRange !== 'next_30_days') {
       filtered = filtered.filter((appointment) => {
         const appointmentDate = parseISO(appointment.start_time);
 
@@ -110,12 +97,6 @@ export function useAppointmentFilters(appointments: AppointmentWithDetails[]) {
             return isSameDay(appointmentDate, today);
           case 'tomorrow':
             return isSameDay(appointmentDate, tomorrow);
-          case 'week':
-            return isWithinInterval(appointmentDate, { start: today, end: weekFromNow });
-          case 'month':
-            return isWithinInterval(appointmentDate, { start: today, end: monthFromNow });
-          case 'past':
-            return isBefore(appointmentDate, today);
           case 'custom':
             if (filters.customDateFrom && filters.customDateTo) {
               const fromDate = startOfDay(parseISO(filters.customDateFrom));
@@ -161,12 +142,61 @@ export function useAppointmentFilters(appointments: AppointmentWithDetails[]) {
     let count = 0;
     if (filters.search) count++;
     if (filters.status !== 'all') count++;
-    if (filters.dateRange !== 'all') count++;
+    if (filters.dateRange !== 'today') count++;
     if (filters.timeOfDay !== 'all') count++;
     if (filters.serviceId) count++;
     if (filters.minPrice || filters.maxPrice) count++;
     if (filters.minDuration || filters.maxDuration) count++;
     return count;
+  }, [filters]);
+
+  const getFilterDescription = useCallback(() => {
+    const parts: string[] = [];
+
+    // Descripción del rango de fecha
+    switch (filters.dateRange) {
+      case 'today':
+        parts.push('Hoy');
+        break;
+      case 'tomorrow':
+        parts.push('Mañana');
+        break;
+      case 'next_30_days':
+        parts.push('Próximos 30 días');
+        break;
+      case 'custom':
+        if (filters.customDateFrom && filters.customDateTo) {
+          parts.push(`${filters.customDateFrom} - ${filters.customDateTo}`);
+        } else if (filters.customDateFrom) {
+          parts.push(`Desde ${filters.customDateFrom}`);
+        } else if (filters.customDateTo) {
+          parts.push(`Hasta ${filters.customDateTo}`);
+        }
+        break;
+    }
+
+    // Estado
+    if (filters.status !== 'all') {
+      const statusLabels = {
+        confirmed: 'confirmadas',
+        completed: 'completadas',
+        cancelled_by_pro: 'canceladas por ti',
+        cancelled_by_client: 'canceladas por cliente',
+      };
+      parts.push(`solo ${statusLabels[filters.status as keyof typeof statusLabels]}`);
+    }
+
+    // Momento del día
+    if (filters.timeOfDay !== 'all') {
+      const timeLabels = {
+        morning: 'mañana',
+        afternoon: 'tarde',
+        evening: 'noche',
+      };
+      parts.push(`en la ${timeLabels[filters.timeOfDay as keyof typeof timeLabels]}`);
+    }
+
+    return parts.length > 0 ? parts.join(', ') : 'Período seleccionado';
   }, [filters]);
 
   return {
@@ -176,5 +206,6 @@ export function useAppointmentFilters(appointments: AppointmentWithDetails[]) {
     clearFilters,
     updateFilter,
     getActiveFiltersCount,
+    getFilterDescription,
   };
 }

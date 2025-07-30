@@ -2,20 +2,22 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import LoadingSpinner from '@/components/ui/loading-spinner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { getCurrentProfessional } from '@/lib/supabase';
 import { Service } from '@/types';
-import { getServicesByProfessionalId } from '@/services/appointmentService';
 import {
+  getServicesByProfessionalId,
   getAppointmentsByProfessionalId,
+  getTotalAppointmentsCount,
+  getAppointmentCountsByStatus,
   cancelAppointmentByProfessional,
   completeAppointment,
   AppointmentWithDetails,
 } from '@/services/appointmentService';
-import { useConfirmDialog } from '@/components/ui/confirm-dialog';
-import { toast } from 'sonner';
 import AppointmentsByDay from '@/components/dashboard/AppointmentsByDay';
 import AdvancedFiltersComponent from '@/components/dashboard/AdvancedFilters';
 import AppointmentStats from '@/components/dashboard/AppointmentStats';
@@ -27,11 +29,76 @@ export default function CitasPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtersCollapsed, setFiltersCollapsed] = useState(true);
+  const [totalAppointmentsCount, setTotalAppointmentsCount] = useState<number | undefined>(undefined);
+  const [appointmentCounts, setAppointmentCounts] = useState<
+    | {
+        confirmed: number;
+        completed: number;
+        cancelledByPro: number;
+        cancelledByClient: number;
+      }
+    | undefined
+  >(undefined);
   const { confirm, ConfirmDialog } = useConfirmDialog();
 
   // Usar el hook personalizado para filtros
-  const { filters, filteredAppointments, setFilters, clearFilters, getActiveFiltersCount } =
+  const { filters, filteredAppointments, setFilters, clearFilters, getActiveFiltersCount, getFilterDescription } =
     useAppointmentFilters(appointments);
+
+  // Cargar citas de los próximos 30 días
+  const loadAppointmentsBasedOnDateFilter = useCallback(async () => {
+    try {
+      const { professional } = await getCurrentProfessional();
+      if (!professional) return;
+
+      // Cargar citas desde hoy hasta 30 días (comportamiento por defecto)
+      const appointmentsData = await getAppointmentsByProfessionalId(professional.id);
+
+      setAppointments(appointmentsData || []);
+    } catch (error) {
+      console.error('Error loading appointments:', error);
+      toast.error('Error al cargar las citas');
+    }
+  }, []);
+
+  const loadAppointments = useCallback(async () => {
+    try {
+      const { professional } = await getCurrentProfessional();
+      if (!professional) return;
+
+      // Cargar servicios y conteos (siempre necesarios)
+      const [servicesData, totalCount, statusCounts] = await Promise.all([
+        getServicesByProfessionalId(professional.id),
+        getTotalAppointmentsCount(professional.id),
+        getAppointmentCountsByStatus(professional.id),
+      ]);
+
+      setServices(servicesData || []);
+      setTotalAppointmentsCount(totalCount);
+      setAppointmentCounts(statusCounts);
+
+      // Cargar citas iniciales (próximos 30 días)
+      await loadAppointmentsBasedOnDateFilter();
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast.error('Error al cargar los datos');
+    } finally {
+      setLoading(false);
+    }
+  }, [loadAppointmentsBasedOnDateFilter]);
+
+  // Efecto inicial para cargar datos
+  useEffect(() => {
+    loadAppointments();
+  }, [loadAppointments]);
+
+  // Efecto que reacciona cuando cambia el filtro de fechas
+  useEffect(() => {
+    // Solo recargar para next_30_days ya que los otros filtros se procesan localmente
+    if (filters.dateRange === 'next_30_days') {
+      loadAppointmentsBasedOnDateFilter();
+    }
+  }, [filters.dateRange, loadAppointmentsBasedOnDateFilter]);
 
   const cancelAppointment = async (appointmentId: string) => {
     const confirmed = await confirm({
@@ -131,9 +198,10 @@ export default function CitasPage() {
       try {
         const startDateTime = new Date(appointmentToComplete.start_time);
         const dateOnly = startDateTime.toISOString().split('T')[0];
-        const formattedTime = startDateTime.toLocaleTimeString('es-CL', {
+        const formattedTime = startDateTime.toLocaleTimeString('es-ES', {
           hour: '2-digit',
           minute: '2-digit',
+          hour12: false,
         });
         const dataToSend = {
           action: 'review_request',
@@ -173,30 +241,10 @@ export default function CitasPage() {
     }
   };
 
-  const loadAppointments = useCallback(async () => {
-    try {
-      const { professional } = await getCurrentProfessional();
-      if (!professional) return;
-      const appointmentsData = await getAppointmentsByProfessionalId(professional.id);
-      const servicesData = await getServicesByProfessionalId(professional.id);
-      setAppointments(appointmentsData || []);
-      setServices(servicesData || []);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      toast.error('Error al cargar los datos');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadAppointments();
-  }, [loadAppointments]);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <LoadingSpinner size="lg" text="Cargando citas..." />
+        <LoadingSpinner size="lg" text="Cargando datos de citas..." />
       </div>
     );
   }
@@ -207,12 +255,20 @@ export default function CitasPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gestión de Citas</h1>
-          <p className="text-gray-600">Administra todas tus citas programadas</p>
+          <p className="text-gray-600">
+            Administra tus citas. Por defecto se muestran las citas de los próximos 30 días. Usa los filtros para buscar
+            fechas específicas.
+          </p>
         </div>
       </div>
 
       {/* Estadísticas */}
-      <AppointmentStats appointments={filteredAppointments} />
+      <AppointmentStats
+        appointments={filteredAppointments}
+        totalAppointmentsCount={totalAppointmentsCount}
+        appointmentCounts={appointmentCounts}
+        filterDescription={getFilterDescription()}
+      />
 
       {/* Filtros */}
       <AdvancedFiltersComponent
@@ -221,6 +277,7 @@ export default function CitasPage() {
         services={services}
         isCollapsed={filtersCollapsed}
         onToggleCollapse={() => setFiltersCollapsed(!filtersCollapsed)}
+        getActiveFiltersCount={getActiveFiltersCount}
       />
 
       {/* Lista de citas */}
@@ -229,9 +286,6 @@ export default function CitasPage() {
           <CardTitle className="flex items-center justify-between">
             <span>
               Citas
-              {filteredAppointments.length !== appointments.length && (
-                <span className="text-sm font-normal text-gray-500 ml-2">(filtradas de {appointments.length})</span>
-              )}
             </span>
             {getActiveFiltersCount() > 0 && (
               <Button onClick={clearFilters} variant="outline" size="sm">
@@ -242,7 +296,7 @@ export default function CitasPage() {
           <CardDescription>
             {filteredAppointments.length === 0 ?
               'No se encontraron citas con los filtros aplicados'
-            : `Mostrando ${filteredAppointments.length} ${filteredAppointments.length === 1 ? 'cita' : 'citas'} en total`
+            : `Mostrando ${filteredAppointments.length} ${filteredAppointments.length === 1 ? 'cita' : 'citas'} del período seleccionado`
             }
           </CardDescription>
         </CardHeader>

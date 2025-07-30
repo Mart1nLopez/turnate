@@ -10,7 +10,7 @@ import { Service } from '@/types';
 export interface AdvancedFilters {
   search: string;
   status: 'all' | 'confirmed' | 'completed' | 'cancelled_by_pro' | 'cancelled_by_client';
-  dateRange: 'all' | 'today' | 'tomorrow' | 'week' | 'month' | 'past' | 'custom';
+  dateRange: 'next_30_days' | 'today' | 'tomorrow' | 'custom';
   customDateFrom: string;
   customDateTo: string;
   timeOfDay: 'all' | 'morning' | 'afternoon' | 'evening';
@@ -27,6 +27,7 @@ interface AdvancedFiltersComponentProps {
   services: Service[];
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  getActiveFiltersCount: () => number;
 }
 
 export default function AdvancedFiltersComponent({
@@ -35,6 +36,7 @@ export default function AdvancedFiltersComponent({
   services,
   isCollapsed = false,
   onToggleCollapse,
+  getActiveFiltersCount,
 }: AdvancedFiltersComponentProps) {
   const [localFilters, setLocalFilters] = useState<AdvancedFilters>(filters);
 
@@ -52,7 +54,7 @@ export default function AdvancedFiltersComponent({
     const clearedFilters: AdvancedFilters = {
       search: '',
       status: 'all',
-      dateRange: 'all',
+      dateRange: 'today',
       customDateFrom: '',
       customDateTo: '',
       timeOfDay: 'all',
@@ -64,18 +66,6 @@ export default function AdvancedFiltersComponent({
     };
     setLocalFilters(clearedFilters);
     onFiltersChange(clearedFilters);
-  };
-
-  const getActiveFiltersCount = () => {
-    let count = 0;
-    if (localFilters.search) count++;
-    if (localFilters.status !== 'all') count++;
-    if (localFilters.dateRange !== 'all') count++;
-    if (localFilters.timeOfDay !== 'all') count++;
-    if (localFilters.serviceId) count++;
-    if (localFilters.minPrice || localFilters.maxPrice) count++;
-    if (localFilters.minDuration || localFilters.maxDuration) count++;
-    return count;
   };
 
   return (
@@ -144,12 +134,9 @@ export default function AdvancedFiltersComponent({
                 value={localFilters.dateRange}
                 onChange={(e) => handleFilterChange('dateRange', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="all">Todas las fechas</option>
-                <option value="today">Hoy</option>
-                <option value="tomorrow">Mañana</option>
-                <option value="week">Esta semana</option>
-                <option value="month">Este mes</option>
-                <option value="past">Fechas pasadas</option>
+                <option value="next_30_days">Próximos 30 días</option>
+                <option value="today">Solo hoy</option>
+                <option value="tomorrow">Solo mañana</option>
                 <option value="custom">Rango personalizado</option>
               </select>
             </div>
@@ -222,13 +209,17 @@ export default function AdvancedFiltersComponent({
               <div className="grid grid-cols-2 gap-2">
                 <Input
                   type="number"
-                  placeholder="Mínimo"
+                  min="0"
+                  step="1000"
+                  placeholder="Precio mínimo"
                   value={localFilters.minPrice}
                   onChange={(e) => handleFilterChange('minPrice', e.target.value)}
                 />
                 <Input
                   type="number"
-                  placeholder="Máximo"
+                  min="0"
+                  step="1000"
+                  placeholder="Precio máximo"
                   value={localFilters.maxPrice}
                   onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
                 />
@@ -243,13 +234,19 @@ export default function AdvancedFiltersComponent({
               <div className="grid grid-cols-2 gap-2">
                 <Input
                   type="number"
-                  placeholder="Mínimo"
+                  min="15"
+                  max="480"
+                  step="15"
+                  placeholder="Duración mínima"
                   value={localFilters.minDuration}
                   onChange={(e) => handleFilterChange('minDuration', e.target.value)}
                 />
                 <Input
                   type="number"
-                  placeholder="Máximo"
+                  min="15"
+                  max="480"
+                  step="15"
+                  placeholder="Duración máxima"
                   value={localFilters.maxDuration}
                   onChange={(e) => handleFilterChange('maxDuration', e.target.value)}
                 />

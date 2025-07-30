@@ -30,7 +30,7 @@ export function useDashboard() {
   const [data, setData] = useState<DashboardData>({
     stats: {
       todayAppointments: 0,
-      weeklyAppointments: 0,
+      currentPeriodAppointments: 0,
       monthlyRevenue: 0,
       totalClients: 0,
       totalAppointments: 0,

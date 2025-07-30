@@ -150,7 +150,7 @@ export async function getAnalyticsStats(professionalId: string): Promise<Advance
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const todayAppointments = confirmedAppointments.filter((apt) => {
+  const todayAppointments = (allAppointments as Appointment[]).filter((apt) => {
     const aptDate = new Date(apt.start_time);
     return aptDate >= today && aptDate < tomorrow;
   }).length;
