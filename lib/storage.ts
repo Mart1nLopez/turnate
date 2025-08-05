@@ -63,18 +63,19 @@ export async function processAndUploadImage(
     console.log('✅ Usuario autenticado:', user.id);
 
     const compressionOptions = {
-      maxSizeMB: options.maxSizeMB || 2.0, // Aumentado de 1.5MB a 2.0MB para mejor calidad por defecto
-      maxWidthOrHeight: options.maxWidthOrHeight || 2048, // Aumentado de 1920px a 2048px para mejor resolución
+      maxSizeMB: options.maxSizeMB || 1,
+      maxWidthOrHeight: options.maxWidthOrHeight || 1024,
       useWebWorker: true,
-      quality: options.quality || 0.9, // Aumentado de 0.85 a 0.90 para mejor calidad por defecto
+      quality: options.quality || 0.85,
+      fileType: 'image/webp', // Forzar conversión a WebP
     };
 
     console.log('🗜️ Comprimiendo imagen con opciones:', compressionOptions);
     const compressedFile = await imageCompression(imageFile, compressionOptions);
     console.log('✅ Imagen comprimida. Tamaño original:', imageFile.size, 'Tamaño comprimido:', compressedFile.size);
 
-    const fileExt = compressedFile.name?.split('.').pop() || 'jpg';
-    const fileName = `${uuidv4()}.${fileExt}`;
+    // Guardar siempre como .webp
+    const fileName = `${uuidv4()}.webp`;
     const filePath = `${user.id}/${subfolder}/${fileName}`;
 
     console.log('📤 Subiendo archivo a path:', filePath);
@@ -163,9 +164,9 @@ export async function uploadCarouselImages(files: File[]): Promise<string[]> {
   // Opciones específicas para imágenes de carrusel - optimizadas para pantalla completa
   // Configuración premium para imágenes que se mostrarán a gran tamaño
   const carouselOptions: UploadImageOptions = {
-    maxSizeMB: 3.0, // 3MB permite alta calidad sin sacrificar rendimiento web
-    maxWidthOrHeight: 2560, // Resolución 2K para pantallas modernas de alta resolución
-    quality: 0.92, // 92% de calidad para imágenes con detalles nítidos en pantalla completa
+    maxSizeMB: 3.0,
+    maxWidthOrHeight: 2560, // Resolución 2K
+    quality: 0.95,
   };
 
   const uploadPromises = files.map((file) => processAndUploadImage(file, carouselOptions, 'carrusel'));
@@ -215,11 +216,11 @@ export async function deleteMultipleImages(imageUrls: string[]): Promise<void> {
 export async function uploadServiceImage(file: File): Promise<string> {
   console.log('🔧 Subiendo imagen de servicio:', file.name);
 
-  // Opciones específicas para imágenes de servicios - compresión mayor ya que se muestran más pequeñas
+  // Opciones específicas para imágenes de servicios
   const serviceOptions: UploadImageOptions = {
-    maxSizeMB: 0.8, // Menor tamaño de archivo ya que no se muestran tan grandes
-    maxWidthOrHeight: 800, // Resolución moderada, suficiente para cards de servicios
-    quality: 0.85, // Calidad buena pero no premium
+    maxSizeMB: 1,
+    maxWidthOrHeight: 800,
+    quality: 0.9,
   };
 
   try {
@@ -236,11 +237,11 @@ export async function uploadServiceImage(file: File): Promise<string> {
 export async function uploadProfileImage(file: File): Promise<string> {
   console.log('👤 Subiendo imagen de perfil:', file.name);
 
-  // Opciones específicas para imágenes de perfil - optimizadas para avatares
+  // Opciones específicas para imágenes de perfil
   const profileOptions: UploadImageOptions = {
-    maxSizeMB: 1.5, // Tamaño moderado para perfiles, buena calidad sin ser excesivo
-    maxWidthOrHeight: 512, // Resolución optimizada para avatares - suficiente para perfiles
-    quality: 0.88, // Alta calidad para imágenes de perfil profesional
+    maxSizeMB: 0.8,
+    maxWidthOrHeight: 512,
+    quality: 0.85,
   };
 
   try {

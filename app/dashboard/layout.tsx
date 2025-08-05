@@ -114,9 +114,22 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Professional info */}
         <div className="p-6 border-b">
           <div className="flex items-center">
-            <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
-              <span className="text-white font-medium">{professional?.name?.charAt(0) || 'U'}</span>
-            </div>
+            {professional?.profile_image ?
+              <Image
+                src={professional.profile_image}
+                alt={professional?.name || 'Foto de perfil'}
+                width={40}
+                height={40}
+                className="h-10 w-10 rounded-full object-cover border border-gray-200"
+                priority
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            : <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                <span className="text-white font-medium">{professional?.name?.charAt(0) || 'U'}</span>
+              </div>
+            }
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-900">{professional?.name}</p>
               <p className="text-xs text-gray-500">{professional?.email}</p>

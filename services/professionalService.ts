@@ -12,6 +12,11 @@ export async function updateProfessionalProfile(id: string, updateData: Partial<
   if (error) throw error;
 }
 
+export async function removeProfileImage(id: string): Promise<void> {
+  const { error } = await supabase.from('professionals').update({ profile_image: null }).eq('id', id);
+  if (error) throw error;
+}
+
 export async function checkSlugAvailability(slug: string, currentProfessionalId?: string): Promise<boolean> {
   if (!slug || slug.trim() === '') return false;
   const { data, error } = await supabase.from('professionals').select('id').eq('slug', slug).single();

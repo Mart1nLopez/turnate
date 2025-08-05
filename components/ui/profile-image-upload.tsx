@@ -16,7 +16,7 @@ interface ProfileImageUploadProps {
 const sizeClasses = {
   sm: 'w-16 h-16',
   md: 'w-24 h-24',
-  lg: 'w-32 h-32',
+  lg: 'w-40 h-40',
 };
 
 const iconSizes = {
@@ -128,7 +128,7 @@ export function ProfileImageUpload({
               className="object-cover"
               sizes={
                 size === 'sm' ? '64px'
-                : size === 'md' ?
+                : size === 'lg' ?
                   '96px'
                 : '128px'
               }
