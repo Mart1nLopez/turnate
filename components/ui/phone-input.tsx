@@ -113,7 +113,7 @@ export function PhoneInput({
   return (
     <div className={className}>
       {label && (
-        <label htmlFor="phone-input" className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
@@ -138,7 +138,7 @@ export function PhoneInput({
         {/* Input para el número de teléfono */}
         <Input
           ref={inputRef}
-          id="phone-input"
+          id={props.id ?? "phone-input"}
           type="tel"
           placeholder="12345678"
           value={localValue}

@@ -412,30 +412,33 @@ export function useProfile(): UseProfileReturn {
   };
 
   // Manejar cambios en imágenes del carrusel
-  const handleImagesChange = (files: File[], existingUrls: string[]) => {
+  const handleImagesChange = useCallback((files: File[], existingUrls: string[]) => {
     setNewImageFiles(files);
     const existingImages: ProfileImage[] = existingUrls.map((url) => ({
       url,
       alt: 'Imagen del perfil',
     }));
     setImages(existingImages);
-  };
+  }, []);
 
   // Manejar cambio en imagen de perfil
-  const handleProfileImageChange = (file: File | null) => {
-    setProfileImageFile(file);
-    setRemoveProfileImage(false);
-    if (file) {
-      setCurrentProfileImageUrl(professional?.profile_image);
-    }
-  };
+  const handleProfileImageChange = useCallback(
+    (file: File | null) => {
+      setProfileImageFile(file);
+      setRemoveProfileImage(false);
+      if (file) {
+        setCurrentProfileImageUrl(professional?.profile_image);
+      }
+    },
+    [professional?.profile_image],
+  );
 
   // Manejar eliminación de imagen de perfil
-  const handleRemoveProfileImage = () => {
+  const handleRemoveProfileImage = useCallback(() => {
     setProfileImageFile(null);
     setRemoveProfileImage(true);
     setCurrentProfileImageUrl(undefined);
-  };
+  }, []);
 
   // Obtener URL pública
   const getPublicUrl = () => {

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ImageUpload } from '@/components/ui/image-upload';
+import { ImageUploadWithCrop } from '@/components/ui/image-upload-with-crop';
 import { ProfileImageUpload } from '@/components/ui/profile-image-upload';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { useProfile } from '@/hooks/useProfile';
@@ -157,7 +157,8 @@ export default function PerfilPage() {
                   <div className="relative">
                     <TbUser className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
-                      name="name"
+                      id="name"
+                      type="name"
                       value={formData.name}
                       onChange={handleInputChange}
                       placeholder="Tu nombre"
@@ -183,6 +184,7 @@ export default function PerfilPage() {
                         phone: value,
                       }));
                     }}
+                    id="phone-number"
                     required
                   />
                 </div>
@@ -243,7 +245,7 @@ export default function PerfilPage() {
                 </div>
                 {/* Columna derecha: Foto de perfil */}
                 <div className="flex flex-col items-center justify-center">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Foto de Perfil</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-4">Foto de Perfil (o Logo)</label>
                   <ProfileImageUpload
                     currentImageUrl={currentProfileImageUrl}
                     onImageChange={handleProfileImageChange}
@@ -323,7 +325,6 @@ export default function PerfilPage() {
                 <div className="relative">
                   <FaWhatsapp className="absolute left-3 top-3 h-4 w-4 text-gray-400 z-10" />
                   <PhoneInput
-                    label=""
                     value={formData.whatsapp}
                     onChange={(value) => {
                       setFormData((prev) => ({
@@ -331,6 +332,7 @@ export default function PerfilPage() {
                         whatsapp: value,
                       }));
                     }}
+                    id="whatsapp-number"
                     allClassName="pl-10"
                     prefixClassName="border-l-1 border-gray-200 px-3"
                   />
@@ -403,11 +405,13 @@ export default function PerfilPage() {
             <CardDescription>Agrega imágenes que se mostrarán en tu página pública</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ImageUpload
+            <ImageUploadWithCrop
               onFilesChange={handleImagesChange}
               multiple={true}
               maxFiles={6}
               existingImages={images.map((img) => img.url)}
+              enableCrop={true}
+              cropAspectRatio={16 / 9}
             />
           </CardContent>
         </Card>

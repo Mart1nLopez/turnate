@@ -14,7 +14,7 @@ import { Service } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import Image from 'next/image';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
-import { ImageUpload } from '@/components/ui/image-upload';
+import { ImageUploadWithCrop } from '@/components/ui/image-upload-with-crop';
 import { toast } from 'sonner';
 
 interface ServiceForm {
@@ -26,14 +26,7 @@ interface ServiceForm {
 }
 
 export default function ServiciosPage() {
-  const {
-    services,
-    loading,
-    error: loadError,
-    createService,
-    updateService,
-    deleteService,
-  } = useServices();
+  const { services, loading, error: loadError, createService, updateService, deleteService } = useServices();
   const [showForm, setShowForm] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const { confirm, ConfirmDialog } = useConfirmDialog();
@@ -287,13 +280,15 @@ export default function ServiciosPage() {
               {/* Image Upload Section */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Imagen del servicio</label>
-                <ImageUpload
+                <ImageUploadWithCrop
                   onFilesChange={handleImageChange}
                   multiple={false}
                   maxFiles={1}
                   existingImages={formData.image_url ? [formData.image_url] : []}
                   disabled={submitting}
                   acceptedTypes="image/*"
+                  enableCrop={true}
+                  cropAspectRatio={1}
                 />
               </div>
 
@@ -326,7 +321,7 @@ export default function ServiciosPage() {
       )}
 
       {/* Services List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {services.length === 0 ?
           <div className="col-span-full text-center py-12">
             <TbCurrencyDollar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
@@ -341,7 +336,7 @@ export default function ServiciosPage() {
             <Card key={service.id} className="relative">
               <CardContent className="p-0">
                 {/* Image */}
-                <div className="relative h-48 bg-gray-100 rounded-t-lg overflow-hidden">
+                <div className="relative aspect-square bg-gray-100 rounded-t-lg overflow-hidden w-full">
                   {service.image_url ?
                     <Image
                       src={service.image_url}
@@ -352,14 +347,14 @@ export default function ServiciosPage() {
                         e.currentTarget.style.display = 'none';
                       }}
                     />
-                  : <div className="flex items-center justify-center h-full">
+                  : <div className="flex items-center justify-center w-full h-full">
                       <TbPhoto className="h-12 w-12 text-gray-300" />
                     </div>
                   }
                 </div>
 
                 {/* Content */}
-                <div className="p-6">
+                <div className="p-6 flex flex-col min-h-[220px]">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">{service.name}</h3>
 
                   {service.description && (
@@ -376,8 +371,9 @@ export default function ServiciosPage() {
                     </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex space-x-2">
+                  <div className="flex-1" />
+                  {/* Actions alineados abajo */}
+                  <div className="flex space-x-2 pt-2">
                     <Button size="sm" variant="outline" onClick={() => handleEdit(service)} className="flex-1">
                       <TbEdit className="w-4 h-4 mr-1" />
                       Editar
