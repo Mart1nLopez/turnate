@@ -273,7 +273,7 @@ export function ImageCropper({ src, onCropComplete, onCancel, isOpen, aspectRati
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end space-x-3 p-4 border-t border-gray-200 bg-gray-50 shrink-0">
+        <div className="flex items-center justify-end space-x-3 p-4 border-t border-gray-200 bg-gray-50 shrink-0 rounded-b-xl">
           <button
             onClick={handleCancel}
             disabled={processing}

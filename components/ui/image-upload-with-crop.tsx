@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { TbUpload, TbX, TbCrop } from 'react-icons/tb';
@@ -8,6 +8,7 @@ import { ImageCropper } from './image-cropper';
 
 interface ImageUploadProps {
   onFilesChange: (files: File[], existingUrls: string[]) => void;
+  onCropperStateChange?: (show: boolean) => void;
   multiple?: boolean;
   maxFiles?: number;
   existingImages?: string[];
@@ -34,6 +35,7 @@ export function ImageUploadWithCrop({
   acceptedTypes = 'image/*',
   enableCrop = false,
   cropAspectRatio = 1,
+  onCropperStateChange,
 }: ImageUploadProps) {
   const [images, setImages] = useState<ImagePreview[]>(() =>
     existingImages.map((url) => ({
@@ -45,6 +47,11 @@ export function ImageUploadWithCrop({
 
   // Estados para el cropper
   const [showCropper, setShowCropper] = useState(false);
+  useEffect(() => {
+    if (onCropperStateChange) {
+      onCropperStateChange(showCropper);
+    }
+  }, [showCropper, onCropperStateChange]);
   const [tempImageUrl, setTempImageUrl] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [recropIndex, setRecropIndex] = useState<number | null>(null);
@@ -231,7 +238,7 @@ export function ImageUploadWithCrop({
   );
 
   // Efecto para notificar cambios
-  React.useEffect(() => {
+  useEffect(() => {
     const newFiles = images.filter((img) => !img.isExisting && img.file).map((img) => img.file!);
     const existingUrls = images.filter((img) => img.isExisting && img.url).map((img) => img.url!);
     onFilesChange(newFiles, existingUrls);

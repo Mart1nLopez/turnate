@@ -60,6 +60,10 @@ interface UseProfileReturn {
   setShowQR: React.Dispatch<React.SetStateAction<boolean>>;
   qrRef: React.RefObject<HTMLDivElement | null>;
 
+  // Cropper
+  showCropper: boolean;
+  setShowCropper: React.Dispatch<React.SetStateAction<boolean>>;
+
   // Funciones
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
@@ -113,6 +117,8 @@ const RESERVED_ROUTES = [
 ];
 
 export function useProfile(): UseProfileReturn {
+  // Cropper
+  const [showCropper, setShowCropper] = useState(false);
   // Estado principal
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [loading, setLoading] = useState(true);
@@ -536,6 +542,10 @@ export function useProfile(): UseProfileReturn {
     showQR,
     setShowQR,
     qrRef,
+
+    // Cropper
+    showCropper,
+    setShowCropper,
 
     // Funciones
     handleInputChange,

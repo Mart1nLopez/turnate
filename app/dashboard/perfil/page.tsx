@@ -38,6 +38,9 @@ export default function PerfilPage() {
     showQR,
     setShowQR,
     qrRef,
+    // Cropper
+    showCropper,
+    setShowCropper,
 
     // Funciones
     handleInputChange,
@@ -153,12 +156,16 @@ export default function PerfilPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nombre completo *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <span className="text-gray-700">Nombre completo</span>
+                    <span className="text-red-500 ml-1">*</span>
+                  </label>
                   <div className="relative">
                     <TbUser className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       id="name"
                       type="name"
+                      name="name"
                       value={formData.name}
                       onChange={handleInputChange}
                       placeholder="Tu nombre"
@@ -193,7 +200,10 @@ export default function PerfilPage() {
                 {/* Columna izquierda: URL y Bio */}
                 <div className="flex flex-col gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">URL personalizada (slug) *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      URL personalizada (slug)
+                      <span className="text-red-500 ml-1">*</span>
+                    </label>
                     <div className="relative">
                       <TbLink className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
@@ -412,17 +422,20 @@ export default function PerfilPage() {
               existingImages={images.map((img) => img.url)}
               enableCrop={true}
               cropAspectRatio={16 / 9}
+              onCropperStateChange={setShowCropper}
             />
           </CardContent>
         </Card>
 
         {/* Save Button */}
-        <div className="flex justify-end">
-          <Button type="submit" disabled={submitting} className="px-8">
-            <TbDeviceFloppy className="w-4 h-4 mr-2" />
-            {submitting ? 'Guardando...' : 'Guardar Cambios'}
-          </Button>
-        </div>
+        {!showCropper && (
+          <div className="fixed bottom-8 right-8 z-50">
+            <Button type="submit" disabled={submitting} variant="highlight" className="px-8">
+              <TbDeviceFloppy className="w-4 h-4 mr-2" />
+              {submitting ? 'Guardando...' : 'Guardar Cambios'}
+            </Button>
+          </div>
+        )}
       </form>
     </div>
   );
