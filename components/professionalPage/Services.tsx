@@ -15,18 +15,21 @@ interface ServicesProps {
 export default function Services({ services, slug }: ServicesProps) {
   const carouselRef = useRef<HTMLDivElement>(null);
 
+  // Determina si hay exactamente 3 servicios para centrar las cards
+  const isThreeServices = services.length === 3;
+
   return (
     <section id="servicios" className="py-16 px-6 text-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <h2 className="text-3xl md:text-4xl mb-8 font-bold text-gray-900">Servicios disponibles</h2>
       <div className="relative max-w-6xl mx-auto">
         <div
           ref={carouselRef}
-          className="flex gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory py-2 px-1"
+          className={`flex gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory py-2 px-1 ${isThreeServices ? 'justify-center' : ''}`}
           style={{ scrollBehavior: 'smooth' }}>
           {services.map((service) => (
             <article
               key={service.id}
-              className="bg-white border border-gray-300 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:shadow-blue-200 hover:scale-102 transition-all duration-200 ease-in-out cursor-pointer min-w-[16rem] max-w-xs snap-center"
+              className="bg-white border border-gray-300 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:shadow-blue-200 hover:scale-102 transition-all duration-200 ease-in-out cursor-pointer w-72 min-w-[18rem] max-w-[18rem] snap-center"
               onClick={() => {
                 window.location.href = `/${slug}/agendar?service=${service.id}`;
               }}>
