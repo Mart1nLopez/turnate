@@ -385,6 +385,7 @@ export default function DisponibilidadPage() {
                     onChange={handleInputChange}
                     placeholder="2"
                     min="0"
+                    onWheel={(e) => e.currentTarget.blur()}
                     required
                   />
                 </div>
@@ -400,6 +401,7 @@ export default function DisponibilidadPage() {
                     onChange={handleInputChange}
                     placeholder="2"
                     min="0"
+                    onWheel={(e) => e.currentTarget.blur()}
                     required
                   />
                 </div>

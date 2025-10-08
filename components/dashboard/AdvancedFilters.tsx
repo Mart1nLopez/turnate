@@ -213,6 +213,7 @@ export default function AdvancedFiltersComponent({
                   step="1000"
                   placeholder="Precio mínimo"
                   value={localFilters.minPrice}
+                  onWheel={(e) => e.currentTarget.blur()}
                   onChange={(e) => handleFilterChange('minPrice', e.target.value)}
                 />
                 <Input
@@ -221,6 +222,7 @@ export default function AdvancedFiltersComponent({
                   step="1000"
                   placeholder="Precio máximo"
                   value={localFilters.maxPrice}
+                  onWheel={(e) => e.currentTarget.blur()}
                   onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
                 />
               </div>
@@ -239,6 +241,7 @@ export default function AdvancedFiltersComponent({
                   step="15"
                   placeholder="Duración mínima"
                   value={localFilters.minDuration}
+                  onWheel={(e) => e.currentTarget.blur()}
                   onChange={(e) => handleFilterChange('minDuration', e.target.value)}
                 />
                 <Input
@@ -248,6 +251,7 @@ export default function AdvancedFiltersComponent({
                   step="15"
                   placeholder="Duración máxima"
                   value={localFilters.maxDuration}
+                  onWheel={(e) => e.currentTarget.blur()}
                   onChange={(e) => handleFilterChange('maxDuration', e.target.value)}
                 />
               </div>

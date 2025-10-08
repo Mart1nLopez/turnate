@@ -254,6 +254,7 @@ export default function ServiciosPage() {
                       placeholder="15000"
                       min="0"
                       className="pl-10"
+                      onWheel={(e) => e.currentTarget.blur()}
                       required
                     />
                   </div>
@@ -271,6 +272,7 @@ export default function ServiciosPage() {
                       placeholder="30"
                       min="0"
                       className="pl-10"
+                      onWheel={(e) => e.currentTarget.blur()}
                       required
                     />
                   </div>
