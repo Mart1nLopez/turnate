@@ -179,33 +179,33 @@ export default function AppointmentStats({
         </CardContent>
       </Card>
       {/* Resumen rápido de totales históricos */}
-      {appointmentCounts && totalAppointmentsCount && (
+      {appointmentCounts && totalAppointmentsCount !== undefined && (
         <Card className="border-gray-200 bg-gray-50">
           <CardContent className="p-4">
-            <div className="text-center mb-2">
-              <p className="text-sm font-medium text-gray-700">Estadísticas Totales (Históricas)</p>
-              <span className="font-bold text-sm">{totalAppointmentsCount.toLocaleString()}</span> citas
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div>
-                <p className="text-lg font-bold text-green-700">{appointmentCounts.confirmed.toLocaleString()}</p>
-                <p className="text-xs text-gray-600">Confirmadas</p>
-              </div>
-              <div>
-                <p className="text-lg font-bold text-blue-700">{appointmentCounts.completed.toLocaleString()}</p>
-                <p className="text-xs text-gray-600">Completadas</p>
-              </div>
-              <div>
-                <p className="text-lg font-bold text-red-700">{appointmentCounts.cancelledByPro.toLocaleString()}</p>
-                <p className="text-xs text-gray-600">Canceladas por ti</p>
-              </div>
-              <div>
-                <p className="text-lg font-bold text-gray-700">
-                  {appointmentCounts.cancelledByClient.toLocaleString()}
-                </p>
-                <p className="text-xs text-gray-600">Canceladas por cliente</p>
-              </div>
-            </div>
+        <div className="text-center mb-2">
+          <p className="text-sm font-medium text-gray-700">Estadísticas Totales (Históricas)</p>
+          <span className="font-bold text-sm">{totalAppointmentsCount.toLocaleString()}</span> citas
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div>
+            <p className="text-lg font-bold text-green-700">{appointmentCounts.confirmed?.toLocaleString() ?? '0'}</p>
+            <p className="text-xs text-gray-600">Confirmadas</p>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-blue-700">{appointmentCounts.completed?.toLocaleString() ?? '0'}</p>
+            <p className="text-xs text-gray-600">Completadas</p>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-red-700">{appointmentCounts.cancelledByPro?.toLocaleString() ?? '0'}</p>
+            <p className="text-xs text-gray-600">Canceladas por ti</p>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-gray-700">
+          {appointmentCounts.cancelledByClient?.toLocaleString() ?? '0'}
+            </p>
+            <p className="text-xs text-gray-600">Canceladas por cliente</p>
+          </div>
+        </div>
           </CardContent>
         </Card>
       )}
