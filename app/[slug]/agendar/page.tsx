@@ -185,16 +185,21 @@ export default function AgendarPage() {
   };
 
   const handleSubmit = async () => {
-    if (!professional || !selectedService) return;
+    setSubmitting(true);
+    setError(null);
+
+    if (!professional || !selectedService) {
+      setSubmitting(false);
+      return;
+    }
 
     const validation = validateForm();
     if (!validation.isValid) {
+      setSubmitting(false);
       setError(validation.errors.join(', '));
       return;
     }
 
-    setSubmitting(true);
-    setError(null);
 
     try {
       const client = await createOrUpdateClient();
@@ -282,8 +287,11 @@ export default function AgendarPage() {
         }
       }
       setError(errorMessage);
-    } finally {
       setSubmitting(false);
+    } finally {
+      if (error) {
+         setSubmitting(false);
+      }
     }
   };
 
