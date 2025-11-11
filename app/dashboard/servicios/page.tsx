@@ -207,7 +207,7 @@ export default function ServiciosPage() {
           </div>
           <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
             <TbPlus className="w-4 h-4 mr-2" />
-            <span>Crear Servicio</span>
+            <span>Añadir Servicios</span>
           </Button>
         </div>
       </div>
