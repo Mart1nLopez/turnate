@@ -13,7 +13,7 @@ const customJestConfig = {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   
-  testMatch: ['**/app/test/**/*.test.(ts|tsx)'],
+  testMatch: ['**/tests/**/*.test.(ts|tsx)'],
 };
 
-export default createJestConfig(customJestConfig as any);
+export default createJestConfig(customJestConfig);
