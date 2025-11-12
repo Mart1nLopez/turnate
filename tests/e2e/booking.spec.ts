@@ -28,7 +28,7 @@ test.describe('Flujo de Reserva de Cita', () => {
     // 4. Seleccionar un horario
     // (Basado en TimeSlotSelector.tsx)
     // Asumimos que '02:00' es un horario disponible
-    await page.locator('#time-slot-selector').getByRole('button', { name: '02:40' }).click();
+    await page.locator('#time-slot-selector').getByRole('button', { name: '03:10' }).click();
     console.log('Hora seleccionada.');
 
     // 5. Clic en "Continuar"
