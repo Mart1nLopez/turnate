@@ -207,8 +207,18 @@ export default function AgendarPage() {
       const endDateTime = new Date(startDateTime.getTime() + selectedService.duration_minutes * 60000);
 
       // Generar tokens únicos
-      const cancellationToken = crypto.randomUUID();
-      const reviewToken = crypto.randomUUID();
+      const generateSafeToken = (): string => {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+          return crypto.randomUUID();
+        }
+        // Fallback simple si crypto.randomUUID no está disponible
+        const randomPart = Math.random().toString(36).substring(2, 15);
+        const timePart = Date.now().toString(36);
+        return `${randomPart}-${timePart}`;
+      };
+
+      const cancellationToken = generateSafeToken();
+      const reviewToken = generateSafeToken();
 
       await createAppointment({
         professionalId: professional.id,
@@ -279,12 +289,18 @@ export default function AgendarPage() {
       console.error('Error creating appointment:', error);
       let errorMessage = 'Error al crear la cita. Por favor intenta nuevamente.';
 
-      if (error instanceof Error) {
-        if (error.message.includes('duplicate')) {
-          errorMessage = 'Ya tienes una cita agendada en esta fecha y hora.';
-        } else if (error.message.includes('conflict')) {
-          errorMessage = 'Este horario ya no está disponible. Por favor selecciona otro horario.';
+      // Verificamos si el error es un objeto y tiene la propiedad 'code'
+      if (error && typeof error === 'object' && 'code' in error) {
+        
+        // El código '23505' es la violación de restricción UNIQUE de Postgres
+        if (error.code === '23505') {
+          errorMessage = 'Este horario ya no está disponible. Por favor, selecciona otro horario.';
         }
+        
+      } 
+      // Fallback por si acaso, aunque '23505' es la forma correcta
+      else if (error instanceof Error && (error.message.includes('conflict') || error.message.includes('duplicate'))) {
+        errorMessage = 'Este horario ya no está disponible. Por favor, selecciona otro horario.';
       }
       setError(errorMessage);
       setSubmitting(false);

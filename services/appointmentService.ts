@@ -294,5 +294,5 @@ export async function createAppointment({
     })
     .select()
     .single();
-  if (error) throw new Error('Error al crear la cita');
+  if (error) throw error;
 }
