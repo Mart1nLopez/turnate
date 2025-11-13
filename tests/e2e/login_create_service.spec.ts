@@ -12,7 +12,7 @@ test.describe('Flujo del Profesional - Gestión de Servicios', () => {
   // El bloque 'beforeEach' se ejecuta antes de CADA prueba en este archivo.
   // Lo usamos para iniciar sesión, ya que es un requisito para
   // todas las pruebas del dashboard.
-  test.beforeEach(async ({ page }) => {
+  test('Login', async ({ page }) => {
     // 1. Ir a la página de login
     await page.goto('/auth/login');
 
