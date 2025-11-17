@@ -179,6 +179,8 @@ export default function RegisterPage() {
           errorMessage = 'El formato del email no es válido';
         } else if (error.message.includes('Password')) {
           errorMessage = 'La contraseña debe tener al menos 6 caracteres';
+        } else if (error.message.includes('Signups not allowed')) {
+          errorMessage = 'Los registros de nuevos usuarios no están permitidos wuaja 😛.';
         }
       }
 
@@ -233,6 +235,9 @@ export default function RegisterPage() {
           throw retryError;
         }
         console.log('✅ Profesional creado con slug:', newSlug);
+      } else if (professionalError.message.includes('Signups not allowed')) {
+        console.error('❌ Signups no permitidos por Supabase');
+        throw new Error('Los registros de nuevos usuarios no están permitidos en este momento.');
       } else {
         throw professionalError;
       }
