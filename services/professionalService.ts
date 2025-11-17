@@ -32,3 +32,18 @@ export async function checkSlugAvailability(slug: string, currentProfessionalId?
   if (data && currentProfessionalId && data.id === currentProfessionalId) return true;
   return false;
 }
+
+export async function checkEmailAvailability(email: string): Promise<boolean> {
+  if (!email || email.trim() === '') return false;
+  const { error } = await supabase.from('professionals').select('id').eq('email', email).single();
+  if (error && error.code === 'PGRST116') {
+    // No se encontró ningún registro, el email está disponible
+    return true;
+  }
+  if (error) {
+    console.error('Error checking email:', error);
+    return false;
+  }
+  // Si se encontró un registro, el email ya existe
+  return false;
+}

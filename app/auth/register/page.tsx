@@ -11,12 +11,14 @@ import { AuthService } from '@/services/authService';
 import { supabase } from '@/lib/supabase';
 import { validateRut, formatRutOnInput } from '@/lib/rut-validator';
 import { generateSlugWithRandomSuffix } from '@/lib/utils';
+import { checkEmailAvailability } from '@/services/professionalService';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rutValidation, setRutValidation] = useState<{ isValid: boolean; error?: string } | null>(null);
+  const [emailValidation, setEmailValidation] = useState<{ isValid: boolean; error?: string } | null>(null);
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -35,6 +37,43 @@ export default function RegisterPage() {
     });
     // Limpiar error cuando el usuario empiece a escribir
     if (error) setError(null);
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const email = e.target.value;
+    setFormData({
+      ...formData,
+      email,
+    });
+    // Limpiar error cuando el usuario empiece a escribir
+    if (error) setError(null);
+    // Limpiar validación previa
+    setEmailValidation(null);
+  };
+
+  const handleEmailBlur = async () => {
+    const email = formData.email;
+    if (!email) return;
+
+    // Validar formato básico
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setEmailValidation({ isValid: false, error: 'El email no tiene un formato válido' });
+      return;
+    }
+
+    // Verificar disponibilidad
+    try {
+      const isAvailable = await checkEmailAvailability(email);
+      if (isAvailable) {
+        setEmailValidation({ isValid: true });
+      } else {
+        setEmailValidation({ isValid: false, error: 'Este email ya está registrado' });
+      }
+    } catch (error) {
+      console.error('Error checking email availability:', error);
+      setEmailValidation({ isValid: false, error: 'Error al verificar el email' });
+    }
   };
 
   const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,6 +117,10 @@ export default function RegisterPage() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
         errors.push('El email no tiene un formato válido');
+      } else if (!emailValidation) {
+        errors.push('Por favor verifica la disponibilidad de tu email');
+      } else if (!emailValidation.isValid) {
+        errors.push(emailValidation.error || 'El email no es válido');
       }
     }
 
@@ -340,10 +383,17 @@ export default function RegisterPage() {
                       placeholder="juan@ejemplo.com"
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10"
                       value={formData.email}
-                      onChange={handleInputChange}
+                      onChange={handleEmailChange}
+                      onBlur={handleEmailBlur}
                       required
                     />
                   </div>
+                  {emailValidation && !emailValidation.isValid && (
+                    <p className="text-sm text-red-600">{emailValidation.error}</p>
+                  )}
+                  {emailValidation && emailValidation.isValid && (
+                    <p className="text-sm text-green-600">Email disponible</p>
+                  )}
                 </div>
 
                 {/* Teléfono */}
@@ -424,7 +474,7 @@ export default function RegisterPage() {
 
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || (emailValidation !== null && !emailValidation.isValid)}
                   className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 w-full">
                   {isLoading ?
                     <>
