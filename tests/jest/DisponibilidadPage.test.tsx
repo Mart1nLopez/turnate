@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor, screen } from '@testing-library/react';
 import DisponibilidadPage from '@/app/dashboard/disponibilidad/page';
 import * as supabaseLib from '@/lib/supabase';
-import { toast } from 'sonner'; // CORRECCIÓN: Importa 'toast' para verificar errores
+import { toast } from 'sonner'; 
 
 // --- Mocks ---
 
@@ -96,7 +96,6 @@ describe('DisponibilidadPage - CRUD', () => {
 
     // 2. Selecciona un día
     await waitFor(() => {
-      // CORRECCIÓN: Busca por el label asociado al select
       const selectDia = screen.getByLabelText(/Día de la semana \*/i);
       fireEvent.change(selectDia, { target: { value: '1' } }); // Lunes
     });
@@ -137,7 +136,6 @@ describe('DisponibilidadPage - CRUD', () => {
     fireEvent.click(editarBtn);
 
     // Cambia las horas de aviso
-    // CORRECCIÓN: El label tiene un '*' al final en el HTML
     const advanceHoursInput = screen.getByLabelText(/anticipación mínima para agendar \(horas\) \*/i);
     fireEvent.change(advanceHoursInput, { target: { value: '4' } });
 
@@ -189,7 +187,6 @@ describe('DisponibilidadPage - CRUD', () => {
     const crearBtn = screen.getByRole('button', { name: /agregar horario/i });
     fireEvent.click(crearBtn);
 
-    // CORRECCIÓN: Verifica que el día ocupado ("Lunes") no esté en el select.
     // El componente `getAvailableDays` filtra los días ya usados.
     await waitFor(() => {
       expect(screen.queryByRole('option', { name: 'Lunes' })).not.toBeInTheDocument();
@@ -211,7 +208,6 @@ describe('DisponibilidadPage - CRUD', () => {
     const selectDia = screen.getByLabelText(/Día de la semana \*/i);
     fireEvent.change(selectDia, { target: { value: '2' } });
 
-    // CORRECCIÓN: Busca los selectores de tiempo por su label (gracias al mock mejorado)
     await waitFor(() => {
       fireEvent.change(screen.getByLabelText('Hora de inicio'), { target: { value: '18:00' } });
       fireEvent.change(screen.getByLabelText('Hora de fin'), { target: { value: '09:00' } });
@@ -224,7 +220,6 @@ describe('DisponibilidadPage - CRUD', () => {
     const submitBtn = screen.getByRole('button', { name: /crear disponibilidad/i });
     fireEvent.click(submitBtn);
 
-    // CORRECCIÓN: La validación ahora muestra un toast de error
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('La hora de inicio debe ser anterior a la hora de fin en todos los bloques');
     });

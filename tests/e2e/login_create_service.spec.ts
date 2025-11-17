@@ -1,32 +1,21 @@
 import { test, expect } from '@playwright/test';
 
-// --- CONFIGURACIÓN DE LA PRUEBA ---
-// ¡IMPORTANTE! Reemplaza esto con las credenciales de un usuario
-// profesional de prueba que ya exista en tu base de datos.
 const TEST_USER_EMAIL = 'testeo@mail.com';
 const TEST_USER_PASSWORD = 'Test2025';
-// ---------------------------------
 
 test.describe('Flujo del Profesional - Gestión de Servicios', () => {
 
-  // El bloque 'beforeEach' se ejecuta antes de CADA prueba en este archivo.
-  // Lo usamos para iniciar sesión, ya que es un requisito para
-  // todas las pruebas del dashboard.
-  test('Login', async ({ page }) => {
-    // 1. Ir a la página de login
+  test.beforeEach(async ({ page }) => {
     await page.goto('/auth/login');
-
-    // 2. Rellenar credenciales
-    // (Basado en app/auth/login/page.tsx)
     await page.getByPlaceholder('juan@ejemplo.com').fill(TEST_USER_EMAIL);
     await page.getByPlaceholder('••••••••').fill(TEST_USER_PASSWORD);
-
-    // 3. Hacer clic en Iniciar Sesión
     await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
-
-    // 4. Esperar a que la página cargue y estemos en el Dashboard
-    // Verificamos que la URL sea /dashboard y que el título H1 "Dashboard" esté visible.
+    // Esperar a que la redirección al dashboard ocurra
     await expect(page).toHaveURL('/dashboard');
+  });
+
+  test('Login verificación', async ({ page }) => {
+    // La navegación ya se hizo en el beforeEach
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   });
 
@@ -34,7 +23,6 @@ test.describe('Flujo del Profesional - Gestión de Servicios', () => {
   test('Un profesional puede crear un nuevo servicio', async ({ page }) => {
     
     // 1. Navegar a la página de "Servicios"
-    // (Basado en app/dashboard/layout.tsx)
     await page.getByRole('link', { name: 'Servicios' }).click();
     
     // Verificamos que llegamos a la página correcta
@@ -42,7 +30,6 @@ test.describe('Flujo del Profesional - Gestión de Servicios', () => {
     await expect(page.getByRole('heading', { name: 'Servicios' })).toBeVisible();
 
     // 2. Abrir el formulario para crear un servicio
-    // (Basado en app/dashboard/servicios/page.tsx)
     await page.getByRole('button', { name: 'Añadir Servicios' }).click();
 
     // Esperamos que el formulario aparezca
@@ -55,7 +42,6 @@ test.describe('Flujo del Profesional - Gestión de Servicios', () => {
     const servicePrice = '15000';
     const serviceDuration = '45';
 
-    // (Basado en app/dashboard/servicios/page.tsx y componentes de UI)
     await page.getByPlaceholder('Ej: Corte de cabello').fill(serviceName);
     await page.getByPlaceholder('15000').fill(servicePrice);
     await page.getByPlaceholder('30').fill(serviceDuration);
@@ -82,13 +68,10 @@ test.describe('Flujo del Profesional - Gestión de Servicios', () => {
     // Verificamos que la tarjeta exista
     await expect(newServiceCard).toBeVisible();
 
-    // D. (Opcional pero recomendado) Verificamos que los datos dentro
+    // D. Verificamos que los datos dentro
     // de la tarjeta son correctos.
     await expect(newServiceCard.getByText('45 min')).toBeVisible();
     await expect(newServiceCard.getByText('$15.000')).toBeVisible(); // Tu app formatea '15000' como '$15.000'
   });
 
-  // TODO: Puedes agregar más pruebas aquí, como:
-  // test('Un profesional puede editar un servicio existente', async ({ page }) => { ... });
-  // test('Un profesional puede eliminar un servicio', async ({ page }) => { ... });
 });

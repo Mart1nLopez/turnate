@@ -3,7 +3,7 @@ import { render, fireEvent, waitFor, screen } from '@testing-library/react';
 import ServiciosPage from '@/app/dashboard/servicios/page';
 import * as supabaseLib from '@/lib/supabase';
 import * as storageLib from '@/lib/storage';
-import { toast } from 'sonner'; // CORRECCIÓN: Importa 'toast' para verificar los mensajes de error
+import { toast } from 'sonner'; 
 import { error } from 'console';
 
 // --- Mocks ---
@@ -24,7 +24,6 @@ jest.mock('@/components/ui/confirm-dialog', () => ({
   }),
 }));
 
-// CORRECCIÓN: Mockeamos el componente correcto 'ImageUploadWithCrop' que es el que realmente se usa.
 jest.mock('@/components/ui/image-upload-with-crop', () => ({
   ImageUploadWithCrop: ({ onFilesChange, existingImages }: { onFilesChange: (files: File[], existingImages: string[]) => void; existingImages: string[] }) => (
     <div data-testid="image-upload-with-crop">
@@ -84,7 +83,6 @@ beforeEach(() => {
 describe('ServiciosPage - CRUD', () => {
   
   it('puede crear un servicio (Create)', async () => {
-    // CORRECCIÓN: Mockea una lista vacía para la carga INICIAL
     (supabaseLib.supabase.from as jest.Mock).mockReturnValueOnce(createSupabaseFromMock({ list: [] }));
 
     // Mockea la llamada de INSERCIÓN que ocurrirá después
@@ -126,7 +124,6 @@ describe('ServiciosPage - CRUD', () => {
     expect(screen.getByText('Corte')).toBeInTheDocument();
     expect(screen.getByText('Peinado')).toBeInTheDocument();
     
-    // CORRECCIÓN: Verifica el texto formateado que realmente ve el usuario
     expect(screen.getByText('$10.000')).toBeInTheDocument();
     expect(screen.getByText('$15.000')).toBeInTheDocument();
   });
@@ -208,7 +205,6 @@ describe('ServiciosPage - CRUD', () => {
     const submitBtn = screen.getByRole('button', { name: /añadir servicios/i });
     fireEvent.click(submitBtn);
 
-    // CORRECCIÓN: Verifica el toast de error de validación del frontend
     await waitFor(() => {
       expect(error);
     });
