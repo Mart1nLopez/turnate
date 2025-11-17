@@ -11,7 +11,6 @@ export default function Footer() {
               <Image src="/logo.svg" alt="Turnate Logo" width={32} height={32} className="w-8 h-8" />
               <span className="text-2xl font-bold text-foreground">Turnate</span>
             </Link>
-            <span className="text-2xl font-bold text-foreground">Turnate</span>
           </div>
           <div className="flex gap-6">
             <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary transition">

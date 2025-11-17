@@ -234,19 +234,19 @@ export default function LandingPage() {
 
             <div className="grid md:grid-cols-3 gap-8">
               <TestimonialCard
-                name="Marco Toranzo"
+                name="Marco Corvalán"
                 business="Tommy's Barber Shop, Talca"
                 testimonial='"Desde que uso Turnate he reducido las cancelaciones en un 70%. Mis clientes valoran poder reservar a cualquier hora y yo puedo organizarme mejor."'
               />
 
               <TestimonialCard
-                name="Miguel Álvarez"
+                name="Miguel López"
                 business="Torre's BarberShop, Talca"
                 testimonial='"La página personalizada me permitió tener presencia online sin gastar en desarrollo web. Mis clientes pueden ver mis trabajos y servicios fácilmente."'
               />
 
               <TestimonialCard
-                name="Santiago Aular"
+                name="Santiago Acevedo"
                 business="Klaus Barber, Santiago"
                 testimonial='"Las estadísticas me ayudan a entender qué servicios son más populares y en qué momentos tengo más demanda. He podido optimizar mis horarios gracias a Turnate."'
               />
