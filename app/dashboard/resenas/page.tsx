@@ -4,9 +4,20 @@ import { TbStar, TbUser, TbCalendar, TbStarFilled, TbMessage } from 'react-icons
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { useProfessionalReviews } from '@/hooks/useProfessionalReviews';
+import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
 
 export default function ResenasPage() {
-  const { reviews, stats, loading, error } = useProfessionalReviews();
+  const { reviews, stats, loading, error, hideReviews, toggleHideReviews } = useProfessionalReviews();
+
+  const handleToggleHideReviews = async (checked: boolean) => {
+    try {
+      await toggleHideReviews(checked);
+      toast.success(checked ? 'Reseñas ocultadas en tu página pública' : 'Reseñas visibles en tu página pública');
+    } catch {
+      toast.error('Error al actualizar la configuración');
+    }
+  };
 
   const renderStars = (rating: number, size: 'sm' | 'md' | 'lg' = 'md') => {
     const sizeClasses = {
@@ -65,6 +76,25 @@ export default function ResenasPage() {
         <h1 className="text-2xl font-bold text-gray-900">Reseñas y Calificaciones</h1>
         <p className="text-gray-600">Opiniones de tus clientes</p>
       </div>
+
+      {/* Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Configuración de reseñas</CardTitle>
+          <CardDescription>Controla la visibilidad de tus reseñas en tu página pública</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center space-x-3">
+            <Switch checked={hideReviews} onCheckedChange={handleToggleHideReviews} disabled={loading} />
+            <div>
+              <label className="text-sm font-medium text-gray-900">Ocultar reseñas en página pública</label>
+              <p className="text-sm text-gray-600">
+                Si activas esta opción, tus reseñas no se mostrarán en tu perfil público
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

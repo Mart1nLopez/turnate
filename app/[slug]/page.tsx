@@ -82,7 +82,7 @@ export default function ProfessionalPublicPage() {
       <Hero professional={professional} />
       <Services services={services} slug={slug} />
       <Contacto professional={professional} />
-      <Reviews reviews={reviews} averageRating={averageRating} />
+      <Reviews reviews={reviews} averageRating={averageRating} hideReviews={professional.hide_reviews} />
       <Footer />
     </div>
   );

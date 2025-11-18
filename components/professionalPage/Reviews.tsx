@@ -19,9 +19,10 @@ interface Review {
 interface ResenasProps {
   reviews: Review[];
   averageRating: number;
+  hideReviews?: boolean;
 }
 
-export default function Reviews({ reviews, averageRating }: ResenasProps) {
+export default function Reviews({ reviews, averageRating, hideReviews = false }: ResenasProps) {
   const renderStars = (rating: number) => {
     return (
       <div className="flex items-center">
@@ -44,6 +45,8 @@ export default function Reviews({ reviews, averageRating }: ResenasProps) {
     });
   };
 
+  if (hideReviews) return null;
+
   return (
     <section id="reseñas" className="py-16 bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4">
@@ -62,7 +65,7 @@ export default function Reviews({ reviews, averageRating }: ResenasProps) {
               <p className="text-muted-foreground">Sé el primero en dejar una reseña después de tu cita</p>
             </CardContent>
           </Card>
-        : <>
+        : <div>
             {/* Rating Summary */}
             <Card className="max-w-md mx-auto mb-12">
               <CardHeader>
@@ -185,7 +188,7 @@ export default function Reviews({ reviews, averageRating }: ResenasProps) {
                 ))}
               </div>
             }
-          </>
+          </div>
         }
       </div>
     </section>

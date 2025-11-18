@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { getProfessionalReviews, getProfessionalReviewStats } from '@/services/reviewService';
+import { getProfessionalProfile, updateProfessionalProfile } from '@/services/professionalService';
 import { Review } from '@/types';
 
 interface ReviewWithDetails extends Review {
@@ -26,15 +27,17 @@ export function useProfessionalReviews() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hideReviews, setHideReviews] = useState(false);
 
   const loadReviews = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const reviewsData = await getProfessionalReviews();
+      const [reviewsData, profile] = await Promise.all([getProfessionalReviews(), getProfessionalProfile()]);
       setReviews(reviewsData);
       const statsData = await getProfessionalReviewStats(reviewsData);
       setStats(statsData);
+      setHideReviews(profile.hide_reviews || false);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message || 'Error al cargar reseñas');
@@ -46,9 +49,20 @@ export function useProfessionalReviews() {
     }
   }, []);
 
+  const toggleHideReviews = useCallback(async (checked: boolean) => {
+    try {
+      const profile = await getProfessionalProfile();
+      await updateProfessionalProfile(profile.id, { hide_reviews: checked });
+      setHideReviews(checked);
+    } catch (err) {
+      console.error('Error updating hide_reviews:', err);
+      throw err; // O manejar el error
+    }
+  }, []);
+
   useEffect(() => {
     loadReviews();
   }, [loadReviews]);
 
-  return { reviews, stats, loading, error, reload: loadReviews };
+  return { reviews, stats, loading, error, reload: loadReviews, hideReviews, toggleHideReviews };
 }

@@ -22,7 +22,8 @@ export interface Professional {
   location?: string;
   map_embed_url?: string;
   created_at: string;
-  google_refresh_token?: string | null
+  google_refresh_token?: string | null;
+  hide_reviews?: boolean;
 }
 
 export interface Service {
