@@ -11,6 +11,7 @@ import Link from 'next/link';
 import {
   cancelAppointmentByClientAndSync,
   getAppointmentByCancellationToken,
+  getAvailabilityByProfessionalId,
   AppointmentWithDetails,
 } from '@/services/appointmentService';
 
@@ -25,111 +26,84 @@ export default function CancelAppointmentPage() {
   const [error, setError] = useState<string | null>(null);
 
   const loadAppointment = useCallback(async () => {
-    console.log('🔍 [LOAD] Iniciando carga de cita con token:', token);
     try {
       if (!token) {
-        console.log('❌ [LOAD] Token inválido o faltante');
         setError('Token de cancelación inválido');
         setLoading(false);
         return;
       }
 
-      console.log('📡 [LOAD] Consultando cita con token:', token);
       // Buscar la cita usando el token
       const appointmentData = await getAppointmentByCancellationToken(token);
 
-      console.log('📊 [LOAD] Respuesta:', appointmentData);
 
       if (!appointmentData) {
-        console.log('❌ [LOAD] Cita no encontrada');
         setError('No se encontró la cita o ya fue cancelada');
         setLoading(false);
         return;
       }
 
-      console.log('✅ [LOAD] Cita encontrada exitosamente:', {
-        id: appointmentData.id,
-        status: appointmentData.status,
-        client: appointmentData.client?.name,
-        professional: appointmentData.professional?.name,
-        service: appointmentData.service?.name,
-        start_time: appointmentData.start_time,
-      });
-
       // Verificar que la cita no haya pasado
       const appointmentDate = new Date(appointmentData.start_time);
       const now = new Date();
 
-      console.log('⏰ [LOAD] Verificando fechas:', {
-        appointmentDate: appointmentDate.toISOString(),
-        now: now.toISOString(),
-        isPast: appointmentDate < now,
-      });
 
       if (appointmentDate < now) {
-        console.log('❌ [LOAD] Cita ya pasó');
         setError('No puedes cancelar una cita que ya pasó');
         setLoading(false);
         return;
       }
 
-      // Verificar tiempo mínimo para cancelar (ejemplo: 24 horas antes)
+      // Verificar tiempo mínimo para cancelar según la disponibilidad del día
       const hoursUntilAppointment = (appointmentDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-      const minCancelHours = 24;
+      const dayOfWeek = appointmentDate.getDay(); // 0 = domingo, 1 = lunes, etc.
 
-      console.log('⏳ [LOAD] Verificando tiempo de cancelación:', {
-        hoursUntilAppointment: hoursUntilAppointment.toFixed(2),
-        minCancelHours,
-        canCancel: hoursUntilAppointment >= minCancelHours,
-      });
+      // Obtener la disponibilidad del profesional para este día
+      const availability = await getAvailabilityByProfessionalId(appointmentData.professional_id);
+      const dayAvailability = availability.find((av) => av.day_of_week === dayOfWeek);
+      const minCancelHours = dayAvailability?.cancel_hours || 24; // Valor por defecto si no hay disponibilidad específica
+
 
       if (hoursUntilAppointment < minCancelHours) {
-        console.log('❌ [LOAD] Muy poco tiempo para cancelar');
-        setError(`No puedes cancelar con menos de ${minCancelHours} horas de anticipación`);
+        setError(`No puedes cancelar este servicio agendado con menos de ${minCancelHours} horas de anticipación`);
         setLoading(false);
         return;
       }
 
-      console.log('✅ [LOAD] Todas las validaciones pasaron, estableciendo cita');
       setAppointment(appointmentData);
     } catch (error) {
-      console.error('💥 [LOAD] Error general al cargar cita:', error);
-      console.log('📊 [LOAD] Detalles del error:', {
-        message: error instanceof Error ? error.message : 'Error desconocido',
-        stack: error instanceof Error ? error.stack : undefined,
-      });
+      console.error('Error general al cargar cita:', error);
       setError('Error al cargar la información de la cita');
     } finally {
-      console.log('🏁 [LOAD] Finalizando proceso de carga');
+      console.log('Finalizando proceso de carga');
       setLoading(false);
     }
   }, [token]);
 
   useEffect(() => {
-    console.log('🔄 [EFFECT] Componente montado, iniciando carga de cita');
     loadAppointment();
   }, [loadAppointment]);
 
   const handleCancel = async () => {
     if (!appointment) {
-      console.log('❌ [CANCEL] No hay cita para cancelar');
+      console.log('No hay cita para cancelar');
       return;
     }
 
-    console.log('🚀 [CANCEL] Iniciando cancelación por cliente para cita:', appointment.id);
+    console.log('Iniciando cancelación por cliente para cita:', appointment.id);
 
     setCancelling(true);
     setError(null);
 
     try {
       // Cancelar la cita y sincronizar con Google Calendar
-      console.log('📝 [CANCEL] Cancelando cita y sincronizando con Google Calendar...');
+      console.log('Cancelando cita y sincronizando con Google Calendar...');
       await cancelAppointmentByClientAndSync(appointment.id);
 
-      console.log('✅ [CANCEL] Cita cancelada exitosamente');
+      console.log('Cita cancelada exitosamente');
 
       // 3. Enviar notificación al profesional
-      console.log('📧 [CANCEL] Preparando notificación por email...');
+      console.log('Preparando notificación por email...');
       try {
         const startDateTime = new Date(appointment.start_time);
         const dateOnly = startDateTime.toISOString().split('T')[0];
@@ -162,17 +136,17 @@ export default function CancelAppointmentPage() {
           body: formBody,
         });
       } catch (emailError) {
-        console.error('❌ [CANCEL] Error enviando notificación al profesional:', emailError);
+        console.error('Error enviando notificación al profesional:', emailError);
       }
 
-      console.log('✅ [CANCEL] Proceso completado. Estableciendo estado "cancelled".');
+      console.log('Proceso completado. Estableciendo estado "cancelled".');
       setCancelled(true);
     } catch (error) {
       // Catch principal para el paso 1
-      console.error('💥 [CANCEL] Error general al cancelar la cita:', error);
+      console.error('Error general al cancelar la cita:', error);
       setError('Error al cancelar la cita. Por favor intenta nuevamente.');
     } finally {
-      console.log('🏁 [CANCEL] Finalizando proceso de cancelación');
+      console.log('Finalizando proceso de cancelación');
       setCancelling(false);
     }
   };
