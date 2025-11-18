@@ -35,7 +35,7 @@ export async function checkSlugAvailability(slug: string, currentProfessionalId?
 
 export async function checkEmailAvailability(email: string): Promise<boolean> {
   if (!email || email.trim() === '') return false;
-  const { error } = await supabase.from('professionals').select('id').eq('email', email).single();
+  const { data, error } = await supabase.from('professionals').select('id').eq('email', email).single();
   if (error && error.code === 'PGRST116') {
     // No se encontró ningún registro, el email está disponible
     return true;
@@ -45,5 +45,20 @@ export async function checkEmailAvailability(email: string): Promise<boolean> {
     return false;
   }
   // Si se encontró un registro, el email ya existe
+  return false;
+}
+
+export async function checkRutAvailability(rut: string): Promise<boolean> {
+  if (!rut || rut.trim() === '') return false;
+  const { data, error } = await supabase.from('professionals').select('id').eq('rut', rut).single();
+  if (error && error.code === 'PGRST116') {
+    // No se encontró ningún registro, el RUT está disponible
+    return true;
+  }
+  if (error) {
+    console.error('Error checking RUT:', error);
+    return false;
+  }
+  // Si se encontró un registro, el RUT ya existe
   return false;
 }

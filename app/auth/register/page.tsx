@@ -11,13 +11,14 @@ import { AuthService } from '@/services/authService';
 import { supabase } from '@/lib/supabase';
 import { validateRut, formatRutOnInput } from '@/lib/rut-validator';
 import { generateSlugWithRandomSuffix } from '@/lib/utils';
-import { checkEmailAvailability } from '@/services/professionalService';
+import { checkEmailAvailability, checkRutAvailability } from '@/services/professionalService';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rutValidation, setRutValidation] = useState<{ isValid: boolean; error?: string } | null>(null);
+  const [rutAvailability, setRutAvailability] = useState<{ isValid: boolean; error?: string } | null>(null);
   const [emailValidation, setEmailValidation] = useState<{ isValid: boolean; error?: string } | null>(null);
   const router = useRouter();
 
@@ -51,6 +52,53 @@ export default function RegisterPage() {
     setEmailValidation(null);
   };
 
+  const handleRutBlur = async () => {
+    const rut = formData.rut;
+    if (!rut || rut.length < 8) return;
+
+    // Primero validar formato
+    const validation = validateRut(rut);
+    if (!validation.isValid) {
+      setRutValidation(validation);
+      return;
+    }
+
+    // Verificar disponibilidad
+    try {
+      const isAvailable = await checkRutAvailability(rut);
+      if (isAvailable) {
+        setRutAvailability({ isValid: true });
+      } else {
+        setRutAvailability({ isValid: false, error: 'Este RUT ya está registrado' });
+      }
+    } catch (error) {
+      console.error('Error checking RUT availability:', error);
+      setRutAvailability({ isValid: false, error: 'Error al verificar el RUT' });
+    }
+  };
+
+  const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedRut = formatRutOnInput(e.target.value);
+    setFormData({
+      ...formData,
+      rut: formattedRut,
+    });
+
+    // Validar RUT en tiempo real si tiene al menos 8 caracteres
+    if (formattedRut.length >= 8) {
+      const validation = validateRut(formattedRut);
+      setRutValidation(validation);
+    } else {
+      setRutValidation(null);
+    }
+
+    // Limpiar disponibilidad previa
+    setRutAvailability(null);
+
+    // Limpiar error cuando el usuario empiece a escribir
+    if (error) setError(null);
+  };
+
   const handleEmailBlur = async () => {
     const email = formData.email;
     if (!email) return;
@@ -76,25 +124,6 @@ export default function RegisterPage() {
     }
   };
 
-  const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedRut = formatRutOnInput(e.target.value);
-    setFormData({
-      ...formData,
-      rut: formattedRut,
-    });
-
-    // Validar RUT en tiempo real si tiene al menos 8 caracteres
-    if (formattedRut.length >= 8) {
-      const validation = validateRut(formattedRut);
-      setRutValidation(validation);
-    } else {
-      setRutValidation(null);
-    }
-
-    // Limpiar error cuando el usuario empiece a escribir
-    if (error) setError(null);
-  };
-
   const validateForm = (): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
@@ -108,6 +137,10 @@ export default function RegisterPage() {
       const rutValidation = validateRut(formData.rut);
       if (!rutValidation.isValid) {
         errors.push(rutValidation.error || 'RUT inválido');
+      } else if (!rutAvailability) {
+        errors.push('Por favor verifica la disponibilidad de tu RUT');
+      } else if (!rutAvailability.isValid) {
+        errors.push(rutAvailability.error || 'El RUT no es válido');
       }
     }
 
@@ -349,6 +382,7 @@ export default function RegisterPage() {
                       }`}
                       value={formData.rut}
                       onChange={handleRutChange}
+                      onBlur={handleRutBlur}
                       maxLength={12}
                       required
                     />
@@ -364,6 +398,9 @@ export default function RegisterPage() {
                   {/* Mensaje de error del RUT */}
                   {rutValidation && !rutValidation.isValid && (
                     <p className="text-sm text-red-500">{rutValidation.error}</p>
+                  )}
+                  {rutAvailability && !rutAvailability.isValid && (
+                    <p className="text-sm text-red-600">{rutAvailability.error}</p>
                   )}
                 </div>
 
@@ -390,9 +427,6 @@ export default function RegisterPage() {
                   </div>
                   {emailValidation && !emailValidation.isValid && (
                     <p className="text-sm text-red-600">{emailValidation.error}</p>
-                  )}
-                  {emailValidation && emailValidation.isValid && (
-                    <p className="text-sm text-green-600">Email disponible</p>
                   )}
                 </div>
 
@@ -474,7 +508,11 @@ export default function RegisterPage() {
 
                 <button
                   type="submit"
-                  disabled={isLoading || (emailValidation !== null && !emailValidation.isValid)}
+                  disabled={
+                    isLoading ||
+                    (emailValidation !== null && !emailValidation.isValid) ||
+                    (rutAvailability !== null && !rutAvailability.isValid)
+                  }
                   className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 w-full">
                   {isLoading ?
                     <>
