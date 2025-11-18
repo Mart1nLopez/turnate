@@ -227,7 +227,10 @@ export function useProfile(): UseProfileReturn {
 
   // Para desconectar Google
   const handleGoogleDisconnect = async () => {
-    if (!professional) return;
+    if (!professional) {
+      toast.error('No se pudo cargar el perfil. Intenta recargar la página.');
+      return;
+    }
 
     // Usamos el hook useConfirmDialog que ya tienes
     // (Necesitarías pasarlo o implementarlo de otra forma)
@@ -249,8 +252,9 @@ export function useProfile(): UseProfileReturn {
       );
       setIsSyncedWithGoogle(false);
       toast.success('Google Calendar desconectado exitosamente.');
-    } catch (error: any) {
-      toast.error('Error al desconectar: ' + error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      toast.error('Error al desconectar: ' + message);
     } finally {
       setSubmitting(false);
     }
