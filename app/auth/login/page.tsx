@@ -35,7 +35,23 @@ export default function LoginPage() {
       if (error) throw error;
       router.push('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ha ocurrido un error al iniciar sesión');
+      let errorMessage = 'Ha ocurrido un error al iniciar sesión';
+      if (err instanceof Error) {
+        switch (err.message) {
+          case 'Invalid login credentials':
+            errorMessage = 'Credenciales de inicio de sesión inválidas';
+            break;
+          case 'Email not confirmed':
+            errorMessage = 'Correo electrónico no confirmado';
+            break;
+          case 'Too many requests':
+            errorMessage = 'Demasiadas solicitudes. Inténtalo de nuevo más tarde';
+            break;
+          default:
+            errorMessage = err.message;
+        }
+      }
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
