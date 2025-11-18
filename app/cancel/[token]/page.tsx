@@ -135,24 +135,14 @@ export default function CancelAppointmentPage() {
       return;
     }
 
-    console.log('🚀 [CANCEL] Iniciando proceso de cancelación para cita:', {
-      id: appointment.id,
-      token: token,
-      status: appointment.status,
-    });
+    console.log('🚀 [CANCEL] Iniciando cancelación por cliente para cita:', appointment.id);
 
     setCancelling(true);
     setError(null);
 
     try {
-      // Actualizar el estado de la cita
+      // 1. Actualizar el estado de la cita en la base de datos
       console.log('📝 [CANCEL] Actualizando estado de la cita en Supabase...');
-      console.log('📊 [CANCEL] Datos a actualizar:', {
-        appointmentId: appointment.id,
-        newStatus: 'cancelled_by_client',
-        invalidateToken: true,
-      });
-
       const { data: updateData, error: updateError } = await supabase
         .from('appointments')
         .update({
@@ -160,32 +150,40 @@ export default function CancelAppointmentPage() {
           cancellation_token: null, // Invalidar el token
         })
         .eq('id', appointment.id)
-        .select(); // Agregamos select para ver qué se actualizó
+        .select()
+        .single();
 
-      console.log('📊 [CANCEL] Respuesta de actualización Supabase:', {
-        data: updateData,
-        error: updateError,
-      });
-
-      if (updateError) {
+      if (updateError || !updateData) {
         console.error('❌ [CANCEL] Error actualizando la cita:', updateError);
-        console.log('📊 [CANCEL] Detalles del error de actualización:', {
-          code: updateError.code,
-          message: updateError.message,
-          details: updateError.details,
-          hint: updateError.hint,
-        });
-        throw updateError;
+        throw updateError || new Error('No se pudo actualizar la cita');
       }
 
       console.log('✅ [CANCEL] Cita actualizada exitosamente en Supabase');
 
-      // Enviar notificación al profesional
+      // 2. Sincronizar (borrar) el evento de Google Calendar
+      console.log('🔄 [SYNC] Sincronizando borrado con Google Calendar...');
+      try {
+        const { error: syncError } = await supabase.functions.invoke('sync-google-calendar', {
+          body: {
+            appointmentId: appointment.id,
+            action: 'delete',
+          }
+        });
+
+        if (syncError) throw syncError;
+
+        console.log('✅ [SYNC] Sincronización de borrado con Google Calendar completada.');
+
+      } catch (syncError) {
+        // Si falla la sincronización, no detener el flujo. Solo registrar.
+        console.error('⚠️ [SYNC] Cita cancelada, pero falló la sincronización con Google Calendar:', syncError);
+      }
+
+      // 3. Enviar notificación al profesional
       console.log('📧 [CANCEL] Preparando notificación por email...');
       try {
         const startDateTime = new Date(appointment.start_time);
-        const dateOnly = startDateTime.toISOString().split('T')[0]; // YYYY-MM-DD format
-
+        const dateOnly = startDateTime.toISOString().split('T')[0];
         const formattedTime = startDateTime.toLocaleTimeString('es-CL', {
           hour: '2-digit',
           minute: '2-digit',
@@ -196,22 +194,18 @@ export default function CancelAppointmentPage() {
           clientName: appointment.client?.name || '',
           clientEmail: appointment.client?.email || '',
           service: appointment.service?.name || '',
-          date: dateOnly, // Enviar en formato YYYY-MM-DD
+          date: dateOnly,
           time: formattedTime,
           professionalName: appointment.professional?.name || '',
           professionalEmail: appointment.professional?.email || '',
         };
 
-        console.log('📧 [CANCEL] Datos preparados para Google Apps Script:', dataToSend);
-
         const formBody = Object.entries(dataToSend)
           .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
           .join('&');
 
-        console.log('📧 [CANCEL] URL del script:', process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT);
-        console.log('📧 [CANCEL] Body codificado:', formBody);
-
-        const response = await fetch(process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!, {
+        // Enviar sin esperar (fire-and-forget)
+        fetch(process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -219,39 +213,15 @@ export default function CancelAppointmentPage() {
           body: formBody,
         });
 
-        console.log('📧 [CANCEL] Respuesta del Google Apps Script:', {
-          status: response.status,
-          statusText: response.statusText,
-          ok: response.ok,
-        });
-
-        if (response.ok) {
-          const responseText = await response.text();
-          console.log('📧 [CANCEL] Contenido de respuesta:', responseText);
-        }
       } catch (emailError) {
         console.error('❌ [CANCEL] Error enviando notificación al profesional:', emailError);
-        console.log('📊 [CANCEL] Detalles del error de email:', {
-          message: emailError instanceof Error ? emailError.message : 'Error desconocido',
-          stack: emailError instanceof Error ? emailError.stack : undefined,
-        });
-        // No fallar el proceso si el email falla
       }
 
-      console.log('✅ [CANCEL] Estableciendo estado como cancelado');
+      console.log('✅ [CANCEL] Proceso completado. Estableciendo estado "cancelled".');
       setCancelled(true);
-      console.log('🎉 [CANCEL] Proceso completado exitosamente, cita cancelada y notificación enviada.');
-    } catch (error) {
+
+    } catch (error) { // Catch principal para el paso 1
       console.error('💥 [CANCEL] Error general al cancelar la cita:', error);
-      console.log('📊 [CANCEL] Detalles del error general:', {
-        message: error instanceof Error ? error.message : 'Error desconocido',
-        stack: error instanceof Error ? error.stack : undefined,
-        code: error && typeof error === 'object' && 'code' in error ? (error as { code?: string }).code : undefined,
-        details:
-          error && typeof error === 'object' && 'details' in error ?
-            (error as { details?: string }).details
-          : undefined,
-      });
       setError('Error al cancelar la cita. Por favor intenta nuevamente.');
     } finally {
       console.log('🏁 [CANCEL] Finalizando proceso de cancelación');

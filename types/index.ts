@@ -22,6 +22,7 @@ export interface Professional {
   location?: string;
   map_embed_url?: string;
   created_at: string;
+  google_refresh_token?: string | null
 }
 
 export interface Service {
@@ -58,6 +59,7 @@ export interface Appointment {
   created_at: string;
   service?: Service;
   client?: Client;
+  google_calendar_event_id?: string | null;
 }
 
 export interface TimeBlock {

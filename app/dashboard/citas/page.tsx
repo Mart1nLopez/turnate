@@ -1,5 +1,6 @@
 'use client';
 
+import { supabase } from '@/lib/supabase';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -123,6 +124,21 @@ export default function CitasPage() {
         return;
       }
       await cancelAppointmentByProfessional(appointmentId);
+
+      try {
+        const { error: syncError } = await supabase.functions.invoke('sync-google-calendar', {
+          body: { // <-- Envolver el payload en 'body'
+            appointmentId: appointmentId,
+            action: 'delete',
+          }
+        });
+
+        if (syncError) throw syncError;
+        console.log('Cita borrada de Google Calendar');
+      } catch (syncError) {
+        console.warn('Cita cancelada, pero falló la sincro con Google:', syncError);
+      }
+      
       try {
         const startDateTime = new Date(appointmentToCancel.start_time);
         const formattedDate = startDateTime.toISOString().split('T')[0];

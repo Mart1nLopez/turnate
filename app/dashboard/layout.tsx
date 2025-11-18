@@ -19,8 +19,9 @@ import {
   TbCalendarOff,
 } from 'react-icons/tb';
 import { AuthService } from '@/services/authService';
-import { getCurrentProfessional } from '@/lib/supabase';
+import { getCurrentProfessional, supabase } from '@/lib/supabase';
 import { Professional } from '@/types';
+import { toast } from 'sonner';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -72,6 +73,45 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        
+        // Si el evento es SIGNED_IN y tenemos un provider_refresh_token
+        if (event === 'SIGNED_IN' && session?.provider_refresh_token) {
+          console.log('Detectado provider_refresh_token, guardando...');
+          toast.info('Guardando conexión con Google Calendar...');
+          try {
+            // Llama a la Edge Function para guardar el token
+            const { error } = await supabase.functions.invoke(
+              'save-refresh-token',
+              {
+                body: JSON.stringify({ refresh_token: session.provider_refresh_token }),
+              }
+            );
+            if (error) throw error;
+
+            toast.success('¡Google Calendar conectado exitosamente!');
+            
+            // Limpia la URL para que no queden parámetros
+            router.replace('/dashboard/perfil', undefined);
+            
+            // Forzar recarga de datos del profesional en el layout
+            checkAuth(); 
+            
+          } catch (e: any) {
+            toast.error('Error al guardar la conexión: ' + e.message);
+          }
+        }
+      }
+    );
+
+    return () => {
+      // Limpia el listener
+      authListener.subscription.unsubscribe();
+    };
+  }, [router, checkAuth]); 
 
   const handleSignOut = () => {
     router.push('/auth/logout');

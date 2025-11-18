@@ -1,5 +1,6 @@
 'use client';
 
+import { supabase } from '@/lib/supabase';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { TbArrowLeft } from 'react-icons/tb';
@@ -220,7 +221,7 @@ export default function AgendarPage() {
       const cancellationToken = generateSafeToken();
       const reviewToken = generateSafeToken();
 
-      await createAppointment({
+      const newAppointment = await createAppointment({
         professionalId: professional.id,
         serviceId: selectedService.id,
         clientId: client.id,
@@ -229,6 +230,20 @@ export default function AgendarPage() {
         cancellationToken,
         reviewToken,
       });
+
+      try {
+        const { error: syncError } = await supabase.functions.invoke('sync-google-calendar', {
+          body: { 
+            appointmentId: newAppointment.id,
+            action: 'create',
+          }
+        });
+        if (syncError) throw syncError; 
+        console.log('Cita sincronizada con Google Calendar');
+      } catch (syncError) {
+        console.warn('Cita creada, pero falló la sincro con Google:', syncError);
+        // toast.warning('Cita agendada, pero no se pudo sincronizar con tu Google Calendar.');
+      }
 
       // Enviar email de confirmación con el token de cancelación
       try {

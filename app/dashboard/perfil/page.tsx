@@ -1,6 +1,6 @@
 'use client';
 
-import { TbUser, TbMapPin, TbDeviceFloppy, TbLink, TbQrcode, TbQrcodeOff, TbCopy } from 'react-icons/tb';
+import { TbUser, TbMapPin, TbDeviceFloppy, TbLink, TbQrcode, TbQrcodeOff, TbCopy, TbBrandGoogle, TbCheck, TbX } from 'react-icons/tb';
 import { FaInstagram, FaWhatsapp, FaSquareFacebook, FaTiktok, FaXTwitter, FaYoutube } from 'react-icons/fa6';
 import PhoneInput from '@/components/ui/phone-input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,6 +38,12 @@ export default function PerfilPage() {
     showQR,
     setShowQR,
     qrRef,
+
+    // Google
+    isSyncedWithGoogle,
+    handleGoogleSync,
+    handleGoogleDisconnect,
+
     // Cropper
     showCropper,
     setShowCropper,
@@ -68,6 +74,71 @@ export default function PerfilPage() {
         <h1 className="text-2xl font-bold text-gray-900">Mi Perfil</h1>
         <p className="text-gray-600">Configura tu información pública</p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <TbBrandGoogle className="w-5 h-5 mr-2 text-blue-600" />
+            Integración con Google Calendar
+          </CardTitle>
+          <CardDescription>
+            Sincroniza automáticamente tus citas de Turnate con tu calendario
+            personal de Google.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isSyncedWithGoogle ? (
+            // --- VISTA "CONECTADO" ---
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 p-2 bg-green-100 rounded-full">
+                  <TbCheck className="w-5 h-5 text-green-700" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-green-800">
+                    Conectado a Google Calendar
+                  </h4>
+                  <p className="text-sm text-green-700">
+                    Tus nuevas citas se añadirán a tu calendario.
+                  </p>
+                </div>
+              </div>
+              <Button
+                type="button" // Importante: no enviar el formulario principal
+                variant="destructive"
+                size="sm"
+                onClick={handleGoogleDisconnect}
+                disabled={submitting}
+                className="flex-shrink-0 w-full sm:w-auto"
+              >
+                Desconectar
+              </Button>
+            </div>
+          ) : (
+            // --- VISTA "DESCONECTADO" ---
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 border rounded-lg gap-4">
+              <div>
+                <h4 className="font-semibold text-gray-800">
+                  Conecta tu calendario
+                </h4>
+                <p className="text-sm text-gray-500">
+                  Permite que Turnate gestione eventos en tu Google Calendar.
+                </p>
+              </div>
+              <Button
+                type="button" // Importante
+                variant="outline"
+                onClick={handleGoogleSync}
+                disabled={submitting}
+                className="flex-shrink-0 w-full sm:w-auto"
+              >
+                <TbBrandGoogle className="w-4 h-4 mr-2" />
+                Conectar con Google
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Public URL */}
       <Card>

@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { Client } from '@/types';
+import { Appointment, Client } from '@/types';
 import { Service } from '@/types';
 
 export type AppointmentWithDetails = import('@/types').Appointment & {
@@ -279,8 +279,8 @@ export async function createAppointment({
   endTime: string;
   cancellationToken: string;
   reviewToken: string;
-}): Promise<void> {
-  const { error } = await supabase
+}): Promise<Appointment> {
+  const { data, error } = await supabase
     .from('appointments')
     .insert({
       professional_id: professionalId,
@@ -295,4 +295,5 @@ export async function createAppointment({
     .select()
     .single();
   if (error) throw error;
+  return data;
 }
