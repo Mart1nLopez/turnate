@@ -1,6 +1,6 @@
 'use client';
 
-import { TbUser, TbMapPin, TbDeviceFloppy, TbLink, TbQrcode, TbQrcodeOff, TbCopy, TbBrandGoogle, TbCheck, TbX } from 'react-icons/tb';
+import { TbUser, TbMapPin, TbDeviceFloppy, TbLink, TbQrcode, TbQrcodeOff, TbCopy, TbBrandGoogle, TbCheck } from 'react-icons/tb';
 import { FaInstagram, FaWhatsapp, FaSquareFacebook, FaTiktok, FaXTwitter, FaYoutube } from 'react-icons/fa6';
 import PhoneInput from '@/components/ui/phone-input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

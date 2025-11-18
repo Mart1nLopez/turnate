@@ -100,8 +100,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             // Forzar recarga de datos del profesional en el layout
             checkAuth(); 
             
-          } catch (e: any) {
-            toast.error('Error al guardar la conexión: ' + e.message);
+          } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : String(e);
+            toast.error('Error al guardar la conexión: ' + message);
           }
         }
       }
