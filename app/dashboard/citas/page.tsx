@@ -1,6 +1,5 @@
 'use client';
 
-import { supabase } from '@/lib/supabase';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -15,7 +14,7 @@ import {
   getAppointmentsByProfessionalId,
   getTotalAppointmentsCount,
   getAppointmentCountsByStatus,
-  cancelAppointmentByProfessional,
+  cancelAppointmentByProfessionalAndSync,
   completeAppointment,
   AppointmentWithDetails,
 } from '@/services/appointmentService';
@@ -123,22 +122,8 @@ export default function CitasPage() {
         toast.error('Error al obtener datos del profesional');
         return;
       }
-      await cancelAppointmentByProfessional(appointmentId);
+      await cancelAppointmentByProfessionalAndSync(appointmentId);
 
-      try {
-        const { error: syncError } = await supabase.functions.invoke('sync-google-calendar', {
-          body: { // <-- Envolver el payload en 'body'
-            appointmentId: appointmentId,
-            action: 'delete',
-          }
-        });
-
-        if (syncError) throw syncError;
-        console.log('Cita borrada de Google Calendar');
-      } catch (syncError) {
-        console.warn('Cita cancelada, pero falló la sincro con Google:', syncError);
-      }
-      
       try {
         const startDateTime = new Date(appointmentToCancel.start_time);
         const formattedDate = startDateTime.toISOString().split('T')[0];
@@ -300,9 +285,7 @@ export default function CitasPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>
-              Citas
-            </span>
+            <span>Citas</span>
             {getActiveFiltersCount() > 0 && (
               <Button onClick={clearFilters} variant="outline" size="sm">
                 Limpiar filtros ({getActiveFiltersCount()})

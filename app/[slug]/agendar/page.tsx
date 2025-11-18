@@ -1,6 +1,5 @@
 'use client';
 
-import { supabase } from '@/lib/supabase';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { TbArrowLeft } from 'react-icons/tb';
@@ -12,6 +11,7 @@ import {
   updateClient,
   createClient,
   createAppointment,
+  syncAppointmentToGoogleCalendar,
 } from '@/services/appointmentService';
 import { useProfessionalBooking } from '@/hooks/useProfessionalBooking';
 import { Service, Client } from '@/types';
@@ -201,7 +201,6 @@ export default function AgendarPage() {
       return;
     }
 
-
     try {
       const client = await createOrUpdateClient();
       const startDateTime = new Date(`${formData.date}T${formData.time}`);
@@ -231,19 +230,8 @@ export default function AgendarPage() {
         reviewToken,
       });
 
-      try {
-        const { error: syncError } = await supabase.functions.invoke('sync-google-calendar', {
-          body: { 
-            appointmentId: newAppointment.id,
-            action: 'create',
-          }
-        });
-        if (syncError) throw syncError; 
-        console.log('Cita sincronizada con Google Calendar');
-      } catch (syncError) {
-        console.warn('Cita creada, pero falló la sincro con Google:', syncError);
-        // toast.warning('Cita agendada, pero no se pudo sincronizar con tu Google Calendar.');
-      }
+      // Sincronizar con Google Calendar
+      await syncAppointmentToGoogleCalendar(newAppointment.id, 'create');
 
       // Enviar email de confirmación con el token de cancelación
       try {
@@ -306,13 +294,11 @@ export default function AgendarPage() {
 
       // Verificamos si el error es un objeto y tiene la propiedad 'code'
       if (error && typeof error === 'object' && 'code' in error) {
-        
         // El código '23505' es la violación de restricción UNIQUE de Postgres
         if (error.code === '23505') {
           errorMessage = 'Este horario ya no está disponible. Por favor, selecciona otro horario.';
         }
-        
-      } 
+      }
       // Fallback por si acaso, aunque '23505' es la forma correcta
       else if (error instanceof Error && (error.message.includes('conflict') || error.message.includes('duplicate'))) {
         errorMessage = 'Este horario ya no está disponible. Por favor, selecciona otro horario.';
@@ -321,7 +307,7 @@ export default function AgendarPage() {
       setSubmitting(false);
     } finally {
       if (error) {
-         setSubmitting(false);
+        setSubmitting(false);
       }
     }
   };

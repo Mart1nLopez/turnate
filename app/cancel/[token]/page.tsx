@@ -5,17 +5,14 @@ import { useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import LoadingSpinner from '@/components/ui/loading-spinner';
-import { supabase } from '@/lib/supabase';
-import { Appointment, Professional, Service, Client } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { TbCheck, TbX, TbCalendar, TbClock, TbUser } from 'react-icons/tb';
 import Link from 'next/link';
-
-type AppointmentWithDetails = Appointment & {
-  professional?: Professional;
-  service?: Service;
-  client?: Client;
-};
+import {
+  cancelAppointmentByClientAndSync,
+  getAppointmentByCancellationToken,
+  AppointmentWithDetails,
+} from '@/services/appointmentService';
 
 export default function CancelAppointmentPage() {
   const params = useParams();
@@ -37,30 +34,14 @@ export default function CancelAppointmentPage() {
         return;
       }
 
-      console.log('📡 [LOAD] Consultando Supabase para cita con token:', token);
+      console.log('📡 [LOAD] Consultando cita con token:', token);
       // Buscar la cita usando el token
-      const { data: appointmentData, error: appointmentError } = await supabase
-        .from('appointments')
-        .select(
-          `
-          *,
-          professional:professionals(*),
-          service:services(*),
-          client:clients(*)
-        `,
-        )
-        .eq('cancellation_token', token)
-        .eq('status', 'confirmed')
-        .single();
+      const appointmentData = await getAppointmentByCancellationToken(token);
 
-      console.log('📊 [LOAD] Respuesta de Supabase:', {
-        data: appointmentData,
-        error: appointmentError,
-      });
+      console.log('📊 [LOAD] Respuesta:', appointmentData);
 
-      if (appointmentError || !appointmentData) {
-        console.error('❌ [LOAD] Error al cargar cita:', appointmentError);
-        console.log('📄 [LOAD] Datos recibidos:', appointmentData);
+      if (!appointmentData) {
+        console.log('❌ [LOAD] Cita no encontrada');
         setError('No se encontró la cita o ya fue cancelada');
         setLoading(false);
         return;
@@ -94,7 +75,7 @@ export default function CancelAppointmentPage() {
 
       // Verificar tiempo mínimo para cancelar (ejemplo: 24 horas antes)
       const hoursUntilAppointment = (appointmentDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-      const minCancelHours = appointmentData.professional?.cancel_hours || 24;
+      const minCancelHours = 24;
 
       console.log('⏳ [LOAD] Verificando tiempo de cancelación:', {
         hoursUntilAppointment: hoursUntilAppointment.toFixed(2),
@@ -141,43 +122,11 @@ export default function CancelAppointmentPage() {
     setError(null);
 
     try {
-      // 1. Actualizar el estado de la cita en la base de datos
-      console.log('📝 [CANCEL] Actualizando estado de la cita en Supabase...');
-      const { data: updateData, error: updateError } = await supabase
-        .from('appointments')
-        .update({
-          status: 'cancelled_by_client',
-          cancellation_token: null, // Invalidar el token
-        })
-        .eq('id', appointment.id)
-        .select()
-        .single();
+      // Cancelar la cita y sincronizar con Google Calendar
+      console.log('📝 [CANCEL] Cancelando cita y sincronizando con Google Calendar...');
+      await cancelAppointmentByClientAndSync(appointment.id);
 
-      if (updateError || !updateData) {
-        console.error('❌ [CANCEL] Error actualizando la cita:', updateError);
-        throw updateError || new Error('No se pudo actualizar la cita');
-      }
-
-      console.log('✅ [CANCEL] Cita actualizada exitosamente en Supabase');
-
-      // 2. Sincronizar (borrar) el evento de Google Calendar
-      console.log('🔄 [SYNC] Sincronizando borrado con Google Calendar...');
-      try {
-        const { error: syncError } = await supabase.functions.invoke('sync-google-calendar', {
-          body: {
-            appointmentId: appointment.id,
-            action: 'delete',
-          }
-        });
-
-        if (syncError) throw syncError;
-
-        console.log('✅ [SYNC] Sincronización de borrado con Google Calendar completada.');
-
-      } catch (syncError) {
-        // Si falla la sincronización, no detener el flujo. Solo registrar.
-        console.error('⚠️ [SYNC] Cita cancelada, pero falló la sincronización con Google Calendar:', syncError);
-      }
+      console.log('✅ [CANCEL] Cita cancelada exitosamente');
 
       // 3. Enviar notificación al profesional
       console.log('📧 [CANCEL] Preparando notificación por email...');
@@ -212,15 +161,14 @@ export default function CancelAppointmentPage() {
           },
           body: formBody,
         });
-
       } catch (emailError) {
         console.error('❌ [CANCEL] Error enviando notificación al profesional:', emailError);
       }
 
       console.log('✅ [CANCEL] Proceso completado. Estableciendo estado "cancelled".');
       setCancelled(true);
-
-    } catch (error) { // Catch principal para el paso 1
+    } catch (error) {
+      // Catch principal para el paso 1
       console.error('💥 [CANCEL] Error general al cancelar la cita:', error);
       setError('Error al cancelar la cita. Por favor intenta nuevamente.');
     } finally {

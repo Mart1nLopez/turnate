@@ -7,11 +7,12 @@ import {
   updateProfessionalProfile,
   removeProfileImage as removeProfileImageFromDB,
   checkSlugAvailability as checkSlugAvailabilityService,
+  connectGoogleCalendar,
+  disconnectGoogleCalendar,
 } from '@/services/professionalService';
 import { deleteMultipleImages, deleteImageFromStorage, uploadCarouselImages, uploadProfileImage } from '@/lib/storage';
 import { generateSlugWithRandomSuffix } from '@/lib/utils';
 import { Professional } from '@/types';
-import { supabase } from '@/lib/supabase';
 
 interface ProfileForm {
   name: string;
@@ -201,25 +202,15 @@ export function useProfile(): UseProfileReturn {
     loadProfessional();
   }, [loadProfessional]);
 
-  // Iniciar conexión con Google 
+  // Iniciar conexión con Google
   const handleGoogleSync = async () => {
     setSubmitting(true);
     toast.info('Redirigiendo a Google para conectar tu calendario...');
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        scopes: 'https://www.googleapis.com/auth/calendar.events',
-        queryParams: {
-          access_type: 'offline', // Pide el refresh_token
-          prompt: 'consent',     // Muestra la pantalla de consentimiento
-        },
-        // Opcional: Redirige de vuelta al perfil tras el login
-        redirectTo: `${window.location.origin}/dashboard/perfil?sync=success`,
-      },
-    });
-
-    if (error) {
-      toast.error('Error al conectar con Google: ' + error.message);
+    try {
+      await connectGoogleCalendar();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      toast.error('Error al conectar con Google: ' + message);
       setSubmitting(false);
     }
     // El usuario será redirigido por Supabase
@@ -228,28 +219,21 @@ export function useProfile(): UseProfileReturn {
   // Para desconectar Google
   const handleGoogleDisconnect = async () => {
     if (!professional) {
-      toast.error('No se pudo cargar el perfil. Intenta recargar la página.');
+      toast.error('No se pudo cargar el perfil. Intenta recargar la página.');
       return;
     }
 
-    // Usamos el hook useConfirmDialog que ya tienes
-    // (Necesitarías pasarlo o implementarlo de otra forma)
     const confirmed = window.confirm(
-      '¿Estás seguro de que quieres desconectar tu Google Calendar? Tus citas ya no se sincronizarán.'
+      '¿Estás seguro de que quieres desconectar tu Google Calendar? Tus citas ya no se sincronizarán.',
     );
 
     if (!confirmed) return;
 
     setSubmitting(true);
     try {
-      // Llama a una Edge Function para borrar el token de forma segura
-      const { error } = await supabase.functions.invoke('disconnect-google');
-      if (error) throw error;
-
+      await disconnectGoogleCalendar(professional.id);
       // Actualiza el estado local
-      setProfessional((prev) => 
-        prev ? { ...prev, google_refresh_token: null } : null
-      );
+      setProfessional((prev) => (prev ? { ...prev, google_refresh_token: null } : null));
       setIsSyncedWithGoogle(false);
       toast.success('Google Calendar desconectado exitosamente.');
     } catch (error: unknown) {

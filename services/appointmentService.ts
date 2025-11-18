@@ -1,10 +1,11 @@
 import { supabase } from '@/lib/supabase';
-import { Appointment, Client } from '@/types';
+import { Appointment, Client, Professional } from '@/types';
 import { Service } from '@/types';
 
 export type AppointmentWithDetails = import('@/types').Appointment & {
   service?: Service;
   client?: Client;
+  professional?: Professional;
 };
 
 // Obtener conteo total de citas (sin límite)
@@ -72,7 +73,9 @@ export async function getFilteredAppointmentsByProfessionalId(
 ): Promise<AppointmentWithDetails[]> {
   let query = supabase
     .from('appointments')
-    .select(`*, service:services(name, price, duration_minutes, description), client:clients(name, email, phone)`)
+    .select(
+      `*, service:services(name, price, duration_minutes, description), client:clients(name, email, phone), professional:professionals(name, email)`,
+    )
     .eq('professional_id', professionalId);
 
   // Aplicar filtros
@@ -114,7 +117,9 @@ export async function getHistoricalAppointmentsByProfessionalId(
 
   const { data, error } = await supabase
     .from('appointments')
-    .select(`*, service:services(name, price, duration_minutes, description), client:clients(name, email, phone)`)
+    .select(
+      `*, service:services(name, price, duration_minutes, description), client:clients(name, email, phone), professional:professionals(name, email)`,
+    )
     .eq('professional_id', professionalId)
     .lt('start_time', today.toISOString())
     .order('start_time', { ascending: false })
@@ -132,7 +137,9 @@ export async function getNext7DaysAppointments(professionalId: string): Promise<
 
   const { data, error } = await supabase
     .from('appointments')
-    .select(`*, service:services(name, price, duration_minutes, description), client:clients(name, email, phone)`)
+    .select(
+      `*, service:services(name, price, duration_minutes, description), client:clients(name, email, phone), professional:professionals(name, email)`,
+    )
     .eq('professional_id', professionalId)
     .gte('start_time', startOfToday)
     .lt('start_time', sevenDaysFromNow.toISOString())
@@ -159,7 +166,9 @@ export async function getAppointmentsByProfessionalId(
 
   const { data, error } = await supabase
     .from('appointments')
-    .select(`*, service:services(name, price, duration_minutes, description), client:clients(name, email, phone)`)
+    .select(
+      `*, service:services(name, price, duration_minutes, description), client:clients(name, email, phone), professional:professionals(name, email)`,
+    )
     .eq('professional_id', professionalId)
     .gte('start_time', fromDate)
     .lt('start_time', toDate)
@@ -168,13 +177,26 @@ export async function getAppointmentsByProfessionalId(
   return data || [];
 }
 
+export async function getAppointmentByCancellationToken(token: string): Promise<AppointmentWithDetails | null> {
+  const { data, error } = await supabase
+    .from('appointments')
+    .select(`*, professional:professionals(*), service:services(*), client:clients(*)`)
+    .eq('cancellation_token', token)
+    .eq('status', 'confirmed')
+    .single();
+  if (error) throw error;
+  return data || null;
+}
+
 export async function getAppointmentById(
   appointmentId: string,
   professionalId: string,
 ): Promise<AppointmentWithDetails | null> {
   const { data, error } = await supabase
     .from('appointments')
-    .select(`*, service:services(name, price, duration_minutes, description), client:clients(name, email, phone)`)
+    .select(
+      `*, service:services(name, price, duration_minutes, description), client:clients(name, email, phone), professional:professionals(name, email)`,
+    )
     .eq('id', appointmentId)
     .eq('professional_id', professionalId)
     .single();
@@ -193,6 +215,24 @@ export async function cancelAppointmentByProfessional(appointmentId: string): Pr
     .update({ status: 'cancelled_by_pro', cancellation_token: null })
     .eq('id', appointmentId);
   if (error) throw error;
+}
+
+export async function cancelAppointmentByProfessionalAndSync(appointmentId: string): Promise<void> {
+  await cancelAppointmentByProfessional(appointmentId);
+  await syncAppointmentToGoogleCalendar(appointmentId, 'delete');
+}
+
+export async function cancelAppointmentByClient(appointmentId: string): Promise<void> {
+  const { error } = await supabase
+    .from('appointments')
+    .update({ status: 'cancelled_by_client', cancellation_token: null })
+    .eq('id', appointmentId);
+  if (error) throw error;
+}
+
+export async function cancelAppointmentByClientAndSync(appointmentId: string): Promise<void> {
+  await cancelAppointmentByClient(appointmentId);
+  await syncAppointmentToGoogleCalendar(appointmentId, 'delete');
 }
 
 export async function completeAppointment(appointmentId: string): Promise<void> {
@@ -296,4 +336,23 @@ export async function createAppointment({
     .single();
   if (error) throw error;
   return data;
+}
+
+export async function syncAppointmentToGoogleCalendar(
+  appointmentId: string,
+  action: 'create' | 'update' | 'delete',
+): Promise<void> {
+  try {
+    const { error } = await supabase.functions.invoke('sync-google-calendar', {
+      body: {
+        appointmentId,
+        action,
+      },
+    });
+    if (error) throw error;
+    console.log(`Cita ${action}d sincronizada con Google Calendar`);
+  } catch (error) {
+    console.warn(`Cita creada, pero falló la sincro con Google:`, error);
+    // No lanzamos el error para no fallar toda la operación
+  }
 }
