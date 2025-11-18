@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { TbClock, TbEdit, TbTrash, TbPlus, TbCalendar, TbX, TbCheck } from 'react-icons/tb';
+import { TbClock, TbEdit, TbTrash, TbPlus, TbCalendar, TbX, TbCheck, TbCopy } from 'react-icons/tb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,14 @@ import LoadingSpinner from '@/components/ui/loading-spinner';
 import { TimeSelector } from '@/components/ui/time-selector';
 import { MinuteSelector } from '@/components/ui/minute-selector';
 import { Switch } from '@/components/ui/switch';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '@/components/ui/dialog';
 import { getCurrentProfessional } from '@/lib/supabase';
 import { useAvailability } from '@/hooks/useAvailability';
 import { Availability, TimeBlock } from '@/types';
@@ -48,6 +56,9 @@ export default function DisponibilidadPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingAvailability, setEditingAvailability] = useState<Availability | null>(null);
   const { confirm, ConfirmDialog } = useConfirmDialog();
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [duplicatingAvailability, setDuplicatingAvailability] = useState<Availability | null>(null);
+  const [selectedDayForDuplicate, setSelectedDayForDuplicate] = useState<number>(1);
 
   const [formData, setFormData] = useState<AvailabilityForm>({
     day_of_week: 1, // Se actualizará dinámicamente
@@ -217,6 +228,44 @@ export default function DisponibilidadPage() {
     } catch (error) {
       console.error('Error deleting availability:', error);
       toast.error('Error al eliminar la disponibilidad');
+    }
+  };
+
+  const handleDuplicate = (av: Availability) => {
+    setDuplicatingAvailability(av);
+    const availableDays = DAYS_OF_WEEK.filter((day) => !availability.map((a) => a.day_of_week).includes(day.value));
+    setSelectedDayForDuplicate(availableDays.length > 0 ? availableDays[0].value : 1);
+    setShowDuplicateModal(true);
+  };
+
+  const handleDuplicateSubmit = async () => {
+    if (!duplicatingAvailability) return;
+    setSubmitting(true);
+    try {
+      const existingAvailability = availability.find((av) => av.day_of_week === selectedDayForDuplicate);
+      if (existingAvailability) {
+        toast.error(`Ya tienes configurada la disponibilidad para ${getDayName(selectedDayForDuplicate)}`);
+        setSubmitting(false);
+        return;
+      }
+      const availabilityData = {
+        day_of_week: selectedDayForDuplicate,
+        time_blocks: duplicatingAvailability.time_blocks,
+        break_minutes: duplicatingAvailability.break_minutes,
+        advance_hours: duplicatingAvailability.advance_hours,
+        cancel_hours: duplicatingAvailability.cancel_hours,
+        professional_id: professionalId!,
+        is_available: true,
+      };
+      await addAvailability(availabilityData);
+      setShowDuplicateModal(false);
+      setDuplicatingAvailability(null);
+      toast.success('Disponibilidad duplicada exitosamente');
+    } catch (error) {
+      console.error('Error duplicating availability:', error);
+      toast.error('Error al duplicar la disponibilidad');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -442,6 +491,53 @@ export default function DisponibilidadPage() {
         </Card>
       )}
 
+      {/* Duplicate Modal */}
+      <Dialog open={showDuplicateModal} onOpenChange={setShowDuplicateModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Duplicar Disponibilidad</DialogTitle>
+            <DialogDescription>
+              Copia la configuración de {duplicatingAvailability ? getDayName(duplicatingAvailability.day_of_week) : ''}{' '}
+              a otro día
+            </DialogDescription>
+          </DialogHeader>
+          <div className="px-6 pb-6 space-y-4">
+            <div>
+              <label htmlFor="duplicate_day" className="block text-sm font-medium text-gray-700 mb-2">
+                Día de la semana *
+              </label>
+              <select
+                id="duplicate_day"
+                value={selectedDayForDuplicate}
+                onChange={(e) => setSelectedDayForDuplicate(parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required>
+                {DAYS_OF_WEEK.filter((day) => !availability.map((av) => av.day_of_week).includes(day.value)).map(
+                  (day) => (
+                    <option key={day.value} value={day.value}>
+                      {day.label}
+                    </option>
+                  ),
+                )}
+              </select>
+            </div>
+            <div className="flex flex-row justify-center sm:flex-row sm:justify-end sm:space-x-3 space-x-3 space-y-0 sm:space-y-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowDuplicateModal(false)}
+                className="flex-1 sm:flex-none sm:w-auto">
+                Cancelar
+              </Button>
+              <Button onClick={handleDuplicateSubmit} disabled={submitting} className="flex-1 sm:flex-none sm:w-auto">
+                {submitting ? 'Duplicando...' : 'Duplicar'}
+              </Button>
+            </div>
+          </div>
+          <DialogClose />
+        </DialogContent>
+      </Dialog>
+
       {/* Availability List */}
       <div className="grid grid-cols-1 gap-4">
         {availability.length === 0 ?
@@ -463,11 +559,26 @@ export default function DisponibilidadPage() {
                 <div className="absolute top-4 right-4 flex items-center space-x-1">
                   <Button
                     size="sm"
+                    variant="default"
+                    aria-label="Duplicar disponibilidad"
+                    onClick={() => handleDuplicate(av)}
+                    disabled={availability.length === 7}
+                    className="h-10 w-10 p-0"
+                    title={
+                      availability.length === 7 ?
+                        'Todos los días ya tienen disponibilidad configurada'
+                      : 'Duplicar esta configuración de disponibilidad a otro día'
+                    }>
+                    <TbCopy className="w-5 h-5" />
+                  </Button>
+                  <Button
+                    size="sm"
                     variant="outline"
                     aria-label="Editar disponibilidad"
                     data-testid="edit-button"
                     onClick={() => handleEdit(av)}
-                    className="h-10 w-10 p-0">
+                    className="h-10 w-10 p-0"
+                    title="Editar la configuración de esta disponibilidad">
                     <TbEdit className="w-5 h-5" />
                   </Button>
                   <Button
@@ -476,7 +587,8 @@ export default function DisponibilidadPage() {
                     aria-label="Eliminar disponibilidad"
                     data-testid="delete-button"
                     onClick={() => handleDelete(av.id)}
-                    className="h-10 w-10 p-0">
+                    className="h-10 w-10 p-0"
+                    title="Eliminar permanentemente esta disponibilidad">
                     <TbTrash className="w-5 h-5" />
                   </Button>
                 </div>
@@ -514,8 +626,8 @@ export default function DisponibilidadPage() {
                   </div>
 
                   <div>
-                    <div className="text-sm text-gray-500 mb-1">Disponible</div>
                     <Switch
+                      className='align-middle sm:mt-5'
                       checked={av.is_available}
                       onCheckedChange={() => handleToggle(av.id)}
                       aria-label={`Toggle disponibilidad para ${getDayName(av.day_of_week)}`}

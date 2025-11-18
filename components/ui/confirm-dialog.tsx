@@ -140,13 +140,13 @@ export function ConfirmDialog({
           </p>
 
           {/* Actions */}
-          <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-3 space-y-reverse sm:space-y-0">
+          <div className="flex flex-row justify-center sm:justify-end sm:space-x-3 space-x-3 space-y-0 sm:space-y-0">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
               disabled={loading}
-              className="w-full sm:w-auto order-2 sm:order-1">
+              className="flex-1 sm:flex-none sm:w-auto">
               {cancelText}
             </Button>
             <Button
@@ -154,7 +154,7 @@ export function ConfirmDialog({
               variant={getConfirmButtonVariant()}
               onClick={onConfirm}
               disabled={loading}
-              className="w-full sm:w-auto order-1 sm:order-2">
+              className="flex-1 sm:flex-none sm:w-auto">
               {loading && (
                 <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
               )}
