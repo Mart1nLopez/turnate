@@ -42,7 +42,7 @@ export function useProfessionalBooking(
         setServices(servicesData);
 
         const availabilityData = await getAvailabilityByProfessionalId(professionalData.id);
-        setAvailability(availabilityData);
+        setAvailability(availabilityData.filter((av) => av.is_available));
 
         const unavailableDatesData = await getUnavailableDatesByProfessionalId(professionalData.id);
         setUnavailableDates(unavailableDatesData);

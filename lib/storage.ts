@@ -11,10 +11,10 @@ export interface UploadImageOptions {
 // Función auxiliar para eliminar imágenes de Supabase Storage
 export async function deleteImageFromStorage(imageUrl: string) {
   try {
-    console.log('🗑️ Eliminando imagen:', imageUrl);
+    console.log('Eliminando imagen:', imageUrl);
 
     if (!imageUrl || !imageUrl.includes('supabase.co')) {
-      console.log('⚠️ URL no válida para eliminar, saltando...');
+      console.log('URL no válida para eliminar, saltando...');
       return;
     }
 
@@ -24,20 +24,20 @@ export async function deleteImageFromStorage(imageUrl: string) {
     const path = match ? match[1] : null;
 
     if (path) {
-      console.log('📂 Path extraído para eliminación:', path);
+      console.log('Path extraído para eliminación:', path);
       const { error: storageError } = await supabase.storage.from('professional-images').remove([path]);
 
       if (storageError) {
-        console.error(`❌ Error al eliminar imagen: ${storageError.message}`);
+        console.error(`Error al eliminar imagen: ${storageError.message}`);
       } else {
-        console.log('✅ Imagen eliminada exitosamente');
+        console.log('Imagen eliminada exitosamente');
       }
     } else {
-      console.error('❌ No se pudo extraer el path de la URL:', imageUrl);
+      console.error('No se pudo extraer el path de la URL:', imageUrl);
     }
   } catch (error) {
     const err = error as Error;
-    console.error(`❌ Error al eliminar imagen: ${err.message}`);
+    console.error(`Error al eliminar imagen: ${err.message}`);
   }
 }
 
@@ -48,8 +48,8 @@ export async function processAndUploadImage(
   subfolder: string = 'carrusel',
 ): Promise<string> {
   try {
-    console.log('🔄 Iniciando processAndUploadImage...');
-    console.log('📁 Archivo:', imageFile.name, 'Tamaño:', imageFile.size, 'Subcarpeta:', subfolder);
+    console.log('Iniciando processAndUploadImage...');
+    console.log('Archivo:', imageFile.name, 'Tamaño:', imageFile.size, 'Subcarpeta:', subfolder);
 
     // Obtener el usuario autenticado
     const {
@@ -57,10 +57,10 @@ export async function processAndUploadImage(
       error: authError,
     } = await supabase.auth.getUser();
     if (authError || !user) {
-      console.error('❌ Error de autenticación:', authError);
+      console.error('Error de autenticación:', authError);
       throw new Error('Usuario no autenticado');
     }
-    console.log('✅ Usuario autenticado:', user.id);
+    console.log('Usuario autenticado:', user.id);
 
     const compressionOptions = {
       maxSizeMB: options.maxSizeMB || 1,
@@ -70,34 +70,33 @@ export async function processAndUploadImage(
       fileType: 'image/webp', // Forzar conversión a WebP
     };
 
-    console.log('🗜️ Comprimiendo imagen con opciones:', compressionOptions);
+    console.log('Comprimiendo imagen con opciones:', compressionOptions);
     const compressedFile = await imageCompression(imageFile, compressionOptions);
-    console.log('✅ Imagen comprimida. Tamaño original:', imageFile.size, 'Tamaño comprimido:', compressedFile.size);
+    console.log('Imagen comprimida. Tamaño original:', imageFile.size, 'Tamaño comprimido:', compressedFile.size);
 
     // Guardar siempre como .webp
     const fileName = `${uuidv4()}.webp`;
     const filePath = `${user.id}/${subfolder}/${fileName}`;
 
-    console.log('📤 Subiendo archivo a path:', filePath);
+    console.log('Subiendo archivo a path:', filePath);
 
     const { error: uploadError } = await supabase.storage.from('professional-images').upload(filePath, compressedFile);
 
     if (uploadError) {
-      console.error('❌ Error al subir imagen:', uploadError);
+      console.error('Error al subir imagen:', uploadError);
       throw uploadError;
     }
 
-    console.log('✅ Imagen subida exitosamente');
-
+    console.log('Imagen subida exitosamente');
     const {
       data: { publicUrl },
     } = supabase.storage.from('professional-images').getPublicUrl(filePath);
 
-    console.log('🔗 URL pública generada:', publicUrl);
+    console.log('URL pública generada:', publicUrl);
     return publicUrl;
   } catch (error) {
     const err = error as Error;
-    console.error('❌ Error en processAndUploadImage:', err.message);
+    console.error('Error en processAndUploadImage:', err.message);
     throw new Error(`Error al procesar y subir la imagen: ${err.message}`);
   }
 }
@@ -159,7 +158,7 @@ export async function deleteImage(imageUrl: string): Promise<void> {
 
 // Función para subir múltiples imágenes del carrusel
 export async function uploadCarouselImages(files: File[]): Promise<string[]> {
-  console.log('🎠 Subiendo imágenes de carrusel:', files.length, 'archivos');
+  console.log('Subiendo imágenes de carrusel:', files.length, 'archivos');
 
   // Opciones específicas para imágenes de carrusel - optimizadas para pantalla completa
   // Configuración premium para imágenes que se mostrarán a gran tamaño
@@ -173,41 +172,41 @@ export async function uploadCarouselImages(files: File[]): Promise<string[]> {
 
   try {
     const urls = await Promise.all(uploadPromises);
-    console.log('✅ Todas las imágenes de carrusel subidas exitosamente');
+    console.log('Todas las imágenes de carrusel subidas exitosamente');
     return urls;
   } catch (error) {
-    console.error('❌ Error uploading carousel images:', error);
+    console.error('Error uploading carousel images:', error);
     throw new Error('Error al subir las imágenes del carrusel');
   }
 }
 
 // Función para subir múltiples imágenes (genérica)
 export async function uploadMultipleImages(files: File[], options: UploadImageOptions = {}): Promise<string[]> {
-  console.log('📁 Subiendo múltiples imágenes:', files.length, 'archivos');
+  console.log('Subiendo múltiples imágenes:', files.length, 'archivos');
 
   const uploadPromises = files.map((file) => processAndUploadImage(file, options));
 
   try {
     const urls = await Promise.all(uploadPromises);
-    console.log('✅ Todas las imágenes subidas exitosamente');
+    console.log('Todas las imágenes subidas exitosamente');
     return urls;
   } catch (error) {
-    console.error('❌ Error uploading multiple images:', error);
+    console.error('Error uploading multiple images:', error);
     throw new Error('Error al subir las imágenes');
   }
 }
 
 // Función para eliminar múltiples imágenes
 export async function deleteMultipleImages(imageUrls: string[]): Promise<void> {
-  console.log('🗑️ Eliminando múltiples imágenes:', imageUrls.length, 'archivos');
+  console.log('Eliminando múltiples imágenes:', imageUrls.length, 'archivos');
 
   const deletePromises = imageUrls.map((url) => deleteImageFromStorage(url));
 
   try {
     await Promise.all(deletePromises);
-    console.log('✅ Todas las imágenes eliminadas exitosamente');
+    console.log('Todas las imágenes eliminadas exitosamente');
   } catch (error) {
-    console.error('❌ Error deleting multiple images:', error);
+    console.error('Error deleting multiple images:', error);
     // No lanzamos el error para no interrumpir el flujo principal
   }
 }
@@ -225,17 +224,17 @@ export async function uploadServiceImage(file: File): Promise<string> {
 
   try {
     const url = await processAndUploadImage(file, serviceOptions, 'servicios');
-    console.log('✅ Imagen de servicio subida exitosamente');
+    console.log('Imagen de servicio subida exitosamente');
     return url;
   } catch (error) {
-    console.error('❌ Error uploading service image:', error);
+    console.error('Error uploading service image:', error);
     throw new Error('Error al subir la imagen del servicio');
   }
 }
 
 // Función para subir imagen de perfil de profesional
 export async function uploadProfileImage(file: File): Promise<string> {
-  console.log('👤 Subiendo imagen de perfil:', file.name);
+  console.log('Subiendo imagen de perfil:', file.name);
 
   // Opciones específicas para imágenes de perfil
   const profileOptions: UploadImageOptions = {
@@ -246,10 +245,10 @@ export async function uploadProfileImage(file: File): Promise<string> {
 
   try {
     const url = await processAndUploadImage(file, profileOptions, 'perfil');
-    console.log('✅ Imagen de perfil subida exitosamente');
+    console.log('Imagen de perfil subida exitosamente');
     return url;
   } catch (error) {
-    console.error('❌ Error uploading profile image:', error);
+    console.error('Error uploading profile image:', error);
     throw new Error('Error al subir la imagen del perfil');
   }
 }

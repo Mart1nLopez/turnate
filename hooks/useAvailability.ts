@@ -1,10 +1,6 @@
 import { useState, useCallback } from 'react';
-import {
-  getAvailabilityByProfessionalId,
-  createAvailability,
-  updateAvailability,
-  deleteAvailability,
-} from '@/services/availabilityService';
+import { createAvailability, updateAvailability, deleteAvailability } from '@/services/availabilityService';
+import { getAvailabilityByProfessionalId } from '@/services/appointmentService';
 import { Availability } from '@/types';
 
 export function useAvailability(professionalId: string) {
@@ -41,6 +37,17 @@ export function useAvailability(professionalId: string) {
     }
   };
 
+  const toggleAvailability = async (id: string) => {
+    try {
+      const av = availability.find((a) => a.id === id);
+      if (!av) return;
+      await updateAvailability(id, { is_available: !av.is_available });
+      setAvailability((prev) => prev.map((a) => (a.id === id ? { ...a, is_available: !a.is_available } : a)));
+    } catch (err) {
+      throw err;
+    }
+  };
+
   const removeAvailability = async (id: string) => {
     try {
       await deleteAvailability(id);
@@ -57,6 +64,7 @@ export function useAvailability(professionalId: string) {
     addAvailability,
     editAvailability,
     removeAvailability,
+    toggleAvailability,
     setAvailability,
   };
 }

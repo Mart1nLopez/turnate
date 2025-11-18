@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { TimeSelector } from '@/components/ui/time-selector';
 import { MinuteSelector } from '@/components/ui/minute-selector';
+import { Switch } from '@/components/ui/switch';
 import { getCurrentProfessional } from '@/lib/supabase';
 import { useAvailability } from '@/hooks/useAvailability';
 import { Availability, TimeBlock } from '@/types';
@@ -35,8 +36,15 @@ const DAYS_OF_WEEK = [
 
 export default function DisponibilidadPage() {
   const [professionalId, setProfessionalId] = useState<string | null>(null);
-  const { availability, loading, loadAvailability, addAvailability, editAvailability, removeAvailability } =
-    useAvailability(professionalId || '');
+  const {
+    availability,
+    loading,
+    loadAvailability,
+    addAvailability,
+    editAvailability,
+    removeAvailability,
+    toggleAvailability,
+  } = useAvailability(professionalId || '');
   const [showForm, setShowForm] = useState(false);
   const [editingAvailability, setEditingAvailability] = useState<Availability | null>(null);
   const { confirm, ConfirmDialog } = useConfirmDialog();
@@ -152,7 +160,7 @@ export default function DisponibilidadPage() {
         advance_hours: parseInt(formData.advance_hours),
         cancel_hours: parseInt(formData.cancel_hours),
         professional_id: professionalId!,
-        is_available: true,
+        ...(editingAvailability ? {} : { is_available: true }),
       };
       if (editingAvailability) {
         await editAvailability(editingAvailability.id, availabilityData);
@@ -181,6 +189,16 @@ export default function DisponibilidadPage() {
       cancel_hours: av.cancel_hours.toString(),
     });
     setShowForm(true);
+  };
+
+  const handleToggle = async (availabilityId: string) => {
+    try {
+      await toggleAvailability(availabilityId);
+      toast.success('Disponibilidad actualizada exitosamente');
+    } catch (error) {
+      console.error('Error toggling availability:', error);
+      toast.error('Error al actualizar la disponibilidad');
+    }
   };
 
   const handleDelete = async (availabilityId: string) => {
@@ -463,7 +481,7 @@ export default function DisponibilidadPage() {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 pr-20">
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-4 pr-20">
                   <div>
                     <div className="flex items-center text-sm text-gray-500 mb-1">
                       <TbCalendar className="h-4 w-4 mr-1" />
@@ -493,6 +511,15 @@ export default function DisponibilidadPage() {
                   <div>
                     <div className="text-sm text-gray-500 mb-1">Anticipación cancelar</div>
                     <p className="font-medium text-gray-900">{av.cancel_hours}h</p>
+                  </div>
+
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">Disponible</div>
+                    <Switch
+                      checked={av.is_available}
+                      onCheckedChange={() => handleToggle(av.id)}
+                      aria-label={`Toggle disponibilidad para ${getDayName(av.day_of_week)}`}
+                    />
                   </div>
                 </div>
               </CardContent>

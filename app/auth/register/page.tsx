@@ -201,7 +201,7 @@ export default function RegisterPage() {
       });
 
       if (authError) {
-        console.error('❌ Error en Auth:', authError);
+        console.error('Error en Auth:', authError);
         throw authError;
       }
 
@@ -292,7 +292,7 @@ export default function RegisterPage() {
     });
 
     if (professionalError) {
-      console.error('❌ Error creando profesional:', professionalError);
+      console.error('Error creando profesional:', professionalError);
       // Si falla por slug duplicado, intentar con un nuevo sufijo
       if (professionalError.message.includes('duplicate') || professionalError.message.includes('unique')) {
         console.log('🔄 Reintentando con nuevo slug...');
@@ -307,12 +307,12 @@ export default function RegisterPage() {
         });
 
         if (retryError) {
-          console.error('❌ Error en segundo intento:', retryError);
+          console.error('Error en segundo intento:', retryError);
           throw retryError;
         }
-        console.log('✅ Profesional creado con slug:', newSlug);
+        console.log('Profesional creado con slug:', newSlug);
       } else if (professionalError.message.includes('Signups not allowed')) {
-        console.error('❌ Signups no permitidos por Supabase');
+        console.error('Signups no permitidos por Supabase');
         throw new Error('Los registros de nuevos usuarios no están permitidos en este momento.');
       } else {
         throw professionalError;

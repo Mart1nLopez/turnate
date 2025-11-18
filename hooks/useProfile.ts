@@ -354,13 +354,7 @@ export function useProfile(): UseProfileReturn {
     setSubmitting(true);
 
     try {
-      console.log('🚀 Iniciando actualización del perfil...');
-
       if (!professional) throw new Error('No professional found');
-
-      console.log('👤 Profesional encontrado:', professional.id);
-      console.log('📷 Nuevas imágenes a subir:', newImageFiles.length);
-      console.log('🖼️ Imágenes existentes:', images.length);
 
       // Validar que no haya errores en el slug antes de enviar
       if (slugError || slugCharacterError) {
@@ -382,9 +376,7 @@ export function useProfile(): UseProfileReturn {
       // Subir nuevas imágenes si las hay
       let newImageUrls: string[] = [];
       if (newImageFiles.length > 0) {
-        console.log('🎠 Subiendo', newImageFiles.length, 'nuevas imágenes de carrusel...');
         newImageUrls = await uploadCarouselImages(newImageFiles);
-        console.log('✅ Imágenes de carrusel subidas exitosamente:', newImageUrls);
       }
 
       // Manejar imagen de perfil
@@ -392,18 +384,14 @@ export function useProfile(): UseProfileReturn {
 
       if (profileImageFile) {
         // Subir nueva imagen de perfil
-        console.log('👤 Subiendo nueva imagen de perfil...');
         finalProfileImageUrl = await uploadProfileImage(profileImageFile);
-        console.log('✅ Imagen de perfil subida exitosamente:', finalProfileImageUrl);
 
         // Eliminar imagen de perfil anterior si existe
         if (professional.profile_image) {
-          console.log('🗑️ Eliminando imagen de perfil anterior...');
           await deleteImageFromStorage(professional.profile_image);
         }
       } else if (removeProfileImage && professional.profile_image) {
         // Eliminar imagen de perfil existente
-        console.log('🗑️ Eliminando imagen de perfil existente...');
         await deleteImageFromStorage(professional.profile_image);
         finalProfileImageUrl = undefined;
       }
@@ -413,8 +401,6 @@ export function useProfile(): UseProfileReturn {
       const keptImageUrls = images.map((img) => img.url);
       const imagesToDelete = currentImageUrls.filter((url) => !keptImageUrls.includes(url));
 
-      console.log('🗑️ Imágenes a eliminar:', imagesToDelete.length);
-
       // Eliminar imágenes que ya no están
       if (imagesToDelete.length > 0) {
         await deleteMultipleImages(imagesToDelete);
@@ -422,8 +408,6 @@ export function useProfile(): UseProfileReturn {
 
       // Combinar imágenes existentes con las nuevas
       const allImages = [...images, ...newImageUrls.map((url) => ({ url, alt: 'Imagen del perfil' }))];
-
-      console.log('💾 Total de imágenes finales:', allImages.length);
 
       const updateData = {
         name: formData.name,
@@ -444,7 +428,6 @@ export function useProfile(): UseProfileReturn {
         carrusel_images: allImages,
       };
 
-      console.log('💾 Actualizando base de datos...');
       await updateProfessionalProfile(professional.id, updateData);
 
       // Si se marcó para eliminar la imagen de perfil y no hay una nueva imagen, eliminar de la BD
@@ -460,7 +443,6 @@ export function useProfile(): UseProfileReturn {
       setRemoveProfileImage(false);
       setCurrentProfileImageUrl(removeProfileImage && !profileImageFile ? undefined : finalProfileImageUrl);
 
-      console.log('✅ Perfil actualizado exitosamente');
       toast.success('Perfil actualizado exitosamente');
     } catch (error) {
       console.error('Error updating profile:', error);

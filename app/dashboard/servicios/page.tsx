@@ -97,17 +97,17 @@ export default function ServiciosPage() {
       // Procesar cambios de imagen
       if (newImageFile) {
         // Subir nueva imagen
-        console.log('📤 Subiendo nueva imagen de servicio...');
+        console.log('Subiendo nueva imagen de servicio...');
         finalImageUrl = await uploadServiceImage(newImageFile);
 
         // Eliminar imagen anterior si existe
         if (formData.image_url && editingService) {
-          console.log('🗑️ Eliminando imagen anterior...');
+          console.log('Eliminando imagen anterior...');
           await deleteImageFromStorage(formData.image_url);
         }
       } else if (removeExistingImage && formData.image_url) {
         // Eliminar imagen existente
-        console.log('🗑️ Eliminando imagen existente...');
+        console.log('Eliminando imagen existente...');
         await deleteImageFromStorage(formData.image_url);
         finalImageUrl = '';
       }
