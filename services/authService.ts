@@ -44,7 +44,9 @@ export class AuthService {
   }
 
   static async resetPassword(email: string) {
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
     return { data, error };
   }
 
@@ -72,6 +74,11 @@ export class AuthService {
     };
 
     return { user: authUser, error };
+  }
+
+  static async getSession() {
+    const { data, error } = await supabase.auth.getSession();
+    return { session: data.session, error };
   }
 
   static onAuthStateChange(callback: (event: string, session: Session | null) => void) {

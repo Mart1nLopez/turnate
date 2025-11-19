@@ -81,7 +81,7 @@ export default function LoginPage() {
                       className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                       Contraseña
                     </label>
-                    <Link href="/recuperar-password" className="text-sm text-blue-600 hover:underline">
+                    <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:underline">
                       ¿Olvidaste tu contraseña?
                     </Link>
                   </div>
