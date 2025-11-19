@@ -1,6 +1,6 @@
 'use client';
 
-import { useDashboard } from '@/hooks/useDashboard';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import StatsCards from '@/components/dashboard/StatsCards';
 import RevenueChart from '@/components/dashboard/RevenueChart';
@@ -10,7 +10,7 @@ import { TbRefresh, TbTrendingUp } from 'react-icons/tb';
 import QuickMetrics from '@/components/dashboard/QuickMetrics';
 
 export default function DashboardPage() {
-  const { data, loading, error, refresh } = useDashboard();
+  const { data, loading, error, refresh } = useDashboardStats();
 
   if (loading) {
     return (
@@ -48,6 +48,22 @@ export default function DashboardPage() {
   const currentAppointments = lastMonth.appointments || 0;
   const previousAppointments = prevMonth.appointments || 0;
 
+  // Default stats object to prevent null errors
+  const defaultStats = {
+    todayAppointments: 0,
+    currentPeriodAppointments: 0,
+    totalClients: 0,
+    monthlyAppointments: 0,
+    monthlyCompletedAppointments: 0,
+    monthlyCancelledAppointments: 0,
+    monthlyConversionRate: 0,
+    monthlyRevenue: 0,
+    totalAppointments: 0,
+    completedAppointments: 0,
+    cancelledAppointments: 0,
+    conversionRate: 0,
+  };
+
   return (
     <div className="space-y-8 p-6 lg:p-8">
       {/* Header */}
@@ -77,7 +93,7 @@ export default function DashboardPage() {
       />
 
       {/* Stats Cards */}
-      <StatsCards stats={data.stats} monthlyRevenue={data.monthlyRevenue} />
+      <StatsCards stats={data.stats || defaultStats} monthlyRevenue={data.monthlyRevenue} />
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
