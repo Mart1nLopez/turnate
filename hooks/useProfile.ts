@@ -65,7 +65,13 @@ interface UseProfileReturn {
   // Google
   isSyncedWithGoogle: boolean;
   handleGoogleSync: () => Promise<void>;
-  handleGoogleDisconnect: () => Promise<void>;
+  handleGoogleDisconnect: (
+    confirm: (options: {
+      title: string;
+      description: string;
+      variant?: 'default' | 'destructive' | 'warning' | 'info';
+    }) => Promise<boolean>,
+  ) => Promise<void>;
 
   // Cropper
   showCropper: boolean;
@@ -217,15 +223,23 @@ export function useProfile(): UseProfileReturn {
   };
 
   // Para desconectar Google
-  const handleGoogleDisconnect = async () => {
+  const handleGoogleDisconnect = async (
+    confirm: (options: {
+      title: string;
+      description: string;
+      variant?: 'default' | 'destructive' | 'warning' | 'info';
+    }) => Promise<boolean>,
+  ) => {
     if (!professional) {
       toast.error('No se pudo cargar el perfil. Intenta recargar la página.');
       return;
     }
 
-    const confirmed = window.confirm(
-      '¿Estás seguro de que quieres desconectar tu Google Calendar? Tus citas ya no se sincronizarán.',
-    );
+    const confirmed = await confirm({
+      title: 'Desconectar Google Calendar',
+      description: '¿Estás seguro de que quieres desconectar tu Google Calendar? Tus citas ya no se sincronizarán.',
+      variant: 'destructive',
+    });
 
     if (!confirmed) return;
 
