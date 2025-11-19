@@ -212,12 +212,20 @@ export function useProfile(): UseProfileReturn {
   const handleGoogleSync = async () => {
     setSubmitting(true);
     toast.info('Redirigiendo a Google para conectar tu calendario...');
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('is_connecting_google', 'true');
+    }
+
     try {
       await connectGoogleCalendar();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       toast.error('Error al conectar con Google: ' + message);
       setSubmitting(false);
+      // Si falla, limpiamos la marca por si acaso
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('is_connecting_google');
+      }
     }
     // El usuario será redirigido por Supabase
   };

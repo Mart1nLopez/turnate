@@ -78,12 +78,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         
-        // Si el evento es SIGNED_IN y tenemos un provider_refresh_token
-        if (event === 'SIGNED_IN' && session?.provider_refresh_token) {
-          console.log('Detectado provider_refresh_token, guardando...');
-          toast.info('Guardando conexión con Google Calendar...');
+        // Verificamos si estamos en medio de un proceso de conexión iniciado por el usuario
+        const isConnecting = typeof window !== 'undefined' && window.localStorage.getItem('is_connecting_google') === 'true';
+
+        // Solo actuamos si hay sesión, hay token Y  el usuario pidió conectar
+        if (event === 'SIGNED_IN' && session?.provider_refresh_token && isConnecting) {
+          console.log('Detectado retorno de Google con intención de conectar.');
+          
           try {
-            // Llama a la Edge Function para guardar el token
             const { error } = await supabase.functions.invoke(
               'save-refresh-token',
               {
@@ -94,14 +96,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
             toast.success('¡Google Calendar conectado exitosamente!');
             
-            // Limpia la URL para que no queden parámetros
-            router.replace('/dashboard/perfil', undefined);
+            // Borramos la marca para que no vuelva a salir el toast al recargar
+            window.localStorage.removeItem('is_connecting_google');
             
-            // Forzar recarga de datos del profesional en el layout
+            // Limpieza visual de la URL
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+            
             checkAuth(); 
             
           } catch (e: unknown) {
             const message = e instanceof Error ? e.message : String(e);
+            console.error('Error saving token:', message);
             toast.error('Error al guardar la conexión: ' + message);
           }
         }
@@ -109,7 +115,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     );
 
     return () => {
-      // Limpia el listener
       authListener.subscription.unsubscribe();
     };
   }, [router, checkAuth]); 
