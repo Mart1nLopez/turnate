@@ -84,3 +84,32 @@ export async function disconnectGoogleCalendar(professionalId: string): Promise<
   // Actualizar el perfil para setear google_refresh_token a null
   await updateProfessionalProfile(professionalId, { google_refresh_token: null });
 }
+
+export async function createProfessionalProfile(
+  userId: string,
+  data: {
+    name: string;
+    slug: string;
+    email: string;
+    rut: string;
+    phone: string;
+  },
+): Promise<void> {
+  const { error } = await supabase.from('professionals').insert({
+    user_id: userId,
+    name: data.name,
+    slug: data.slug,
+    email: data.email,
+    rut: data.rut,
+    phone: data.phone,
+  });
+
+  if (error) throw error;
+}
+
+export async function saveGoogleRefreshToken(refreshToken: string): Promise<void> {
+  const { error } = await supabase.functions.invoke('save-refresh-token', {
+    body: JSON.stringify({ refresh_token: refreshToken }),
+  });
+  if (error) throw error;
+}

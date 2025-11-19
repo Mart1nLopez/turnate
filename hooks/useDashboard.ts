@@ -1,96 +1,91 @@
-'use client';
-
 import { useState, useEffect, useCallback } from 'react';
-import { getCurrentProfessional } from '@/lib/supabase';
-import {
-  getDashboardStats,
-  getTodayAppointments,
-  getMonthlyRevenue,
-  getServiceStats,
-  getMonthlyAppointments,
-  DashboardStats,
-  MonthlyRevenue,
-  ServiceStats,
-} from '@/services/dashboardService';
-import { Appointment, Service } from '@/types';
-
-interface DashboardData {
-  stats: DashboardStats & {
-    monthlyAppointments?: number;
-    monthlyCompletedAppointments?: number;
-    monthlyCancelledAppointments?: number;
-    monthlyConversionRate?: number;
-  };
-  todayAppointments: (Appointment & { service?: Service; client?: { name: string } })[];
-  monthlyRevenue: MonthlyRevenue[];
-  serviceStats: ServiceStats[];
-}
+import { useRouter } from 'next/navigation';
+import { AuthService } from '@/services/authService';
+import { getCurrentProfessional, supabase } from '@/lib/supabase';
+import { Professional } from '@/types';
+import { toast } from 'sonner';
+import { saveGoogleRefreshToken } from '@/services/professionalService';
 
 export function useDashboard() {
-  const [data, setData] = useState<DashboardData>({
-    stats: {
-      todayAppointments: 0,
-      currentPeriodAppointments: 0,
-      monthlyRevenue: 0,
-      totalClients: 0,
-      totalAppointments: 0,
-      completedAppointments: 0,
-      cancelledAppointments: 0,
-      conversionRate: 0,
-    },
-    todayAppointments: [],
-    monthlyRevenue: [],
-    serviceStats: [],
-  });
+  const [professional, setProfessional] = useState<Professional | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  const loadDashboardData = useCallback(async () => {
+  const checkAuth = useCallback(async () => {
     try {
-      setLoading(true);
-      setError(null);
+      const { user, error } = await AuthService.getCurrentUser();
 
-      const { professional } = await getCurrentProfessional();
-      if (!professional) {
-        throw new Error('No se pudo obtener la información del profesional');
+      if (error || !user) {
+        router.push('/auth/login');
+        return;
       }
 
-      const [stats, todayApts, monthlyRev, serviceStats, monthlyApts] = await Promise.all([
-        getDashboardStats(professional.id),
-        getTodayAppointments(professional.id),
-        getMonthlyRevenue(professional.id),
-        getServiceStats(professional.id),
-        getMonthlyAppointments(professional.id),
-      ]);
+      const { professional, error: profError } = await getCurrentProfessional();
 
-      setData({
-        stats: {
-          ...stats,
-          monthlyAppointments: monthlyApts.total,
-          monthlyCompletedAppointments: monthlyApts.completed,
-          monthlyCancelledAppointments: monthlyApts.cancelled,
-          monthlyConversionRate: monthlyApts.conversionRate,
-        },
-        todayAppointments: todayApts,
-        monthlyRevenue: monthlyRev,
-        serviceStats,
-      });
+      if (profError || !professional) {
+        router.push('/auth/login');
+        return;
+      }
+
+      setProfessional(professional);
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      setError(error instanceof Error ? error.message : 'Error desconocido');
+      console.error('Error checking auth:', error);
+      router.push('/auth/login');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
-    loadDashboardData();
-  }, [loadDashboardData]);
+    checkAuth();
+  }, [checkAuth]);
+
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        
+        // Verificamos si estamos en medio de un proceso de conexión iniciado por el usuario
+        const isConnecting = typeof window !== 'undefined' && window.localStorage.getItem('is_connecting_google') === 'true';
+
+        // Solo actuamos si hay sesión, hay token Y  el usuario pidió conectar
+        if (event === 'SIGNED_IN' && session?.provider_refresh_token && isConnecting) {
+          console.log('Detectado retorno de Google con intención de conectar.');
+          
+          try {
+            await saveGoogleRefreshToken(session.provider_refresh_token);
+
+            toast.success('¡Google Calendar conectado exitosamente!');
+            
+            // Borramos la marca para que no vuelva a salir el toast al recargar
+            window.localStorage.removeItem('is_connecting_google');
+            
+            // Limpieza visual de la URL
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+            
+            checkAuth(); 
+            
+          } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : String(e);
+            console.error('Error saving token:', message);
+            toast.error('Error al guardar la conexión: ' + message);
+          }
+        }
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [router, checkAuth]); 
+
+  const handleSignOut = () => {
+    router.push('/auth/logout');
+  };
 
   return {
-    data,
+    professional,
     loading,
-    error,
-    refresh: loadDashboardData,
+    handleSignOut,
   };
 }

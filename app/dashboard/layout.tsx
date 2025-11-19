@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import LoadingSpinner from '@/components/ui/loading-spinner';
@@ -18,10 +18,7 @@ import {
   TbTrendingUp,
   TbCalendarOff,
 } from 'react-icons/tb';
-import { AuthService } from '@/services/authService';
-import { getCurrentProfessional, supabase } from '@/lib/supabase';
-import { Professional } from '@/types';
-import { toast } from 'sonner';
+import { useDashboard } from '@/hooks/useDashboard';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -39,89 +36,9 @@ const navigation = [
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [professional, setProfessional] = useState<Professional | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { professional, loading, handleSignOut } = useDashboard();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const router = useRouter();
   const pathname = usePathname();
-
-  const checkAuth = useCallback(async () => {
-    try {
-      const { user, error } = await AuthService.getCurrentUser();
-
-      if (error || !user) {
-        router.push('/auth/login');
-        return;
-      }
-
-      const { professional, error: profError } = await getCurrentProfessional();
-
-      if (profError || !professional) {
-        router.push('/auth/login');
-        return;
-      }
-
-      setProfessional(professional);
-    } catch (error) {
-      console.error('Error checking auth:', error);
-      router.push('/auth/login');
-    } finally {
-      setLoading(false);
-    }
-  }, [router]);
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        
-        // Verificamos si estamos en medio de un proceso de conexión iniciado por el usuario
-        const isConnecting = typeof window !== 'undefined' && window.localStorage.getItem('is_connecting_google') === 'true';
-
-        // Solo actuamos si hay sesión, hay token Y  el usuario pidió conectar
-        if (event === 'SIGNED_IN' && session?.provider_refresh_token && isConnecting) {
-          console.log('Detectado retorno de Google con intención de conectar.');
-          
-          try {
-            const { error } = await supabase.functions.invoke(
-              'save-refresh-token',
-              {
-                body: JSON.stringify({ refresh_token: session.provider_refresh_token }),
-              }
-            );
-            if (error) throw error;
-
-            toast.success('¡Google Calendar conectado exitosamente!');
-            
-            // Borramos la marca para que no vuelva a salir el toast al recargar
-            window.localStorage.removeItem('is_connecting_google');
-            
-            // Limpieza visual de la URL
-            const cleanUrl = window.location.pathname;
-            window.history.replaceState({}, document.title, cleanUrl);
-            
-            checkAuth(); 
-            
-          } catch (e: unknown) {
-            const message = e instanceof Error ? e.message : String(e);
-            console.error('Error saving token:', message);
-            toast.error('Error al guardar la conexión: ' + message);
-          }
-        }
-      }
-    );
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [router, checkAuth]); 
-
-  const handleSignOut = () => {
-    router.push('/auth/logout');
-  };
 
   if (loading) {
     return (

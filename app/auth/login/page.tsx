@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { AuthService } from '@/services/authService';
+import { useAuth } from '@/hooks/useAuth';
 import { LuMail, LuLock, LuEye, LuEyeOff } from 'react-icons/lu';
 import BasicHeader from '@/components/BasicHeader';
 import BasicFooter from '@/components/BasicFooter';
@@ -14,9 +13,7 @@ export default function LoginPage() {
     email: '',
     password: '',
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const { login, isLoading, error } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -27,52 +24,13 @@ export default function LoginPage() {
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
+    
     try {
-      const { error } = await AuthService.signIn(formData.email, formData.password);
-      if (error) throw error;
-      router.push('/dashboard');
+      await login(formData.email, formData.password);
     } catch (err) {
-      let errorMessage = 'Ha ocurrido un error al iniciar sesión';
-      if (err instanceof Error) {
-        switch (err.message) {
-          case 'Invalid login credentials':
-            errorMessage = 'Credenciales de inicio de sesión inválidas';
-            break;
-          case 'Email not confirmed':
-            errorMessage = 'Correo electrónico no confirmado';
-            break;
-          case 'Too many requests':
-            errorMessage = 'Demasiadas solicitudes. Inténtalo de nuevo más tarde';
-            break;
-          default:
-            errorMessage = err.message;
-        }
-      }
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
+      console.error(err);
     }
   };
-
-  {
-    /*
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const { error } = await AuthService.signInWithGoogle();
-      if (error) throw error;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ha ocurrido un error al iniciar sesión con Google');
-      setIsLoading(false);
-    }
-  };
-  */
-  }
 
   return (
     <div className="min-h-screen flex flex-col">
