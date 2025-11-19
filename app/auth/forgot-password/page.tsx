@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { AuthService } from '@/services/authService';
+import { checkEmailAvailability } from '@/services/professionalService';
 import { LuMail, LuArrowLeft } from 'react-icons/lu';
 import BasicHeader from '@/components/BasicHeader';
 import BasicFooter from '@/components/BasicFooter';
@@ -20,6 +21,16 @@ export default function ForgotPasswordPage() {
     setSuccess(false);
 
     try {
+      // Verificar si el correo existe en nuestra base de datos de profesionales
+      // checkEmailAvailability retorna true si el correo ESTÁ DISPONIBLE (no registrado)
+      // Por lo tanto, si retorna true, significa que el usuario NO existe.
+      const isEmailAvailable = await checkEmailAvailability(email);
+      
+      if (isEmailAvailable) {
+        setError('Este correo electrónico no se encuentra registrado.');
+        return;
+      }
+
       const { error } = await AuthService.resetPassword(email);
       if (error) throw error;
       setSuccess(true);
