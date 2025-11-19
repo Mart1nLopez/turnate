@@ -14,14 +14,14 @@ import {
 import { Button } from '@/components/ui/button';
 import Footer from '@/components/home/Footer';
 import TestimonialCard from '@/components/home/TestimonialCard';
-import HashRedirect from '@/components/professionalPage/HashRedirect';
+//import HashRedirect from '@/components/professionalPage/HashRedirect';
 import DashboardMockup from '@/components/home/DashboardMockup';
 import TypingAnimation from '@/components/ui/typing-animation';
 
 export default function LandingPage() {
   return (
     <>
-      <HashRedirect />
+      {/*<HashRedirect />*/}
       <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 scroll-smooth">
         {/* Header */}
         <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-md">

@@ -14,6 +14,7 @@ export class AuthService {
       password,
       options: {
         data: userData,
+        emailRedirectTo: `${window.location.origin}/auth/confirmado`,
       },
     });
     return { data, error };
