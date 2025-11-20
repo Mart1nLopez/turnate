@@ -31,7 +31,7 @@ const navigation = [
   { name: 'Servicios', href: '/dashboard/servicios', icon: TbUsers },
   { name: 'Disponibilidad', href: '/dashboard/disponibilidad', icon: TbClock },
   { name: 'Libres', href: '/dashboard/libres', icon: TbCalendarOff },
-  { name: 'Analíticas', href: '/dashboard/analytics', icon: TbTrendingUp },
+  { name: 'Analíticas', href: '/dashboard/analiticas', icon: TbTrendingUp },
   { name: 'Perfil', href: '/dashboard/perfil', icon: TbUser },
   { name: 'Reseñas', href: '/dashboard/resenas', icon: TbStars },
   { name: 'Configuración', href: '/dashboard/configuracion', icon: TbSettings },
