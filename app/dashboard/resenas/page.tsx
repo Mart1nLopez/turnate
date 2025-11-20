@@ -4,7 +4,7 @@ import { TbStar, TbUser, TbCalendar, TbStarFilled, TbMessage } from 'react-icons
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { useProfessionalReviews } from '@/hooks/useProfessionalReviews';
-import { Switch } from '@/components/ui/switch';
+import { DebouncedSwitch } from '@/components/ui/debounced-switch';
 import { toast } from 'sonner';
 
 export default function ResenasPage() {
@@ -85,7 +85,7 @@ export default function ResenasPage() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center space-x-3">
-            <Switch checked={hideReviews} onCheckedChange={handleToggleHideReviews} disabled={loading} />
+            <DebouncedSwitch checked={hideReviews} onCheckedChange={handleToggleHideReviews} disabled={loading} />
             <div>
               <label className="text-sm font-medium text-gray-900">Ocultar reseñas en página pública</label>
               <p className="text-sm text-gray-600">

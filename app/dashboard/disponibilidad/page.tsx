@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { TimeSelector } from '@/components/ui/time-selector';
 import { MinuteSelector } from '@/components/ui/minute-selector';
-import { Switch } from '@/components/ui/switch';
+import { DebouncedSwitch } from '@/components/ui/debounced-switch';
 import {
   Dialog,
   DialogContent,
@@ -626,7 +626,7 @@ export default function DisponibilidadPage() {
                   </div>
 
                   <div>
-                    <Switch
+                    <DebouncedSwitch
                       className='align-middle sm:mt-5'
                       checked={av.is_available}
                       onCheckedChange={() => handleToggle(av.id)}
