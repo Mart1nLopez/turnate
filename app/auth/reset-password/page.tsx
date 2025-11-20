@@ -4,14 +4,15 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AuthService } from '@/services/authService';
-import { LuLock, LuEye, LuEyeOff, LuCheck } from 'react-icons/lu';
+import { validatePassword, translatePasswordError } from '@/lib/passwordValidator';
+import { LuLock, LuCheck } from 'react-icons/lu';
+import { PasswordInput } from '@/components/ui/password-input';
 import BasicHeader from '@/components/BasicHeader';
 import BasicFooter from '@/components/BasicFooter';
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -29,14 +30,10 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
-      return;
-    }
 
-    if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+    const validation = validatePassword(password, confirmPassword);
+    if (!validation.isValid) {
+      setError(validation.error!);
       return;
     }
 
@@ -46,19 +43,27 @@ export default function ResetPasswordPage() {
     try {
       const { error } = await AuthService.updatePassword(password);
       if (error) throw error;
-      
+
       // Cerrar sesión para obligar al usuario a loguearse con la nueva contraseña
       await AuthService.signOut();
-      
+
       setSuccess(true);
-      
+
       // Redirigir después de unos segundos
       setTimeout(() => {
         router.push('/auth/login');
       }, 3000);
     } catch (err) {
-      console.error(err);
-      setError('Error al actualizar la contraseña. Asegúrate de haber usado el enlace enviado a tu correo.');
+      let errorMessage = 'Error al actualizar la contraseña. Asegúrate de haber usado el enlace enviado a tu correo.';
+
+      if (err instanceof Error) {
+        const translated = translatePasswordError(err);
+        if (translated) {
+          errorMessage = translated;
+        }
+      }
+
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -73,9 +78,7 @@ export default function ResetPasswordPage() {
           <div className="bg-white rounded-lg shadow-xl overflow-hidden border">
             <div className="px-6 pt-6 pb-2 space-y-1">
               <h2 className="text-2xl text-center font-semibold">Restablecer Contraseña</h2>
-              <p className="text-center text-muted-foreground text-sm">
-                Ingresa tu nueva contraseña
-              </p>
+              <p className="text-center text-muted-foreground text-sm">Ingresa tu nueva contraseña</p>
             </div>
 
             {error && (
@@ -84,7 +87,7 @@ export default function ResetPasswordPage() {
               </div>
             )}
 
-            {success ? (
+            {success ?
               <div className="p-6 text-center space-y-6">
                 <div className="flex justify-center">
                   <LuCheck className="h-16 w-16 text-green-500" />
@@ -92,7 +95,8 @@ export default function ResetPasswordPage() {
                 <div className="space-y-2">
                   <h3 className="text-xl font-medium text-green-700">¡Contraseña Actualizada!</h3>
                   <p className="text-muted-foreground">
-                    Tu contraseña ha sido cambiada exitosamente. Por seguridad, hemos cerrado tu sesión. Serás redirigido al inicio de sesión en unos segundos...
+                    Tu contraseña ha sido cambiada exitosamente. Por seguridad, hemos cerrado tu sesión. Serás
+                    redirigido al inicio de sesión en unos segundos...
                   </p>
                 </div>
                 <Link
@@ -101,8 +105,7 @@ export default function ResetPasswordPage() {
                   Ir al Inicio de Sesión
                 </Link>
               </div>
-            ) : (
-              <div className="p-6 space-y-4">
+            : <div className="p-6 space-y-4">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <label
@@ -111,24 +114,17 @@ export default function ResetPasswordPage() {
                       Nueva Contraseña
                     </label>
                     <div className="relative">
-                      <LuLock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <input
+                      <LuLock className="absolute left-3 top-3 h-4 w-4 text-gray-400 z-10" />
+                      <PasswordInput
                         id="password"
                         name="password"
-                        type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10 pr-10"
+                        className="pl-10"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         disabled={isLoading}
                         required
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">
-                        {showPassword ? <LuEyeOff className="h-4 w-4" /> : <LuEye className="h-4 w-4" />}
-                      </button>
                     </div>
                   </div>
 
@@ -139,13 +135,12 @@ export default function ResetPasswordPage() {
                       Confirmar Contraseña
                     </label>
                     <div className="relative">
-                      <LuLock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <input
+                      <LuLock className="absolute left-3 top-3 h-4 w-4 text-gray-400 z-10" />
+                      <PasswordInput
                         id="confirmPassword"
                         name="confirmPassword"
-                        type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10"
+                        className="pl-10"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         disabled={isLoading}
@@ -158,7 +153,7 @@ export default function ResetPasswordPage() {
                     type="submit"
                     disabled={isLoading}
                     className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 w-full">
-                    {isLoading ? (
+                    {isLoading ?
                       <span className="flex items-center justify-center gap-2">
                         <svg
                           className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
@@ -179,13 +174,11 @@ export default function ResetPasswordPage() {
                         </svg>
                         Actualizando...
                       </span>
-                    ) : (
-                      'Actualizar Contraseña'
-                    )}
+                    : 'Actualizar Contraseña'}
                   </button>
                 </form>
               </div>
-            )}
+            }
           </div>
         </div>
       </main>

@@ -7,8 +7,6 @@ import {
   updateProfessionalProfile,
   removeProfileImage as removeProfileImageFromDB,
   checkSlugAvailability as checkSlugAvailabilityService,
-  connectGoogleCalendar,
-  disconnectGoogleCalendar,
 } from '@/services/professionalService';
 import { deleteMultipleImages, deleteImageFromStorage, uploadCarouselImages, uploadProfileImage } from '@/lib/storage';
 import { generateSlugWithRandomSuffix } from '@/lib/utils';
@@ -62,16 +60,6 @@ interface UseProfileReturn {
   setShowQR: React.Dispatch<React.SetStateAction<boolean>>;
   qrRef: React.RefObject<HTMLDivElement | null>;
 
-  // Google
-  isSyncedWithGoogle: boolean;
-  handleGoogleSync: () => Promise<void>;
-  handleGoogleDisconnect: (
-    confirm: (options: {
-      title: string;
-      description: string;
-      variant?: 'default' | 'destructive' | 'warning' | 'info';
-    }) => Promise<boolean>,
-  ) => Promise<void>;
 
   // Cropper
   showCropper: boolean;
@@ -171,8 +159,6 @@ export function useProfile(): UseProfileReturn {
   const qrRef = useRef<HTMLDivElement>(null);
   const slugTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Google Calendar
-  const [isSyncedWithGoogle, setIsSyncedWithGoogle] = useState(false);
 
   // Cargar profesional
   const loadProfessional = useCallback(async () => {
@@ -195,7 +181,6 @@ export function useProfile(): UseProfileReturn {
       });
       setImages(professional.carrusel_images || []);
       setCurrentProfileImageUrl(professional.profile_image);
-      setIsSyncedWithGoogle(Boolean(professional.google_refresh_token));
     } catch (error) {
       console.error('Error loading professional:', error);
       toast.error('Error al cargar el perfil');
@@ -208,63 +193,6 @@ export function useProfile(): UseProfileReturn {
     loadProfessional();
   }, [loadProfessional]);
 
-  // Iniciar conexión con Google
-  const handleGoogleSync = async () => {
-    setSubmitting(true);
-    toast.info('Redirigiendo a Google para conectar tu calendario...');
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('is_connecting_google', 'true');
-    }
-
-    try {
-      await connectGoogleCalendar();
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      toast.error('Error al conectar con Google: ' + message);
-      setSubmitting(false);
-      // Si falla, limpiamos la marca por si acaso
-      if (typeof window !== 'undefined') {
-        window.localStorage.removeItem('is_connecting_google');
-      }
-    }
-    // El usuario será redirigido por Supabase
-  };
-
-  // Para desconectar Google
-  const handleGoogleDisconnect = async (
-    confirm: (options: {
-      title: string;
-      description: string;
-      variant?: 'default' | 'destructive' | 'warning' | 'info';
-    }) => Promise<boolean>,
-  ) => {
-    if (!professional) {
-      toast.error('No se pudo cargar el perfil. Intenta recargar la página.');
-      return;
-    }
-
-    const confirmed = await confirm({
-      title: 'Desconectar Google Calendar',
-      description: '¿Estás seguro de que quieres desconectar tu Google Calendar? Tus citas ya no se sincronizarán.',
-      variant: 'destructive',
-    });
-
-    if (!confirmed) return;
-
-    setSubmitting(true);
-    try {
-      await disconnectGoogleCalendar(professional.id);
-      // Actualiza el estado local
-      setProfessional((prev) => (prev ? { ...prev, google_refresh_token: null } : null));
-      setIsSyncedWithGoogle(false);
-      toast.success('Google Calendar desconectado exitosamente.');
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      toast.error('Error al desconectar: ' + message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   // Validar slug
   const validateAndSetSlug = async (newSlug: string) => {
@@ -599,11 +527,6 @@ export function useProfile(): UseProfileReturn {
     showQR,
     setShowQR,
     qrRef,
-
-    // Google
-    isSyncedWithGoogle,
-    handleGoogleSync,
-    handleGoogleDisconnect,
 
     // Cropper
     showCropper,

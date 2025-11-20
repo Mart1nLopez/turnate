@@ -17,6 +17,7 @@ import {
   TbX,
   TbTrendingUp,
   TbCalendarOff,
+  TbSettings,
 } from 'react-icons/tb';
 import { useDashboard } from '@/hooks/useDashboard';
 
@@ -33,6 +34,7 @@ const navigation = [
   { name: 'Analíticas', href: '/dashboard/analytics', icon: TbTrendingUp },
   { name: 'Perfil', href: '/dashboard/perfil', icon: TbUser },
   { name: 'Reseñas', href: '/dashboard/resenas', icon: TbStars },
+  { name: 'Configuración', href: '/dashboard/configuracion', icon: TbSettings },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {

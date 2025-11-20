@@ -6,6 +6,7 @@ import { AuthService } from '@/services/authService';
 import { createProfessionalProfile } from '@/services/professionalService';
 import { supabase } from '@/lib/supabase';
 import { generateSlugWithRandomSuffix } from '@/lib/utils';
+import { translatePasswordError } from '@/lib/passwordValidator';
 
 export function useAuth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -44,13 +45,7 @@ export function useAuth() {
     }
   };
 
-  const register = async (data: {
-    name: string;
-    email: string;
-    password: string;
-    rut: string;
-    phone: string;
-  }) => {
+  const register = async (data: { name: string; email: string; password: string; rut: string; phone: string }) => {
     setIsLoading(true);
     setError(null);
 
@@ -58,7 +53,7 @@ export function useAuth() {
       // Limpiar sesión previa si existe
       console.log('Limpiando sesión previa...');
       await AuthService.signOut();
-      
+
       // 1. Crear usuario en Supabase Auth
       console.log('Creando usuario en Auth...');
       const { data: authData, error: authError } = await AuthService.signUp(data.email, data.password, {
@@ -119,7 +114,10 @@ export function useAuth() {
         } else if (error.message.includes('Invalid email')) {
           errorMessage = 'El formato del email no es válido';
         } else if (error.message.includes('Password')) {
-          errorMessage = 'La contraseña debe tener al menos 6 caracteres';
+          const translated = translatePasswordError(error);
+          if (translated) {
+            errorMessage = translated;
+          }
         } else if (error.message.includes('Signups not allowed')) {
           errorMessage = 'Los registros de nuevos usuarios no están permitidos wuaja 😛.';
         }
@@ -152,23 +150,25 @@ export function useAuth() {
         slug,
       });
       console.log('Profesional creado exitosamente');
-    } catch (professionalError: any) {
+    } catch (professionalError: unknown) {
       console.error('Error creando profesional:', professionalError);
       // Si falla por slug duplicado, intentar con un nuevo sufijo
-      if (professionalError.message?.includes('duplicate') || professionalError.message?.includes('unique')) {
+      const errorMessage = professionalError instanceof Error ? professionalError.message : String(professionalError);
+
+      if (errorMessage.includes('duplicate') || errorMessage.includes('unique')) {
         console.log('Reintentando con nuevo slug...');
         const newSlug = generateSlugWithRandomSuffix(data.name);
         try {
-            await createProfessionalProfile(userId, {
-                ...data,
-                slug: newSlug,
-            });
-            console.log('Profesional creado con slug:', newSlug);
+          await createProfessionalProfile(userId, {
+            ...data,
+            slug: newSlug,
+          });
+          console.log('Profesional creado con slug:', newSlug);
         } catch (retryError) {
-             console.error('Error en segundo intento:', retryError);
-             throw retryError;
+          console.error('Error en segundo intento:', retryError);
+          throw retryError;
         }
-      } else if (professionalError.message?.includes('Signups not allowed')) {
+      } else if (errorMessage.includes('Signups not allowed')) {
         console.error('Signups no permitidos por Supabase');
         throw new Error('Los registros de nuevos usuarios no están permitidos en este momento.');
       } else {
@@ -178,13 +178,13 @@ export function useAuth() {
   };
 
   const logout = async () => {
-      try {
-          await AuthService.signOut();
-          router.push('/auth/login');
-      } catch (error) {
-          console.error('Error al cerrar sesión', error);
-      }
-  }
+    try {
+      await AuthService.signOut();
+      router.push('/auth/login');
+    } catch (error) {
+      console.error('Error al cerrar sesión', error);
+    }
+  };
 
   return {
     login,

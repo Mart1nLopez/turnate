@@ -1,21 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { LuMail, LuUser, LuLock, LuEye, LuEyeOff, LuCreditCard } from 'react-icons/lu';
+import { LuMail, LuUser, LuLock, LuCreditCard } from 'react-icons/lu';
 import PhoneInput from '@/components/ui/phone-input';
+import { PasswordInput } from '@/components/ui/password-input';
 import Link from 'next/link';
 import BasicHeader from '@/components/BasicHeader';
 import BasicFooter from '@/components/BasicFooter';
 import { useAuth } from '@/hooks/useAuth';
 import { validateRut, formatRutOnInput } from '@/lib/rut-validator';
+import { validatePassword } from '@/lib/passwordValidator';
 import { checkEmailAvailability, checkRutAvailability } from '@/services/professionalService';
 
 export default function RegisterPage() {
-  const [showPassword, setShowPassword] = useState(false);
   const [rutValidation, setRutValidation] = useState<{ isValid: boolean; error?: string } | null>(null);
   const [rutAvailability, setRutAvailability] = useState<{ isValid: boolean; error?: string } | null>(null);
   const [emailValidation, setEmailValidation] = useState<{ isValid: boolean; error?: string } | null>(null);
-  
+
   const { register, isLoading, error: authError } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -160,12 +161,11 @@ export default function RegisterPage() {
 
     if (!formData.password) {
       errors.push('La contraseña es requerida');
-    } else if (formData.password.length < 6) {
-      errors.push('La contraseña debe tener al menos 6 caracteres');
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      errors.push('Las contraseñas no coinciden');
+    } else {
+      const passwordValidation = validatePassword(formData.password, formData.confirmPassword);
+      if (!passwordValidation.isValid) {
+        errors.push(passwordValidation.error!);
+      }
     }
 
     return {
@@ -333,25 +333,16 @@ export default function RegisterPage() {
                     Contraseña
                   </label>
                   <div className="relative">
-                    <LuLock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <input
+                    <LuLock className="absolute left-3 top-3 h-4 w-4 text-gray-400 z-10" />
+                    <PasswordInput
                       id="password"
                       name="password"
-                      type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10 pr-10"
+                      className="pl-10"
                       value={formData.password}
                       onChange={handleInputChange}
                       required
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">
-                      {showPassword ?
-                        <LuEyeOff className="h-4 w-4" />
-                      : <LuEye className="h-4 w-4" />}
-                    </button>
                   </div>
                 </div>
 
@@ -363,13 +354,12 @@ export default function RegisterPage() {
                     Confirmar Contraseña
                   </label>
                   <div className="relative">
-                    <LuLock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <input
+                    <LuLock className="absolute left-3 top-3 h-4 w-4 text-gray-400 z-10" />
+                    <PasswordInput
                       id="confirmPassword"
                       name="confirmPassword"
-                      type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10"
+                      className="pl-10"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
                       required

@@ -72,7 +72,7 @@ export async function connectGoogleCalendar(): Promise<void> {
         access_type: 'offline',
         prompt: 'consent',
       },
-      redirectTo: `${window.location.origin}/dashboard/perfil?sync=success`,
+      redirectTo: `${window.location.origin}/dashboard/configuracion?sync=success`,
     },
   });
   if (error) throw error;
