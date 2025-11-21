@@ -17,11 +17,6 @@ export function DebouncedSwitch({
   const debouncedChecked = useDebounce(localChecked, debounceTime);
   const isFirstRender = React.useRef(true);
 
-  // Sync local state with prop when prop changes
-  // We only want to do this if the prop change wasn't caused by our own update
-  // But since we can't easily know that, we'll just sync.
-  // However, to avoid jitter if the user is clicking fast, we might want to skip this if we are "dirty"?
-  // For now, let's trust the simple sync.
   React.useEffect(() => {
     setLocalChecked(checked);
   }, [checked]);
@@ -32,9 +27,6 @@ export function DebouncedSwitch({
       return;
     }
 
-    // Only trigger callback if the value is different from what we think the parent has
-    // But we don't know what the parent has exactly, except via `checked` prop.
-    // If `debouncedChecked` !== `checked`, it means we have a pending change that stabilized.
     if (debouncedChecked !== checked) {
       onCheckedChange?.(debouncedChecked);
     }

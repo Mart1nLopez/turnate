@@ -19,17 +19,17 @@ export async function removeProfileImage(id: string): Promise<void> {
 
 export async function checkSlugAvailability(slug: string, currentProfessionalId?: string): Promise<boolean> {
   if (!slug || slug.trim() === '') return false;
-  const { data, error } = await supabase.from('professionals').select('id').eq('slug', slug).single();
-  if (error && error.code === 'PGRST116') {
-    // No se encontró ningún registro, el slug está disponible
-    return true;
-  }
+  const { data, error } = await supabase.from('professionals').select('id').eq('slug', slug);
   if (error) {
     console.error('Error checking slug:', error);
     return false;
   }
-  // Si se encontró un registro, el slug ya existe, pero si es el mismo profesional, es válido
-  if (data && currentProfessionalId && data.id === currentProfessionalId) return true;
+  if (!data || data.length === 0) {
+    // No se encontró ningún registro, el slug está disponible
+    return true;
+  }
+  // Si se encontró un registro, verificar si es el mismo profesional
+  if (data[0].id === currentProfessionalId) return true;
   return false;
 }
 

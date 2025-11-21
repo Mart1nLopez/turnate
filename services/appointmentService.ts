@@ -1,6 +1,12 @@
 import { supabase } from '@/lib/supabase';
 import { Appointment, Client, Professional } from '@/types';
 import { Service } from '@/types';
+import {
+  sendAppointmentConfirmation,
+  sendCancellationByProfessional,
+  sendCancellationByClient,
+  sendReviewRequest,
+} from '@/services/emailService';
 
 export type AppointmentWithDetails = import('@/types').Appointment & {
   service?: Service;
@@ -210,10 +216,32 @@ export async function updateAppointmentStatus(appointmentId: string, status: str
 }
 
 export async function cancelAppointmentByProfessional(appointmentId: string): Promise<void> {
+  const { data: appointment } = await supabase
+    .from('appointments')
+    .select(`*, service:services(name), client:clients(name, email), professional:professionals(name, email)`)
+    .eq('id', appointmentId)
+    .single();
+
   const { error } = await supabase
     .from('appointments')
     .update({ status: 'cancelled_by_pro', cancellation_token: null })
     .eq('id', appointmentId);
+
+  if (appointment) {
+    const appointmentDate = appointment.start_time.split('T')[0];
+    const appointmentTime = appointment.start_time.split('T')[1].substring(0, 5);
+
+    await sendCancellationByProfessional({
+      clientName: appointment.client.name,
+      clientEmail: appointment.client.email,
+      professionalName: appointment.professional.name,
+      professionalEmail: appointment.professional.email,
+      service: appointment.service.name,
+      date: appointmentDate,
+      time: appointmentTime,
+      appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    });
+  }
   if (error) throw error;
 }
 
@@ -223,11 +251,33 @@ export async function cancelAppointmentByProfessionalAndSync(appointmentId: stri
 }
 
 export async function cancelAppointmentByClient(appointmentId: string): Promise<void> {
+  const { data: appointment } = await supabase
+    .from('appointments')
+    .select(`*, service:services(name), client:clients(name, email), professional:professionals(name, email)`)
+    .eq('id', appointmentId)
+    .single();
+
   const { error } = await supabase
     .from('appointments')
     .update({ status: 'cancelled_by_client', cancellation_token: null })
     .eq('id', appointmentId);
   if (error) throw error;
+
+  if (appointment) {
+    const appointmentDate = appointment.start_time.split('T')[0];
+    const appointmentTime = appointment.start_time.split('T')[1].substring(0, 5);
+
+    await sendCancellationByClient({
+      clientName: appointment.client.name,
+      clientEmail: appointment.client.email,
+      professionalName: appointment.professional.name,
+      professionalEmail: appointment.professional.email,
+      service: appointment.service.name,
+      date: appointmentDate,
+      time: appointmentTime,
+      appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    });
+  }
 }
 
 export async function cancelAppointmentByClientAndSync(appointmentId: string): Promise<void> {
@@ -236,8 +286,31 @@ export async function cancelAppointmentByClientAndSync(appointmentId: string): P
 }
 
 export async function completeAppointment(appointmentId: string): Promise<void> {
+  const { data: appointment } = await supabase
+    .from('appointments')
+    .select(`*, service:services(name), client:clients(name, email), professional:professionals(name, email)`)
+    .eq('id', appointmentId)
+    .single();
+
   const { error } = await supabase.from('appointments').update({ status: 'completed' }).eq('id', appointmentId);
   if (error) throw error;
+
+  if (appointment && appointment.review_token) {
+    const appointmentDate = appointment.start_time.split('T')[0];
+    const appointmentTime = (appointment.start_time.split('T')[1] || '').substring(0, 5);
+
+    await sendReviewRequest({
+      clientName: appointment.client.name,
+      clientEmail: appointment.client.email,
+      professionalName: appointment.professional.name,
+      professionalEmail: appointment.professional.email,
+      service: appointment.service.name,
+      date: appointmentDate,
+      time: appointmentTime,
+      reviewToken: appointment.review_token,
+      appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    });
+  }
 }
 
 export async function getProfessionalBySlug(slug: string) {
@@ -332,8 +405,31 @@ export async function createAppointment({
       cancellation_token: cancellationToken,
       review_token: reviewToken,
     })
-    .select()
+    .select(`*, service:services(name), client:clients(name, email, phone), professional:professionals(name, email)`)
     .single();
+  // Extraemos fecha y hora del ISO string startTime
+  const dateObj = new Date(startTime);
+  const dateStr = dateObj.toISOString().split('T')[0];
+  const timeStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+  const emailResult = await sendAppointmentConfirmation({
+    clientName: data.client.name,
+    clientEmail: data.client.email,
+    clientPhone: data.client.phone,
+    professionalName: data.professional.name,
+    professionalEmail: data.professional.email,
+    service: data.service.name,
+    date: dateStr,
+    time: timeStr,
+    appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    cancellationToken: cancellationToken,
+    reviewToken: reviewToken,
+  });
+
+  if (!emailResult.success) {
+    console.error('Error enviando emails de confirmación:', emailResult.error);
+  }
+
   if (error) throw error;
   return data;
 }
@@ -353,6 +449,5 @@ export async function syncAppointmentToGoogleCalendar(
     console.log(`Cita ${action}d sincronizada con Google Calendar`);
   } catch (error) {
     console.warn(`Cita creada, pero falló la sincro con Google:`, error);
-    // No lanzamos el error para no fallar toda la operación
   }
 }

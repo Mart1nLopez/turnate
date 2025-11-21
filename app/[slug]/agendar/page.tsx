@@ -233,45 +233,6 @@ export default function AgendarPage() {
       // Sincronizar con Google Calendar
       await syncAppointmentToGoogleCalendar(newAppointment.id, 'create');
 
-      // Enviar email de confirmación con el token de cancelación
-      try {
-        const dateOnly = selectedDate ? selectedDate.toISOString().split('T')[0] : ''; // YYYY-MM-DD format
-
-        const dataToSend = {
-          action: 'schedule',
-          clientName: formData.name,
-          clientEmail: formData.email,
-          clientPhone: formData.phone,
-          service: selectedService.name,
-          date: dateOnly, // Enviar en formato YYYY-MM-DD
-          time: selectedTime,
-          professionalName: professional.name,
-          professionalEmail: professional.email,
-          cancellationToken: cancellationToken,
-          appUrl: window.location.origin,
-        };
-
-        const formBody = Object.entries(dataToSend)
-          .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v || ''))
-          .join('&');
-
-        const response = await fetch(process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: formBody,
-        });
-
-        const result = await response.text();
-        console.log('Respuesta del script:', result);
-        toast.success('¡Cita agendada exitosamente! Te hemos enviado un correo de confirmación.');
-      } catch (emailError) {
-        console.error('Error enviando email de confirmación:', emailError);
-        // No fallar todo el proceso si el email falla
-        toast.warning('Cita creada exitosamente, pero no se pudo enviar el email de confirmación');
-      }
-
       // Reset y mostrar éxito
       setStep(1);
       setSelectedService(null);

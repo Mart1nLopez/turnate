@@ -98,48 +98,11 @@ export default function CancelAppointmentPage() {
     try {
       // Cancelar la cita y sincronizar con Google Calendar
       console.log('Cancelando cita y sincronizando con Google Calendar...');
+
       await cancelAppointmentByClientAndSync(appointment.id);
 
       console.log('Cita cancelada exitosamente');
 
-      // 3. Enviar notificación al profesional
-      console.log('Preparando notificación por email...');
-      try {
-        const startDateTime = new Date(appointment.start_time);
-        const dateOnly = startDateTime.toISOString().split('T')[0];
-        const formattedTime = startDateTime.toLocaleTimeString('es-CL', {
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-
-        const dataToSend = {
-          action: 'client_cancel',
-          clientName: appointment.client?.name || '',
-          clientEmail: appointment.client?.email || '',
-          service: appointment.service?.name || '',
-          date: dateOnly,
-          time: formattedTime,
-          professionalName: appointment.professional?.name || '',
-          professionalEmail: appointment.professional?.email || '',
-        };
-
-        const formBody = Object.entries(dataToSend)
-          .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
-          .join('&');
-
-        // Enviar sin esperar (fire-and-forget)
-        fetch(process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: formBody,
-        });
-      } catch (emailError) {
-        console.error('Error enviando notificación al profesional:', emailError);
-      }
-
-      console.log('Proceso completado. Estableciendo estado "cancelled".');
       setCancelled(true);
     } catch (error) {
       // Catch principal para el paso 1

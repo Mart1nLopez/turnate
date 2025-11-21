@@ -122,41 +122,9 @@ export default function CitasPage() {
         toast.error('Error al obtener datos del profesional');
         return;
       }
+      // Cancelar la cita
       await cancelAppointmentByProfessionalAndSync(appointmentId);
 
-      try {
-        const startDateTime = new Date(appointmentToCancel.start_time);
-        const formattedDate = startDateTime.toISOString().split('T')[0];
-        const formattedTime = startDateTime.toLocaleTimeString('es-ES', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        });
-        const dataToSend = {
-          action: 'cancel',
-          clientName: appointmentToCancel.client.name,
-          clientEmail: appointmentToCancel.client.email,
-          service: appointmentToCancel.service.name,
-          date: formattedDate,
-          time: formattedTime,
-          professionalName: professional.name,
-        };
-        const formBody = Object.entries(dataToSend)
-          .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
-          .join('&');
-        const response = await fetch(process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: formBody,
-        });
-        const result = await response.text();
-        console.log('Respuesta del script de cancelación:', result);
-      } catch (emailError) {
-        console.error('Error enviando notificación de cancelación:', emailError);
-        toast.warning('Cita cancelada, pero no se pudo enviar la notificación por email');
-      }
       setAppointments((prev) =>
         prev.map((apt) => (apt.id === appointmentId ? { ...apt, status: 'cancelled_by_pro' as const } : apt)),
       );
@@ -195,43 +163,9 @@ export default function CitasPage() {
         toast.error('Error al obtener datos del profesional');
         return;
       }
+      // Marcar como completada
       await completeAppointment(appointmentId);
-      try {
-        const startDateTime = new Date(appointmentToComplete.start_time);
-        const dateOnly = startDateTime.toISOString().split('T')[0];
-        const formattedTime = startDateTime.toLocaleTimeString('es-ES', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        });
-        const dataToSend = {
-          action: 'review_request',
-          clientName: appointmentToComplete.client.name,
-          clientEmail: appointmentToComplete.client.email,
-          service: appointmentToComplete.service.name,
-          date: dateOnly,
-          time: formattedTime,
-          professionalName: professional.name,
-          appointmentId: appointmentId,
-          reviewToken: appointmentToComplete.review_token,
-          appUrl: window.location.origin,
-        };
-        const formBody = Object.entries(dataToSend)
-          .map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v))
-          .join('&');
-        const response = await fetch(process.env.NEXT_PUBLIC_GOOGLEAPP_SCRIPT!, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: formBody,
-        });
-        const result = await response.text();
-        console.log('Respuesta del script de reseña:', result);
-      } catch (emailError) {
-        console.error('Error enviando email de reseña:', emailError);
-        toast.warning('Cita completada, pero no se pudo enviar el email de reseña');
-      }
+      
       setAppointments((prev) =>
         prev.map((apt) => (apt.id === appointmentId ? { ...apt, status: 'completed' as const } : apt)),
       );
