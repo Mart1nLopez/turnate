@@ -250,7 +250,7 @@ export default function PerfilPage() {
                       </p>
                     </div>
                     <p className="text-gray-500 text-xs mt-1">
-                      Tu URL será: {process.env.NEXT_PUBLIC_APP_URL || 'https://turnate.cl'}/{formData.slug}
+                      Tu URL será: https://turnate.cl/{formData.slug}
                     </p>
                   </div>
                   <div>

@@ -239,7 +239,6 @@ export async function cancelAppointmentByProfessional(appointmentId: string): Pr
       service: appointment.service.name,
       date: appointmentDate,
       time: appointmentTime,
-      appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
     });
   }
   if (error) throw error;
@@ -275,7 +274,6 @@ export async function cancelAppointmentByClient(appointmentId: string): Promise<
       service: appointment.service.name,
       date: appointmentDate,
       time: appointmentTime,
-      appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
     });
   }
 }
@@ -308,7 +306,6 @@ export async function completeAppointment(appointmentId: string): Promise<void> 
       date: appointmentDate,
       time: appointmentTime,
       reviewToken: appointment.review_token,
-      appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
     });
   }
 }
@@ -421,7 +418,6 @@ export async function createAppointment({
     service: data.service.name,
     date: dateStr,
     time: timeStr,
-    appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
     cancellationToken: cancellationToken,
     reviewToken: reviewToken,
   });

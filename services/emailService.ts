@@ -25,7 +25,6 @@ interface EmailData {
   service: string;
   date: string; // YYYY-MM-DD
   time: string;
-  appUrl: string;
 
   cancellationToken?: string;
   reviewToken?: string;
@@ -50,7 +49,7 @@ const formatDate = (dateString: string) => {
 // Confirmar Cita (Cliente + Profesional)
 export async function sendAppointmentConfirmation(data: EmailData) {
   const formattedDate = formatDate(data.date);
-  const cancelUrl = `${data.appUrl}/cancel/${data.cancellationToken}`;
+  const cancelUrl = `turnate.cl/cancel/${data.cancellationToken}`;
 
   try {
     console.log('Enviando correo de confirmación al cliente:', data.clientEmail);
@@ -170,7 +169,7 @@ export async function sendCancellationByClient(data: EmailData) {
 // Solicitar Reseña
 export async function sendReviewRequest(data: EmailData) {
   const formattedDate = formatDate(data.date);
-  const reviewUrl = `${data.appUrl}/review/${data.reviewToken}`;
+  const reviewUrl = `turnate.cl/review/${data.reviewToken}`;
 
   try {
     const { error } = await resend.emails.send({
