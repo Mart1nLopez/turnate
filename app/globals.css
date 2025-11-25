@@ -164,6 +164,10 @@ html {
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-geist-sans), sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   button {
     @apply hover:cursor-pointer;
