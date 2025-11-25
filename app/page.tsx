@@ -17,10 +17,33 @@ import TestimonialCard from '@/components/home/TestimonialCard';
 //import HashRedirect from '@/components/professionalPage/HashRedirect';
 import DashboardMockup from '@/components/home/DashboardMockup';
 import TypingAnimation from '@/components/ui/typing-animation';
+import JsonLd from '@/components/seo/json-ld';
 
 export default function LandingPage() {
   return (
     <>
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'SoftwareApplication',
+          name: 'Turnate',
+          applicationCategory: 'BusinessApplication',
+          operatingSystem: 'Web',
+          offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'CLP',
+          },
+          description:
+            'Plataforma de gestión de citas para profesionales y empresas. Agenda online, recordatorios automáticos y más.',
+          url: 'https://turnate.cl',
+          publisher: {
+            '@type': 'Organization',
+            name: 'Turnate',
+            logo: 'https://turnate.cl/logo.svg',
+          },
+        }}
+      />
       {/*<HashRedirect />*/}
       <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 scroll-smooth">
         {/* Header */}
