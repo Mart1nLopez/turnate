@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/og-image.png',
+        url: 'img/og-image.png',
         alt: 'Turnate Dashboard Preview',
       },
     ],
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Turnate - Gestión de citas para profesionales',
     description: 'Simplifica tu negocio con nuestra plataforma de gestión de citas. Agenda online, recordatorios automáticos y más.',
-    images: ['/og-image.png'],
+    images: ['img/og-image.png'],
     creator: '@turnate',
   },
   robots: {
