@@ -393,6 +393,9 @@ export function useProfile(): UseProfileReturn {
       setRemoveProfileImage(false);
       setCurrentProfileImageUrl(removeProfileImage && !profileImageFile ? undefined : finalProfileImageUrl);
 
+      // Notificar a otros componentes que el perfil se actualizó
+      window.dispatchEvent(new Event('professional-updated'));
+
       toast.success('Perfil actualizado exitosamente');
     } catch (error) {
       console.error('Error updating profile:', error);

@@ -77,8 +77,15 @@ export function useDashboard() {
       }
     );
 
+    const handleProfessionalUpdate = () => {
+      checkAuth();
+    };
+
+    window.addEventListener('professional-updated', handleProfessionalUpdate);
+
     return () => {
       authListener.subscription.unsubscribe();
+      window.removeEventListener('professional-updated', handleProfessionalUpdate);
     };
   }, [router, checkAuth]); 
 
