@@ -63,6 +63,9 @@ export function useDashboard() {
             const cleanUrl = window.location.pathname;
             window.history.replaceState({}, document.title, cleanUrl);
             
+            // Disparamos evento para que la UI se actualice
+            window.dispatchEvent(new Event('google-calendar-updated'));
+            
             checkAuth(); 
             
           } catch (e: unknown) {

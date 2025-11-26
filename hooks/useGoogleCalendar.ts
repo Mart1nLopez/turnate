@@ -7,12 +7,14 @@ import {
   connectGoogleCalendar,
   disconnectGoogleCalendar,
 } from '@/services/professionalService';
+import { useRouter } from 'next/navigation';
 
 export function useGoogleCalendar() {
   const [isSynced, setIsSynced] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [professionalId, setProfessionalId] = useState<string | null>(null);
+  const router = useRouter();
 
   const loadStatus = useCallback(async () => {
     try {
@@ -28,6 +30,20 @@ export function useGoogleCalendar() {
 
   useEffect(() => {
     loadStatus();
+  }, [loadStatus]);
+
+  // Escuchar evento de actualización desde el DashboardLayout
+  useEffect(() => {
+    const handleUpdate = () => {
+      console.log('Recibido evento de actualización de Google Calendar');
+      loadStatus();
+    };
+
+    window.addEventListener('google-calendar-updated', handleUpdate);
+
+    return () => {
+      window.removeEventListener('google-calendar-updated', handleUpdate);
+    };
   }, [loadStatus]);
 
   const handleConnect = async () => {
