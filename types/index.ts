@@ -24,6 +24,7 @@ export interface Professional {
   created_at: string;
   google_refresh_token?: string | null;
   hide_reviews?: boolean;
+  is_approved?: boolean;
 }
 
 export interface Service {

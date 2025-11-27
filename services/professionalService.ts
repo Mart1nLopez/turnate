@@ -102,6 +102,7 @@ export async function createProfessionalProfile(
     email: data.email,
     rut: data.rut,
     phone: data.phone,
+    is_approved: false,
   });
 
   if (error) throw error;

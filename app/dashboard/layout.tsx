@@ -20,6 +20,7 @@ import {
   TbSettings,
 } from 'react-icons/tb';
 import { useDashboard } from '@/hooks/useDashboard';
+import PendingApproval from '@/components/auth/pending-approval';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -48,6 +49,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <LoadingSpinner size="lg" text="Cargando dashboard..." />
       </div>
     );
+  }
+
+  if (professional && professional.is_approved === false) {
+    return <PendingApproval />;
   }
 
   return (
