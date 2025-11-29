@@ -40,7 +40,7 @@ export default function LandingPage() {
           publisher: {
             '@type': 'Organization',
             name: 'Turnate',
-            logo: 'https://turnate.cl/logo.svg',
+            logo: 'https://turnate.cl/logo.png',
           },
         }}
       />

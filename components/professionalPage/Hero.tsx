@@ -33,8 +33,8 @@ export default function Hero({ professional }: HeroProps) {
   const caption = `Descubre los servicios de ${professional.name}`;
 
   return (
-    <section id="hero" className="relative w-full h-screen overflow-hidden z-0 -mt-20">
-      <div className="relative w-full h-full pt-20">
+    <section id="hero" className="relative w-full h-auto aspect-[3/5] md:h-screen md:aspect-auto overflow-hidden z-0 md:-mt-20">
+      <div className="relative w-full h-full md:pt-20">
         {slides.map((slide, i) => (
           <Image
             key={i}
