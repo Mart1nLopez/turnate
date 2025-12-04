@@ -67,7 +67,7 @@ export async function connectGoogleCalendar(): Promise<void> {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      scopes: 'https://www.googleapis.com/auth/calendar.events',
+      scopes: 'https://www.googleapis.com/auth/calendar',
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
