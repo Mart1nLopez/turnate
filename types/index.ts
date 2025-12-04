@@ -62,6 +62,7 @@ export interface Appointment {
   service?: Service;
   client?: Client;
   google_calendar_event_id?: string | null;
+  google_calendar_id?: string | null;
 }
 
 export interface TimeBlock {
