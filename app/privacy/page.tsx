@@ -71,7 +71,7 @@ export default function PrivacyPage() {
               </p>
               <ul className="list-disc pl-6 text-gray-700 mb-4">
                 <li>
-                  <strong>Acceso:</strong> Solicitamos acceso para "ver, editar, compartir y eliminar permanentemente todos los calendarios a los que puede acceder a través de Google Calendar".
+                  <strong>Acceso:</strong> Solicitamos acceso para &quot;ver, editar, compartir y eliminar permanentemente todos los calendarios a los que puede acceder a través de Google Calendar&quot;.
                   Específicamente, creamos un calendario específico y creamos eventos en el calendario para sincronizar sus citas.
                 </li>
                 <li>
@@ -86,7 +86,7 @@ export default function PrivacyPage() {
                   No almacenamos el contenido de sus eventos personales de Google Calendar en nuestros servidores, salvo la información necesaria para la sincronización de citas creadas por Turnate.
                 </li>
                 <li>
-                  <strong>Compartir:</strong> No compartimos, transferimos ni divulgamos sus datos de usuario de Google a terceros, excepto cuando sea necesario para proporcionar o mejorar la funcionalidad de la aplicación (como se describe en la sección "Compartir Información") o según lo requiera la ley.
+                  <strong>Compartir:</strong> No compartimos, transferimos ni divulgamos sus datos de usuario de Google a terceros, excepto cuando sea necesario para proporcionar o mejorar la funcionalidad de la aplicación (como se describe en la sección &quot;Compartir Información&quot;) o según lo requiera la ley.
                   No vendemos sus datos de usuario de Google.
                 </li>
               </ul>
