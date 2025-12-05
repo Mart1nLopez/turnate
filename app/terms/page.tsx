@@ -26,7 +26,7 @@ export default function TermsPage() {
 
           <div className="prose prose-lg max-w-none">
             <p className="text-gray-600 mb-8">
-              <strong>Última actualización:</strong> 25 de junio de 2025
+              <strong>Última actualización:</strong> 05 de diciembre de 2025
             </p>
 
             <section className="mb-8">
@@ -148,7 +148,25 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">11. Modificaciones del Servicio</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">11. Servicios de Terceros</h2>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                Nuestro servicio puede integrarse con servicios de terceros, como Google Calendar. El uso de estas
+                integraciones está sujeto a los términos y condiciones de dichos terceros.
+              </p>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                Al utilizar la integración con Google Calendar, usted acepta estar sujeto a los{' '}
+                <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">
+                  Términos de Servicio de Google
+                </a>{' '}
+                y a la{' '}
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 underline">
+                  Política de Privacidad de Google
+                </a>.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">12. Modificaciones del Servicio</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
                 Nos reservamos el derecho de modificar, suspender o discontinuar el servicio en cualquier momento.
                 También podemos actualizar estos términos ocasionalmente. Los cambios significativos serán notificados a
@@ -157,7 +175,7 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">12. Terminación</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">13. Terminación</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
                 Podemos suspender o terminar su acceso al servicio si viola estos términos. Usted puede cancelar su
                 cuenta en cualquier momento. Al terminar la cuenta, algunos datos pueden conservarse según nuestra
@@ -166,7 +184,7 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">13. Ley Aplicable</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">14. Ley Aplicable</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
                 Estos términos se rigen por las leyes de Chile. Cualquier disputa será resuelta en los tribunales
                 competentes de Chile.
@@ -174,7 +192,7 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">14. Contacto</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">15. Contacto</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
                 Si tiene preguntas sobre estos términos, puede contactarnos a través de nuestra{' '}
                 <Link href="/contact" className="text-blue-600 hover:text-blue-700 underline">

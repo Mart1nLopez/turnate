@@ -26,7 +26,7 @@ export default function PrivacyPage() {
 
           <div className="prose prose-lg max-w-none">
             <p className="text-gray-600 mb-8">
-              <strong>Última actualización:</strong> 25 de junio de 2025
+              <strong>Última actualización:</strong> 05 de diciembre de 2025
             </p>
 
             <section className="mb-8">
@@ -63,6 +63,42 @@ export default function PrivacyPage() {
                 <li>Páginas visitadas y tiempo de permanencia</li>
                 <li>Cookies y tecnologías similares</li>
               </ul>
+
+              <h3 className="text-xl font-semibold text-gray-800 mb-3">2.3 Datos de Google (Google User Data)</h3>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                Si decide conectar su cuenta de Google Calendar, nuestra aplicación accederá a cierta información de su cuenta de Google.
+                De acuerdo con los requisitos de la Política de Datos de Usuario de los Servicios API de Google, divulgamos lo siguiente:
+              </p>
+              <ul className="list-disc pl-6 text-gray-700 mb-4">
+                <li>
+                  <strong>Acceso:</strong> Solicitamos acceso para "ver, editar, compartir y eliminar permanentemente todos los calendarios a los que puede acceder a través de Google Calendar".
+                  Específicamente, creamos un calendario específico y creamos eventos en el calendario para sincronizar sus citas.
+                </li>
+                <li>
+                  <strong>Uso:</strong> Utilizamos esta información <strong>únicamente</strong> para:
+                  <ul className="list-disc pl-6">
+                    <li>Añadir y eliminar automáticamente las citas agendadas a través de Turnate a su Google Calendar.</li>
+                  </ul>
+                  No utilizamos sus datos de Google para fines publicitarios ni para entrenar modelos de inteligencia artificial.
+                </li>
+                <li>
+                  <strong>Almacenamiento:</strong> Almacenamos de forma segura los tokens de acceso y actualización necesarios para mantener la conexión.
+                  No almacenamos el contenido de sus eventos personales de Google Calendar en nuestros servidores, salvo la información necesaria para la sincronización de citas creadas por Turnate.
+                </li>
+                <li>
+                  <strong>Compartir:</strong> No compartimos, transferimos ni divulgamos sus datos de usuario de Google a terceros, excepto cuando sea necesario para proporcionar o mejorar la funcionalidad de la aplicación (como se describe en la sección "Compartir Información") o según lo requiera la ley.
+                  No vendemos sus datos de usuario de Google.
+                </li>
+              </ul>
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Cumplimiento de Uso Limitado:</strong> El uso y la transferencia a cualquier otra aplicación de la información recibida de las API de Google cumplirán con la{' '}
+                  <a href="https://developers.google.com/terms/api-services-user-data-policy#additional_requirements_for_specific_api_scopes" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">
+                    Política de Datos de Usuario de los Servicios API de Google
+                  </a>
+                  , incluidos los requisitos de Uso Limitado.
+                </p>
+              </div>
             </section>
 
             <section className="mb-8">
@@ -132,6 +168,9 @@ export default function PrivacyPage() {
                 </li>
                 <li>
                   <strong>Datos de marketing:</strong> hasta que retire su consentimiento
+                </li>
+                <li>
+                  <strong>Datos de Google Calendar:</strong> Si desconecta su cuenta de Google Calendar, eliminaremos los tokens de acceso asociados de nuestros sistemas.
                 </li>
               </ul>
             </section>
