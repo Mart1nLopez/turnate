@@ -18,6 +18,7 @@ import TestimonialCard from '@/components/home/TestimonialCard';
 import DashboardMockup from '@/components/home/DashboardMockup';
 import TypingAnimation from '@/components/ui/typing-animation';
 import JsonLd from '@/components/seo/json-ld';
+import FAQ from '@/components/home/FAQ';
 
 export default function LandingPage() {
   return (
@@ -285,6 +286,9 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* Sección de Preguntas Frecuentes */}
+        <FAQ />
 
         {/* Sección CTA final */}
         <section className="py-16 md:py-24">
