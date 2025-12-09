@@ -1,12 +1,24 @@
 import Image from 'next/image';
 
-export default function DashboardMockup() {
+interface DashboardMockupProps {
+  desktopImage: string;
+  mobileImage: string;
+  alt?: string;
+  priority?: boolean;
+}
+
+export default function DashboardMockup({
+  desktopImage,
+  mobileImage,
+  alt = "Dashboard de Turnate",
+  priority = false,
+}: DashboardMockupProps) {
   return (
     <>
       {/* Versión Desktop - Solo visible en pantallas medianas y grandes */}
       <div className="hidden md:block w-full perspective-1000">
-        <div className="relative w-full max-w-4xl mx-auto aspect-[16/8.7] rotate-y-12 dashboard-shadow rounded-xl overflow-hidden transition-all duration-500 hover:rotate-y-8 hover:scale-105 bg-gray-100">
-          <Image src="/dashboard.svg" alt="Dashboard de Turnate" fill className="object-contain object-top" priority />
+        <div className="relative w-full max-w-4xl mx-auto aspect-[16/8.8] rotate-y-12 dashboard-shadow rounded-xl overflow-hidden transition-all duration-500 hover:rotate-y-8 hover:scale-105 bg-gray-100">
+          <Image src={desktopImage} alt={alt} fill className="object-contain object-top" priority={priority} />
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/20 pointer-events-none"></div>
           <div className="absolute inset-0 ring-1 ring-white/20 rounded-xl pointer-events-none"></div>
         </div>
@@ -72,15 +84,14 @@ export default function DashboardMockup() {
               {/* Imagen del dashboard móvil sobre el mockup */}
               <div className="absolute left-0 top-7 w-full h-full z-10 flex items-start justify-center overflow-hidden">
                 <Image
-                  src="/dashboard-movil.svg"
-                  alt="Dashboard de Turnate en móvil"
+                  src={mobileImage}
+                  alt={`${alt} en móvil`}
                   fill
                   className="object-cover object-top"
-                  priority
+                  priority={priority}
                   style={{ borderRadius: 0 }}
                 />
               </div>
-              
             </div>
 
             {/* Left Side Buttons */}

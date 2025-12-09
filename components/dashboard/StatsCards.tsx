@@ -47,7 +47,7 @@ export default function StatsCards({ stats, monthlyRevenue }: StatsCardsProps) {
       description: `${today.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`,
       icon: TbCalendar,
       color: '#2563eb', // Azul fuerte
-      gradient: 'from-blue-500 to-blue-700',
+      gradientColors: ['#3b82f6', '#1d4ed8'], // blue-500 to blue-700
     },
     {
       title: 'Período Actual',
@@ -55,7 +55,7 @@ export default function StatsCards({ stats, monthlyRevenue }: StatsCardsProps) {
       description: `próximos 30 días`,
       icon: TbCalendarWeek,
       color: '#a21caf', // Morado intenso
-      gradient: 'from-fuchsia-500 to-purple-700',
+      gradientColors: ['#d946ef', '#7e22ce'], // fuchsia-500 to purple-700
     },
     {
       title: 'Ingresos Mes',
@@ -63,7 +63,7 @@ export default function StatsCards({ stats, monthlyRevenue }: StatsCardsProps) {
       description: `todo ${monthName}`,
       icon: TbCurrencyDollar,
       color: '#22c55e', // Verde vibrante
-      gradient: 'from-green-400 to-green-700',
+      gradientColors: ['#4ade80', '#15803d'], // green-400 to green-700
     },
     {
       title: 'Total Clientes',
@@ -71,7 +71,7 @@ export default function StatsCards({ stats, monthlyRevenue }: StatsCardsProps) {
       description: 'únicos registrados',
       icon: TbUsers,
       color: '#f59e42', // Naranja brillante
-      gradient: 'from-orange-400 to-orange-600',
+      gradientColors: ['#fb923c', '#ea580c'], // orange-400 to orange-600
     },
     {
       title: 'Agendadas Mes',
@@ -79,7 +79,7 @@ export default function StatsCards({ stats, monthlyRevenue }: StatsCardsProps) {
       description: `todo ${monthName}`,
       icon: TbTrendingUp,
       color: '#6366f1', // Indigo vibrante
-      gradient: 'from-indigo-400 to-indigo-700',
+      gradientColors: ['#818cf8', '#4338ca'], // indigo-400 to indigo-700
     },
     {
       title: 'Completadas Mes',
@@ -87,7 +87,7 @@ export default function StatsCards({ stats, monthlyRevenue }: StatsCardsProps) {
       description: `todo ${monthName}`,
       icon: TbChecks,
       color: '#059669', // Verde esmeralda fuerte
-      gradient: 'from-emerald-400 to-emerald-700',
+      gradientColors: ['#34d399', '#047857'], // emerald-400 to emerald-700
     },
     {
       title: 'Canceladas Mes',
@@ -95,7 +95,7 @@ export default function StatsCards({ stats, monthlyRevenue }: StatsCardsProps) {
       description: `todo ${monthName}`,
       icon: TbX,
       color: '#ef4444', // Rojo intenso
-      gradient: 'from-red-500 to-red-700',
+      gradientColors: ['#ef4444', '#b91c1c'], // red-500 to red-700
     },
     {
       title: 'Conversión Mes',
@@ -103,7 +103,7 @@ export default function StatsCards({ stats, monthlyRevenue }: StatsCardsProps) {
       description: `efectividad en ${monthName}`,
       icon: TbPercentage,
       color: '#06b6d4', // Cyan vibrante
-      gradient: 'from-cyan-400 to-cyan-700',
+      gradientColors: ['#22d3ee', '#0e7490'], // cyan-400 to cyan-700
     },
   ];
 
@@ -131,7 +131,12 @@ export default function StatsCards({ stats, monthlyRevenue }: StatsCardsProps) {
                   </div>
                 </div>
                 {/* Decorative gradient line */}
-                <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${card.gradient}`} />
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-1 rounded-lg"
+                  style={{
+                    background: `linear-gradient(to right, ${card.gradientColors[0]}, ${card.gradientColors[1]})`,
+                  }}
+                />
               </CardContent>
             </Card>
           </motion.div>

@@ -61,7 +61,7 @@ export default function QuickMetrics({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
           >
-            <Card className="border-l-4 border-l-blue-500">
+            <Card className="border-l-4 border-l-blue-500 rounded-lg">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>

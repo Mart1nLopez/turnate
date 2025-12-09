@@ -81,19 +81,19 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Analíticas</h1>
           <p className="text-gray-600">Métricas detalladas de tu negocio</p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 bg-gray-100 p-1 rounded-lg">
           {(['month', 'quarter', 'year'] as const).map((range) => (
             <button
               key={range}
               onClick={() => setDateRange(range)}
               className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                dateRange === range ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'
+                dateRange === range ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-600 hover:bg-gray-200'
               }`}>
               {range === 'month' ?
                 'Mes'
@@ -106,125 +106,119 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Métricas principales */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Citas Totales</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalAppointments}</p>
-                <div
-                  className={`flex items-center text-sm ${getChangeColor(stats.currentMonthAppointments, stats.previousMonthAppointments)}`}>
-                  {getChangeIcon(stats.currentMonthAppointments, stats.previousMonthAppointments)}
-                  <span className="ml-1">
-                    {formatPercentageChange(stats.currentMonthAppointments, stats.previousMonthAppointments)} este mes
-                  </span>
-                </div>
+          <CardContent className="p-4 flex flex-col justify-between h-full">
+            <div className="flex items-start justify-between mb-2">
+              <p className="text-xs font-medium text-gray-600 line-clamp-1">Citas Totales</p>
+              <TbCalendar className="w-5 h-5 text-blue-600 shrink-0" />
+            </div>
+            <div>
+              <p className="text-xl font-bold text-gray-900">{stats.totalAppointments}</p>
+              <div
+                className={`flex items-center text-xs mt-1 ${getChangeColor(stats.currentMonthAppointments, stats.previousMonthAppointments)}`}>
+                {getChangeIcon(stats.currentMonthAppointments, stats.previousMonthAppointments)}
+                <span className="ml-1 truncate">
+                  {formatPercentageChange(stats.currentMonthAppointments, stats.previousMonthAppointments)}
+                </span>
               </div>
-              <TbCalendar className="w-8 h-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Clientes Únicos</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalClients}</p>
-                <p className="text-sm text-gray-500">Base de clientes</p>
-              </div>
-              <TbUsers className="w-8 h-8 text-green-600" />
+          <CardContent className="p-4 flex flex-col justify-between h-full">
+            <div className="flex items-start justify-between mb-2">
+              <p className="text-xs font-medium text-gray-600 line-clamp-1">Clientes Únicos</p>
+              <TbUsers className="w-5 h-5 text-green-600 shrink-0" />
+            </div>
+            <div>
+              <p className="text-xl font-bold text-gray-900">{stats.totalClients}</p>
+              <p className="text-xs text-gray-500 mt-1 line-clamp-1">Base de clientes</p>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Ingresos Totales</p>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalRevenue)}</p>
-                <div
-                  className={`flex items-center text-sm ${getChangeColor(stats.currentMonthRevenue, stats.previousMonthRevenue)}`}>
-                  {getChangeIcon(stats.currentMonthRevenue, stats.previousMonthRevenue)}
-                  <span className="ml-1">
-                    {formatPercentageChange(stats.currentMonthRevenue, stats.previousMonthRevenue)} este mes
-                  </span>
-                </div>
+          <CardContent className="p-4 flex flex-col justify-between h-full">
+            <div className="flex items-start justify-between mb-2">
+              <p className="text-xs font-medium text-gray-600 line-clamp-1">Ingresos</p>
+              <TbCurrencyDollar className="w-5 h-5 text-purple-600 shrink-0" />
+            </div>
+            <div>
+              <p className="text-xl font-bold text-gray-900 truncate">{formatCurrency(stats.totalRevenue)}</p>
+              <div
+                className={`flex items-center text-xs mt-1 ${getChangeColor(stats.currentMonthRevenue, stats.previousMonthRevenue)}`}>
+                {getChangeIcon(stats.currentMonthRevenue, stats.previousMonthRevenue)}
+                <span className="ml-1 truncate">
+                  {formatPercentageChange(stats.currentMonthRevenue, stats.previousMonthRevenue)}
+                </span>
               </div>
-              <TbCurrencyDollar className="w-8 h-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Calificación Promedio</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.averageRating.toFixed(1)}
-                  <span className="text-lg text-gray-500">/5</span>
-                </p>
-                <p className="text-sm text-gray-500">{stats.totalReviews} reseñas</p>
+          <CardContent className="p-4 flex flex-col justify-between h-full">
+            <div className="flex items-start justify-between mb-2">
+              <p className="text-xs font-medium text-gray-600 line-clamp-1">Calificación</p>
+              <TbStar className="w-5 h-5 text-yellow-500 shrink-0" />
+            </div>
+            <div>
+              <div className="flex items-baseline gap-1">
+                <p className="text-xl font-bold text-gray-900">{stats.averageRating.toFixed(1)}</p>
+                <span className="text-xs text-gray-500">/5</span>
               </div>
-              <TbStar className="w-8 h-8 text-yellow-500" />
+              <p className="text-xs text-gray-500 mt-1 truncate">{stats.totalReviews} reseñas</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Métricas adicionales */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Citas Hoy</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.todayAppointments}</p>
-              </div>
-              <TbClock className="w-8 h-8 text-orange-600" />
+          <CardContent className="p-4 flex flex-col justify-between h-full">
+            <div className="flex items-start justify-between mb-2">
+              <p className="text-xs font-medium text-gray-600 line-clamp-1">Citas Hoy</p>
+              <TbClock className="w-5 h-5 text-orange-600 shrink-0" />
+            </div>
+            <p className="text-xl font-bold text-gray-900">{stats.todayAppointments}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4 flex flex-col justify-between h-full">
+            <div className="flex items-start justify-between mb-2">
+              <p className="text-xs font-medium text-gray-600 line-clamp-1">Próximas</p>
+              <TbCalendar className="w-5 h-5 text-blue-600 shrink-0" />
+            </div>
+            <p className="text-xl font-bold text-gray-900">{stats.upcomingAppointments}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4 flex flex-col justify-between h-full">
+            <div className="flex items-start justify-between mb-2">
+              <p className="text-xs font-medium text-gray-600 line-clamp-1">Duración</p>
+              <TbClock className="w-5 h-5 text-indigo-600 shrink-0" />
+            </div>
+            <div>
+              <p className="text-xl font-bold text-gray-900">{Math.round(stats.averageSessionDuration)}</p>
+              <p className="text-xs text-gray-500 mt-1">minutos</p>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Próximas Citas</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.upcomingAppointments}</p>
-              </div>
-              <TbCalendar className="w-8 h-8 text-blue-600" />
+          <CardContent className="p-4 flex flex-col justify-between h-full">
+            <div className="flex items-start justify-between mb-2">
+              <p className="text-xs font-medium text-gray-600 line-clamp-1">Tasa Reseñas</p>
+              <TbPercentage className="w-5 h-5 text-pink-600 shrink-0" />
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Duración Promedio</p>
-                <p className="text-2xl font-bold text-gray-900">{Math.round(stats.averageSessionDuration)}</p>
-                <p className="text-sm text-gray-500">minutos</p>
-              </div>
-              <TbClock className="w-8 h-8 text-indigo-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Tasa de Reseñas</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.totalAppointments > 0 ? Math.round((stats.totalReviews / stats.totalAppointments) * 100) : 0}%
-                </p>
-              </div>
-              <TbPercentage className="w-8 h-8 text-pink-600" />
-            </div>
+            <p className="text-xl font-bold text-gray-900">
+              {stats.totalAppointments > 0 ? Math.round((stats.totalReviews / stats.totalAppointments) * 100) : 0}%
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -301,7 +295,8 @@ export default function AnalyticsPage() {
           <CardDescription>Citas e ingresos de las últimas 8 semanas</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-8 gap-2">
+          <div className="overflow-x-auto pb-2">
+            <div className="grid grid-cols-8 gap-2 min-w-[600px]">
             {stats.weeklyTrend.map((week) => (
               <div key={week.week} className="text-center">
                 <div className="space-y-2">
@@ -320,6 +315,7 @@ export default function AnalyticsPage() {
                 </div>
               </div>
             ))}
+          </div>
           </div>
         </CardContent>
       </Card>

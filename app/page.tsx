@@ -57,11 +57,11 @@ export default function LandingPage() {
             </div>
 
             <nav className="nav">
-              <a href="#caracteristicas" className="nav-underline">
-                Características
-              </a>
               <a href="#beneficios" className="nav-underline">
                 Beneficios
+              </a>
+              <a href="#caracteristicas" className="nav-underline">
+                Características
               </a>
               {/*<a href="#precios" className="nav-underline">
                 Precios
@@ -128,7 +128,12 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="relative h-[400px] md:h-[400px] w-full md:flex-1 flex items-center justify-center md:my-5 my-12">
-            <DashboardMockup />
+            <DashboardMockup
+              desktopImage="/mockups/dashboard.svg"
+              mobileImage="/mockups/dashboard-mobile.svg"
+              alt="Dashboard de Turnate"
+              priority={true}
+            />
           </div>
         </section>
 
@@ -244,7 +249,11 @@ export default function LandingPage() {
                 </ul>
               </div>
               <div className="relative h-[400px] md:h-[400px] w-full md:flex-1 flex items-center justify-center md:my-5 my-12">
-                <DashboardMockup />
+                <DashboardMockup
+                  desktopImage="/mockups/analytics.svg"
+                  mobileImage="/mockups/analytics-mobile.svg"
+                  alt="Analíticas de Turnate"
+                />
               </div>
             </div>
           </div>
