@@ -76,9 +76,24 @@ export default function ProfessionalPublicPage() {
       </div>
     );
   }
+
+  // Lógica para determinar si se deben mostrar las secciones en el header
+  const hasReviews = reviews.length > 0 && !professional.hide_reviews;
+
+  const socialLinks = professional.social_links || {};
+  const hasSocialLinks = Object.values(socialLinks).some((value) => value);
+  const hasLocationInfo = professional.map_embed_url || professional.location;
+  const hasBio = professional.bio;
+  const hasContactInfo = !!(hasLocationInfo || hasSocialLinks || hasBio);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Header professional={professional} slug={slug} />
+      <Header
+        professional={professional}
+        slug={slug}
+        hasReviews={hasReviews}
+        hasContactInfo={hasContactInfo}
+      />
       <Hero professional={professional} />
       <Services services={services} slug={slug} />
       <Contacto professional={professional} />

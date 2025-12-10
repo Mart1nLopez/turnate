@@ -7,9 +7,16 @@ import { Professional } from '@/types';
 interface HeaderProps {
   professional: Professional;
   slug: string;
+  hasReviews?: boolean;
+  hasContactInfo?: boolean;
 }
 
-export default function Header({ professional, slug }: HeaderProps) {
+export default function Header({
+  professional,
+  slug,
+  hasReviews = true, 
+  hasContactInfo = true,
+}: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-md">
       <div className="container mx-auto flex items-center justify-between p-2 sm:p-2 md:py-3 lg:px-4">
@@ -39,12 +46,16 @@ export default function Header({ professional, slug }: HeaderProps) {
           <a href="#servicios" className="nav-underline">
             Servicios
           </a>
-          <a href="#contactos" className="nav-underline">
-            Contacto
-          </a>
-          <a href="#reseñas" className="nav-underline">
-            Reseñas
-          </a>
+          {hasContactInfo && (
+            <a href="#contactos" className="nav-underline">
+              Contacto
+            </a>
+          )}
+          {hasReviews && (
+            <a href="#reseñas" className="nav-underline">
+              Reseñas
+            </a>
+          )}
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { TbCheck, TbLock, TbX } from 'react-icons/tb';
+import { TbAlertTriangle, TbCheck, TbLock, TbX } from 'react-icons/tb';
 import { FcGoogle } from 'react-icons/fc';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -140,9 +140,15 @@ export default function SettingsPage() {
                 <h4 className="text prose-break-words">
                   Sincroniza tus citas de Turnate con tu calendario personal de Google.
                 </h4>
-                <p className="text-sm text-gray-500 prose-break-words">
-                  Recuerda otorgar los permisos necesarios para que la sincronización funcione correctamente.
-                </p>
+                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md flex items-start gap-3 max-w-xl">
+                  <TbAlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-amber-800">
+                    <p className="font-medium mb-1">Permiso requerido</p>
+                    <p>
+                      Es fundamental que marques la casilla <strong>"Ver, editar, compartir y eliminar... calendarios"</strong> durante la conexión para habilitar la sincronización.
+                    </p>
+                  </div>
+                </div>
               </div>
               <Button
                 type="button"
