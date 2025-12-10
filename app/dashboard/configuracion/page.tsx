@@ -145,7 +145,7 @@ export default function SettingsPage() {
                   <div className="text-sm text-amber-800">
                     <p className="font-medium mb-1">Permiso requerido</p>
                     <p>
-                      Es fundamental que marques la casilla <strong>"Ver, editar, compartir y eliminar... calendarios"</strong> durante la conexión para habilitar la sincronización.
+                      Es fundamental que marques la casilla <strong>&quot;Ver, editar, compartir y eliminar... calendarios&quot;</strong> durante la conexión para habilitar la sincronización.
                     </p>
                   </div>
                 </div>

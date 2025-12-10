@@ -13,7 +13,7 @@ import {
 } from 'react-icons/lu';
 import { Button } from '@/components/ui/button';
 import Footer from '@/components/home/Footer';
-import TestimonialCard from '@/components/home/TestimonialCard';
+//import TestimonialCard from '@/components/home/TestimonialCard';
 //import HashRedirect from '@/components/professionalPage/HashRedirect';
 import DashboardMockup from '@/components/home/DashboardMockup';
 import TypingAnimation from '@/components/ui/typing-animation';
