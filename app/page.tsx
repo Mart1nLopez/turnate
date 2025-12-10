@@ -88,7 +88,7 @@ export default function LandingPage() {
         </header>
 
         {/* Sección Hero */}
-        <section className="container mx-auto px-2 py-16 md:py-24 flex flex-col md:flex-row items-center gap-10">
+        <section className="container mx-auto px-6 md:px-2 py-16 md:py-24 flex flex-col md:flex-row items-center gap-10">
           <div className="flex-1 space-y-6">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-balance">
               Gestiona tu <br />
@@ -115,8 +115,8 @@ export default function LandingPage() {
               <br />
               con facilidad
             </h1>
-            <p className="text-lg text-muted-foreground max-w-xl">
-              Plataforma completa para profesionales independientes: gestiona citas, servicios, disponibilidad y
+            <p className="text-lg text-muted-foreground max-w-xl text-balance">
+              Plataforma completa para profesionales independientes:<br/>Gestiona citas, servicios, disponibilidad y
               clientes con tu propia página web personalizada y sistema de agendamiento automático.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
@@ -188,13 +188,13 @@ export default function LandingPage() {
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row gap-12 items-center">
               <div className="w-full md:flex-1">
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">Funcionalidades avanzadas para profesionales</h2>
-                <ul className="space-y-4">
+                <h2 className="text-3xl md:text-4xl font-bold mb-8 text-balance text-center md:text-left">Funcionalidades avanzadas para profesionales</h2>
+                <ul className="space-y-4 p-3 md:p-0">
                   <li className="flex items-start gap-3">
                     <LuSettings className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
                     <div>
                       <span className="font-semibold">Configuraciones empresariales</span>
-                      <p className="text-muted-foreground text-sm">
+                      <p className="text-muted-foreground text-sm md:pr-20">
                         Autoconfirmación de citas, políticas de cancelación, horas de anticipación.
                       </p>
                     </div>
@@ -203,7 +203,7 @@ export default function LandingPage() {
                     <LuImage className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
                     <div>
                       <span className="font-semibold">Gestión de servicios con imágenes</span>
-                      <p className="text-muted-foreground text-sm">
+                      <p className="text-muted-foreground text-sm md:pr-20">
                         Crea servicios personalizados con precios, duración, descripciones e imágenes atractivas.
                       </p>
                     </div>
@@ -212,7 +212,7 @@ export default function LandingPage() {
                     <LuUsers className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
                     <div>
                       <span className="font-semibold">Perfil profesional completo</span>
-                      <p className="text-muted-foreground text-sm">
+                      <p className="text-muted-foreground text-sm md:pr-20">
                         Perfil personalizable con biografía, redes sociales, galería de trabajos y información de
                         contacto.
                       </p>
@@ -222,7 +222,7 @@ export default function LandingPage() {
                     <LuClock className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
                     <div>
                       <span className="font-semibold">Disponibilidad flexible</span>
-                      <p className="text-muted-foreground text-sm">
+                      <p className="text-muted-foreground text-sm md:pr-20">
                         Configura horarios semanales con múltiples bloques de tiempo, descansos y días libres
                         específicos.
                       </p>
@@ -232,7 +232,7 @@ export default function LandingPage() {
                     <LuTrendingUp className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
                     <div>
                       <span className="font-semibold">Dashboard con analíticas</span>
-                      <p className="text-muted-foreground text-sm">
+                      <p className="text-muted-foreground text-sm md:pr-20">
                         Estadísticas detalladas de citas, ingresos, clientes y servicios más populares para tomar
                         decisiones.
                       </p>
@@ -242,7 +242,7 @@ export default function LandingPage() {
                     <LuMail className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
                     <div>
                       <span className="font-semibold">Notificaciones automáticas</span>
-                      <p className="text-muted-foreground text-sm">
+                      <p className="text-muted-foreground text-sm md:pr-20">
                         Envío automático de confirmaciones y recordatorios por email con configuración personalizable.
                       </p>
                     </div>
@@ -260,7 +260,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Sección de Testimonios */}
+        {/* Sección de Testimonios 
         <section className="bg-muted py-16 md:py-24">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">Lo que dicen nuestros usuarios</h2>
@@ -286,6 +286,8 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        */}
 
         {/* Sección de Preguntas Frecuentes */}
         <FAQ />
