@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { ToasterProvider } from '@/components/ui/toaster';
+import JsonLd from '@/components/JsonLd';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -63,9 +64,11 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/logo.png',
-    shortcut: '/logo.png',
-    apple: '/logo.png',
+    icon: '/logo.png', // Fallback
+    apple: '/logo.png', // Fallback
+  },
+  alternates: {
+    canonical: 'https://turnate.cl',
   },
 };
 
@@ -80,6 +83,7 @@ export default function RootLayout({
         {children}
         <ToasterProvider />
         <Analytics />
+        <JsonLd />
       </body>
     </html>
   );
