@@ -18,6 +18,7 @@ import {
   TbTrendingUp,
   TbCalendarOff,
   TbSettings,
+  TbBuildingStore,
 } from 'react-icons/tb';
 import { useDashboard } from '@/hooks/useDashboard';
 import PendingApproval from '@/components/auth/pending-approval';
@@ -33,6 +34,7 @@ const navigation = [
   { name: 'Disponibilidad', href: '/dashboard/disponibilidad', icon: TbClock },
   { name: 'Libres', href: '/dashboard/libres', icon: TbCalendarOff },
   { name: 'Analíticas', href: '/dashboard/analiticas', icon: TbTrendingUp },
+  { name: 'Barbería', href: '/dashboard/barberia', icon: TbBuildingStore },
   { name: 'Perfil', href: '/dashboard/perfil', icon: TbUser },
   { name: 'Reseñas', href: '/dashboard/resenas', icon: TbStars },
   { name: 'Configuración', href: '/dashboard/configuracion', icon: TbSettings },

@@ -2,8 +2,42 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { createProfessionalProfile } from '@/services/professionalService';
+import { createBarbershopForProfessional } from '@/services/barbershopService';
+import { getActiveMembershipByProfessionalId } from '@/services/barbershopMemberService';
 import { generateSlugWithRandomSuffix } from '@/lib/utils';
 import { toast } from 'sonner';
+
+// Mismo patrón que useAuth.ts — ver comentario allí.
+async function tryCreateBarbershopBestEffort(userId: string): Promise<void> {
+  try {
+    const { data: profData, error: profError } = await supabase
+      .from('professionals')
+      .select('id, name, slug, phone')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (profError || !profData) {
+      console.warn('[onboarding] Professional no encontrado, omitiendo creación de barbería');
+      return;
+    }
+
+    const existing = await getActiveMembershipByProfessionalId(profData.id as string);
+    if (existing) {
+      console.log('[onboarding] Ya tiene membresía activa, omitiendo barbería duplicada');
+      return;
+    }
+
+    await createBarbershopForProfessional(userId, {
+      id: profData.id as string,
+      name: profData.name as string,
+      slug: profData.slug as string,
+      phone: (profData.phone as string | null) ?? undefined,
+    });
+    console.log('[onboarding] Barbería creada para professional:', profData.id);
+  } catch (err) {
+    console.error('[onboarding] Error creando barbería (no bloquea registro):', err);
+  }
+}
 
 export function useConfirmEmail() {
   const router = useRouter();
@@ -128,6 +162,9 @@ export function useConfirmEmail() {
 
         // Intentar crear el perfil
         await createProfessionalFromUser(user);
+
+        // Crear barbería automáticamente (best-effort — fallo silencioso)
+        await tryCreateBarbershopBestEffort(user.id);
 
         // Limpiar datos temporales después de procesar
         sessionStorage.removeItem('pendingEmailConfirmation');

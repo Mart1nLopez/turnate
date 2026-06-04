@@ -15,7 +15,7 @@
 -- PREREQUISITOS VERIFICADOS
 --   ✓ PostgreSQL 17           (config.toml: major_version = 17)
 --   ✓ pg_cron >= 1.6          (20260529221251: extension pg_cron; PG17 → v1.6+)
---   ✓ pgcrypto disponible     (Supabase default; requerido por gen_random_bytes)
+--   ✓ token generado sin pgcrypto  (sha256 + uuid_send, built-in desde PG 13)
 --   ✓ set_updated_at()        no existe aún — CREATE OR REPLACE es seguro
 --   ✓ Sin triggers previos    verificado en 20260529221251
 --   ✓ Sin conflictos RLS      nuevas tablas son independientes
@@ -159,10 +159,11 @@ CREATE TABLE public.barbershop_invitations (
   barbershop_id UUID                          NOT NULL
     REFERENCES public.barbershops(id)  ON DELETE CASCADE,
   email         TEXT                          NOT NULL,
-  -- Token de 256 bits (32 bytes en hex = 64 caracteres).
-  -- Entropía: 2^256. Imposible de enumerar o adivinar.
+  -- Token de 64 caracteres hex (32 bytes = 256 bits de SHA256).
+  -- sha256(uuid_send || uuid_send): built-in desde PG 13, sin dependencias de extensión.
+  -- Entropía efectiva: 244 bits (dos UUID v4 × 122 bits c/u). Imposible de enumerar.
   token         TEXT                          NOT NULL UNIQUE
-    DEFAULT encode(gen_random_bytes(32), 'hex'),
+    DEFAULT encode(sha256(uuid_send(gen_random_uuid()) || uuid_send(gen_random_uuid())), 'hex'),
   role          public.barbershop_member_role NOT NULL DEFAULT 'barber',
   status        public.invitation_status      NOT NULL DEFAULT 'pending',
   -- ON DELETE CASCADE: si el dueño es eliminado, sus invitaciones también.

@@ -118,3 +118,73 @@ export interface UnavailableDate {
   reason?: string;
   created_at: string;
 }
+
+// ─── Barbershops ──────────────────────────────────────────────────────────────
+
+export type BarbershopMemberRole   = 'owner' | 'barber';
+export type BarbershopMemberStatus = 'active' | 'inactive' | 'pending';
+export type InvitationStatus       = 'pending' | 'accepted' | 'expired' | 'cancelled';
+
+export interface Barbershop {
+  id: string;
+  owner_id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  logo_url?: string;
+  phone?: string;
+  social_links?: {
+    instagram?: string;
+    whatsapp?: string;
+    facebook?: string;
+    tiktok?: string;
+    twitter?: string;
+    youtube?: string;
+  };
+  company_rut?: string;
+  address?: string;
+  city?: string;
+  region?: string;
+  location?: string;
+  map_embed_url?: string;
+  is_active: boolean;
+  is_approved: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BarbershopMember {
+  id: string;
+  barbershop_id: string;
+  professional_id: string;
+  role: BarbershopMemberRole;
+  status: BarbershopMemberStatus;
+  joined_at: string;
+  created_at: string;
+  updated_at: string;
+  // Embeds opcionales cuando se hace JOIN en la query
+  professional?: Pick<Professional, 'id' | 'name' | 'slug' | 'profile_image' | 'email'>;
+  barbershop?: Barbershop;
+}
+
+export interface BarbershopInvitation {
+  id: string;
+  barbershop_id: string;
+  email: string;
+  token: string;
+  role: BarbershopMemberRole;
+  status: InvitationStatus;
+  invited_by: string;
+  expires_at: string;
+  created_at: string;
+}
+
+// Devuelta por get_invitation_preview(token) — campos seguros para /invitacion/[token]
+export interface InvitationPreview {
+  barbershop_id: string;
+  barbershop_name: string;
+  barbershop_logo?: string;
+  role: BarbershopMemberRole;
+  expires_at: string;
+  is_valid: boolean;
+}

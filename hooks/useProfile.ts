@@ -115,6 +115,7 @@ const RESERVED_ROUTES = [
   'favicon',
   'manifest',
   'confirmado',
+  'barberia',
 ];
 
 export function useProfile(): UseProfileReturn {
