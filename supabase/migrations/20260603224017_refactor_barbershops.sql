@@ -653,14 +653,13 @@ CREATE POLICY "inv_select_owner"
   ON public.barbershop_invitations FOR SELECT
   USING (auth.uid() = invited_by);
 
--- El usuario invitado ve SU invitación (para aceptarla desde el dashboard)
+-- El usuario invitado ve SU invitación (para aceptarla desde el dashboard).
+-- auth.email() lee el email del JWT — sin acceso a auth.users (que requiere service_role).
 CREATE POLICY "inv_select_invited_email"
   ON public.barbershop_invitations FOR SELECT
   USING (
     auth.uid() IS NOT NULL
-    AND lower(email) = lower(
-      (SELECT u.email FROM auth.users u WHERE u.id = auth.uid())
-    )
+    AND lower(email) = lower(auth.email())
   );
 
 -- Inserción: solo el dueño de la barbería puede invitar
@@ -674,15 +673,14 @@ CREATE POLICY "inv_insert_owner"
     )
   );
 
--- Actualización: el dueño cancela; el invitado actualiza vía función SECURITY DEFINER
--- Esta policy es fallback — el path principal de aceptación es accept_barbershop_invitation()
+-- Actualización: el dueño cancela; el invitado actualiza vía función SECURITY DEFINER.
+-- Esta policy es fallback — el path principal de aceptación es accept_barbershop_invitation().
+-- auth.email() en lugar de subselect a auth.users (role authenticated no tiene acceso).
 CREATE POLICY "inv_update"
   ON public.barbershop_invitations FOR UPDATE
   USING (
     auth.uid() = invited_by
-    OR lower(email) = lower(
-      (SELECT u.email FROM auth.users u WHERE u.id = auth.uid())
-    )
+    OR lower(email) = lower(auth.email())
   );
 
 -- Eliminación: solo el dueño puede borrar invitaciones (preferir UPDATE status='cancelled')
