@@ -188,3 +188,10 @@ export interface InvitationPreview {
   expires_at: string;
   is_valid: boolean;
 }
+
+// Invitación recibida por el professional (perspectiva de invitado).
+// El campo barbershop se obtiene via JOIN en la query — puede ser undefined si la
+// barbería está inactiva (RLS barbershops_select_public filtra is_active = false).
+export interface ReceivedInvitation extends BarbershopInvitation {
+  barbershop?: Pick<Barbershop, 'id' | 'name' | 'logo_url' | 'slug'>;
+}

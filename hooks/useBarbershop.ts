@@ -5,9 +5,10 @@ import { toast } from 'sonner';
 import { getCurrentProfessional } from '@/lib/supabase';
 import { getActiveMembershipWithBarbershop } from '@/services/barbershopMemberService';
 import { updateBarbershop as updateBarbershopService } from '@/services/barbershopService';
-import { Barbershop, BarbershopMember, BarbershopMemberRole } from '@/types';
+import { Barbershop, BarbershopMember, BarbershopMemberRole, Professional } from '@/types';
 
 interface UseBarbershopReturn {
+  professional: Professional | null;
   barbershop: Barbershop | null;
   membership: BarbershopMember | null;
   isOwner: boolean;
@@ -25,22 +26,28 @@ interface UseBarbershopReturn {
 // en un solo round-trip via getActiveMembershipWithBarbershop.
 // Devuelve null en barbershop/membership si el professional no pertenece a ninguna barbería.
 export function useBarbershop(): UseBarbershopReturn {
-  const [barbershop, setBarbershop] = useState<Barbershop | null>(null);
-  const [membership, setMembership] = useState<BarbershopMember | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [professional, setProfessional] = useState<Professional | null>(null);
+  const [barbershop, setBarbershop]     = useState<Barbershop | null>(null);
+  const [membership, setMembership]     = useState<BarbershopMember | null>(null);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
     try {
-      const { professional, error } = await getCurrentProfessional();
-      if (error || !professional) {
+      const { professional: prof, error: profError } = await getCurrentProfessional();
+      if (profError || !prof) {
+        setProfessional(null);
         setBarbershop(null);
         setMembership(null);
         return;
       }
 
-      const result = await getActiveMembershipWithBarbershop(professional.id);
+      // Guardamos el professional para que la página pueda usarlo
+      // al crear una barbería sin una segunda query
+      setProfessional(prof);
+
+      const result = await getActiveMembershipWithBarbershop(prof.id);
       if (result) {
         setBarbershop(result.barbershop);
         setMembership(result.membership);
@@ -77,6 +84,7 @@ export function useBarbershop(): UseBarbershopReturn {
   const role     = membership?.role ?? null;
 
   return {
+    professional,
     barbershop,
     membership,
     isOwner,

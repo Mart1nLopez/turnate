@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { BarbershopInvitation, BarbershopMemberRole, InvitationPreview } from '@/types';
+import { BarbershopInvitation, BarbershopMemberRole, InvitationPreview, ReceivedInvitation } from '@/types';
 
 // Retorna las invitaciones pendientes de una barbería.
 export async function getPendingInvitations(
@@ -75,6 +75,20 @@ export async function acceptInvitation(
 
   if (error) throw error;
   return data as { success: boolean; barbershop_id?: string; error?: string };
+}
+
+// Retorna las invitaciones pendientes dirigidas al usuario autenticado.
+// No requiere filtro de email — la policy inv_select_invited_email (auth.email()) lo aplica
+// automáticamente. El JOIN a barbershops obtiene nombre y logo para mostrar en la tarjeta.
+export async function getReceivedInvitations(): Promise<ReceivedInvitation[]> {
+  const { data, error } = await supabase
+    .from('barbershop_invitations')
+    .select('*, barbershop:barbershops(id, name, logo_url, slug)')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as ReceivedInvitation[];
 }
 
 // Obtiene la vista previa de una invitación para la página pública /invitacion/[token].

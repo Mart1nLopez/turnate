@@ -4,45 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthService } from '@/services/authService';
 import { createProfessionalProfile } from '@/services/professionalService';
-import { createBarbershopForProfessional } from '@/services/barbershopService';
-import { getActiveMembershipByProfessionalId } from '@/services/barbershopMemberService';
 import { supabase } from '@/lib/supabase';
 import { generateSlugWithRandomSuffix } from '@/lib/utils';
 import { translatePasswordError } from '@/lib/passwordValidator';
-
-// Intenta crear la barbería para el professional recién registrado.
-// Nunca lanza: si falla, el professional queda funcional y la barbería se crea en Fase 4.
-// Verifica membresía activa previa para soportar retries y el backfill ya ejecutado.
-async function tryCreateBarbershopBestEffort(userId: string): Promise<void> {
-  try {
-    const { data: profData, error: profError } = await supabase
-      .from('professionals')
-      .select('id, name, slug, phone')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (profError || !profData) {
-      console.warn('[onboarding] Professional no encontrado, omitiendo creación de barbería');
-      return;
-    }
-
-    const existing = await getActiveMembershipByProfessionalId(profData.id as string);
-    if (existing) {
-      console.log('[onboarding] Ya tiene membresía activa, omitiendo barbería duplicada');
-      return;
-    }
-
-    await createBarbershopForProfessional(userId, {
-      id: profData.id as string,
-      name: profData.name as string,
-      slug: profData.slug as string,
-      phone: (profData.phone as string | null) ?? undefined,
-    });
-    console.log('[onboarding] Barbería creada para professional:', profData.id);
-  } catch (err) {
-    console.error('[onboarding] Error creando barbería (no bloquea registro):', err);
-  }
-}
 
 export function useAuth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -115,9 +79,6 @@ export function useAuth() {
 
         // Proceder con la creación del profesional
         await handleCreateProfessional(authData.user.id, data);
-
-        // Crear barbería automáticamente (best-effort — fallo silencioso)
-        await tryCreateBarbershopBestEffort(authData.user.id);
 
         // Redirigir al dashboard
         console.log('Redirigiendo al dashboard...');
