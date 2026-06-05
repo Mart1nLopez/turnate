@@ -8,10 +8,32 @@ interface BarbershopHeroProps {
 export default function BarbershopHero({ barbershop }: BarbershopHeroProps) {
   const initial = barbershop.name.charAt(0).toUpperCase();
   const locationParts = [barbershop.city, barbershop.region].filter(Boolean);
+  const hasCover = !!barbershop.cover_image_url;
 
   return (
-    <section className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-12 sm:py-16 md:py-20 px-6 text-white w-full">
-      <div className="max-w-3xl mx-auto flex flex-col items-center text-center gap-6">
+    <section
+      className={`relative w-full overflow-hidden py-12 sm:py-16 md:py-20 px-6 text-white${
+        hasCover ? ' min-h-[280px]' : ' bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'
+      }`}
+    >
+      {/* Portada — capa 0 */}
+      {hasCover && (
+        <>
+          <Image
+            src={barbershop.cover_image_url!}
+            alt=""
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+          {/* Overlay — capa 1: garantiza contraste WCAG sobre cualquier imagen */}
+          <div className="absolute inset-0 bg-black/60" aria-hidden="true" />
+        </>
+      )}
+
+      {/* Contenido — capa 2, siempre encima del fondo */}
+      <div className="relative z-10 max-w-3xl mx-auto flex flex-col items-center text-center gap-6">
 
         {barbershop.logo_url ? (
           <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-xl ring-4 ring-white/20 flex-shrink-0">
@@ -45,6 +67,7 @@ export default function BarbershopHero({ barbershop }: BarbershopHeroProps) {
             {barbershop.description}
           </p>
         )}
+
       </div>
     </section>
   );

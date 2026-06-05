@@ -205,7 +205,6 @@ function CreateBarbershopForm({
         slug,
         phone:        professional.phone        ?? undefined,
         bio:          professional.bio           ?? undefined,
-        profile_image: professional.profile_image ?? undefined,
         location:     professional.location      ?? undefined,
         map_embed_url: professional.map_embed_url ?? undefined,
         social_links: professional.social_links  ?? undefined,

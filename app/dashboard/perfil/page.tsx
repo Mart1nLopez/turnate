@@ -266,7 +266,7 @@ export default function PerfilPage() {
                 </div>
                 {/* Columna derecha: Foto de perfil */}
                 <div className="flex flex-col items-center justify-center">
-                  <label className="block text-sm font-medium text-gray-700 mb-4">Foto de Perfil (o Logo)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-4">Foto de Perfil</label>
                   <ProfileImageUpload
                     currentImageUrl={currentProfileImageUrl}
                     onImageChange={handleProfileImageChange}

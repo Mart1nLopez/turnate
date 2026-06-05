@@ -46,7 +46,6 @@ export async function createBarbershopForProfessional(
     name: string;
     slug: string;
     bio?: string;
-    profile_image?: string;
     phone?: string;
     social_links?: Barbershop['social_links'];
     location?: string;
@@ -60,7 +59,6 @@ export async function createBarbershopForProfessional(
       name: professional.name,
       slug: professional.slug,
       description: professional.bio ?? null,
-      logo_url: professional.profile_image ?? null,
       phone: professional.phone ?? null,
       social_links: professional.social_links ?? {},
       location: professional.location ?? null,
