@@ -125,6 +125,13 @@ export type BarbershopMemberRole   = 'owner' | 'barber';
 export type BarbershopMemberStatus = 'active' | 'inactive' | 'pending';
 export type InvitationStatus       = 'pending' | 'accepted' | 'expired' | 'cancelled';
 
+// Un ítem de la galería pública de la barbería.
+// Almacenado como JSONB array — extensible: permite caption, title, is_featured sin migración.
+export interface GalleryImage {
+  url: string;
+  order: number;
+}
+
 export interface Barbershop {
   id: string;
   owner_id: string;
@@ -147,6 +154,11 @@ export interface Barbershop {
   region?: string;
   location?: string;
   map_embed_url?: string;
+  // Personalización de la página pública (Sprint 3: barbershop_customization)
+  cover_image_url?: string | null;
+  primary_color?: string;
+  secondary_color?: string;
+  gallery_images?: GalleryImage[];
   is_active: boolean;
   is_approved: boolean;
   created_at: string;
@@ -194,4 +206,61 @@ export interface InvitationPreview {
 // barbería está inactiva (RLS barbershops_select_public filtra is_active = false).
 export interface ReceivedInvitation extends BarbershopInvitation {
   barbershop?: Pick<Barbershop, 'id' | 'name' | 'logo_url' | 'slug'>;
+}
+
+// ─── Barbershop pública ───────────────────────────────────────────────────────
+
+// Subset de Barbershop expuesto en /barberia/[slug].
+// Excluye campos administrativos (owner_id, company_rut, is_active, is_approved).
+export interface BarbershopPublicProfile {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  logo_url?: string;
+  phone?: string;
+  social_links?: {
+    instagram?: string;
+    whatsapp?: string;
+    facebook?: string;
+    tiktok?: string;
+    twitter?: string;
+    youtube?: string;
+  };
+  address?: string;
+  city?: string;
+  region?: string;
+  location?: string;
+  map_embed_url?: string;
+  // Personalización de la página pública (Sprint 3: barbershop_customization)
+  cover_image_url?: string | null;
+  primary_color?: string;
+  secondary_color?: string;
+  gallery_images?: GalleryImage[];
+}
+
+// Formulario de personalización de la página pública — usado en /dashboard/barberia/personalizar.
+// Separado de Barbershop para delimitar qué campos puede editar el owner desde ese panel.
+export interface BarbershopCustomizationForm {
+  description: string;
+  logo_url?: string | null;
+  cover_image_url?: string | null;
+  primary_color: string;
+  secondary_color: string;
+  gallery_images: GalleryImage[];
+}
+
+// Miembro del equipo para la página pública /barberia/[slug].
+// Los datos del profesional son los mínimos para mostrar la tarjeta y navegar a su perfil.
+export interface TeamMember {
+  memberId: string;
+  role: BarbershopMemberRole;
+  joinedAt: string;
+  professional: {
+    id: string;
+    name: string;
+    slug: string;
+    profileImage?: string;
+    bio?: string;
+  };
 }

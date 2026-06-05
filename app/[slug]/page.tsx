@@ -8,6 +8,7 @@ import {
   getProfessionalBySlug,
   getServicesByProfessionalId,
   getReviewsByProfessionalId,
+  getActiveBarbershopByProfessionalId,
   ReviewWithClient,
 } from '@/services/professionalPublicService';
 import { Professional, Service } from '@/types';
@@ -24,6 +25,7 @@ export default function ProfessionalPublicPage() {
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [reviews, setReviews] = useState<ReviewWithClient[]>([]);
+  const [barbershop, setBarbershop] = useState<{ name: string; slug: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [averageRating, setAverageRating] = useState(0);
   const slug = params.slug as string;
@@ -32,12 +34,14 @@ export default function ProfessionalPublicPage() {
     try {
       const professionalData = await getProfessionalBySlug(slug);
       setProfessional(professionalData);
-      const [servicesData, reviewsData] = await Promise.all([
+      const [servicesData, reviewsData, barbershopData] = await Promise.all([
         getServicesByProfessionalId(professionalData.id),
         getReviewsByProfessionalId(professionalData.id, 10),
+        getActiveBarbershopByProfessionalId(professionalData.id),
       ]);
       setServices(servicesData);
       setReviews(reviewsData);
+      setBarbershop(barbershopData);
       if (reviewsData.length > 0) {
         const totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0);
         setAverageRating(totalRating / reviewsData.length);
@@ -93,6 +97,7 @@ export default function ProfessionalPublicPage() {
         slug={slug}
         hasReviews={hasReviews}
         hasContactInfo={hasContactInfo}
+        barbershop={barbershop}
       />
       <Hero professional={professional} />
       <Services services={services} slug={slug} />

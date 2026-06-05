@@ -35,3 +35,20 @@ export async function getReviewsByProfessionalId(professionalId: string, limit =
   if (error) throw error;
   return data || [];
 }
+
+// Retorna la barbería activa del profesional para mostrar "Trabaja en [Barbería]"
+// en su perfil público. Devuelve null si es profesional independiente.
+// Funciona con anon (RLS bm_select_public_active + barbershops_select_public).
+export async function getActiveBarbershopByProfessionalId(
+  professionalId: string,
+): Promise<{ name: string; slug: string } | null> {
+  const { data, error } = await supabase
+    .from('barbershop_members')
+    .select('barbershop:barbershops(name, slug)')
+    .eq('professional_id', professionalId)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  if (error) throw error;
+  return (data?.barbershop as { name: string; slug: string } | undefined) ?? null;
+}

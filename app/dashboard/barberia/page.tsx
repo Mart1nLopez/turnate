@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import { useBarbershop } from '@/hooks/useBarbershop';
 import { useBarbershopInvitations } from '@/hooks/useBarbershopInvitations';
@@ -25,7 +26,8 @@ import {
   TbCrown,
   TbScissors,
   TbCircleCheck,
-  TbClock,
+  TbEdit,
+  TbExternalLink,
   TbMail,
   TbSend,
   TbX,
@@ -846,7 +848,20 @@ function InvitationsSection({
 
 // ─── MemberCard ──────────────────────────────────────────────────────────────
 
-function MemberCard({ member }: { member: BarbershopMember }) {
+function MemberCard({
+  member,
+  isOwner,
+  isSelf,
+  onRemove,
+}: {
+  member: BarbershopMember;
+  isOwner: boolean;
+  isSelf: boolean;
+  onRemove: (id: string) => Promise<void>;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  const [removing, setRemoving]     = useState(false);
+
   const name       = member.professional?.name ?? 'Profesional';
   const slug       = member.professional?.slug;
   const profileImg = member.professional?.profile_image;
@@ -857,6 +872,25 @@ function MemberCard({ member }: { member: BarbershopMember }) {
     month: 'long',
     day: 'numeric',
   });
+
+  // Visible solo si: soy owner + no es mi propia tarjeta + el miembro no es owner
+  const canRemove = isOwner && !isSelf && member.role !== 'owner';
+
+  const handleRemove = async () => {
+    // Protección adicional: nunca desactivar un owner aunque se llame directamente
+    if (member.role === 'owner') return;
+
+    setRemoving(true);
+    try {
+      await onRemove(member.id);
+      // El hook elimina la fila del estado local y muestra toast.success()
+      // Si llega aquí sin error la card se desmonta — no es necesario reset de estado
+    } catch {
+      toast.error('Error al eliminar el miembro. Intenta nuevamente.');
+      setConfirming(false);
+      setRemoving(false);
+    }
+  };
 
   return (
     <div className="flex items-center gap-4 py-4 border-b border-gray-100 last:border-0">
@@ -890,6 +924,38 @@ function MemberCard({ member }: { member: BarbershopMember }) {
           </div>
         </div>
       </div>
+
+      {/* Acción: solo owner sobre barberos que no son sí mismo */}
+      {canRemove && (
+        <div className="flex-shrink-0">
+          {!confirming ? (
+            <button
+              onClick={() => setConfirming(true)}
+              className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition-colors"
+            >
+              Quitar del equipo
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 whitespace-nowrap">¿Confirmar?</span>
+              <button
+                onClick={() => setConfirming(false)}
+                disabled={removing}
+                className="text-xs text-gray-500 hover:text-gray-700 disabled:opacity-50 px-1.5 py-1 rounded hover:bg-gray-100 transition-colors"
+              >
+                No
+              </button>
+              <button
+                onClick={handleRemove}
+                disabled={removing}
+                className="text-xs text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed px-2 py-1 rounded transition-colors"
+              >
+                {removing ? '...' : 'Sí'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -899,9 +965,15 @@ function MemberCard({ member }: { member: BarbershopMember }) {
 function MembersSection({
   members,
   loading,
+  isOwner,
+  currentProfessionalId,
+  onRemove,
 }: {
   members: BarbershopMember[];
   loading: boolean;
+  isOwner: boolean;
+  currentProfessionalId: string;
+  onRemove: (id: string) => Promise<void>;
 }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -933,7 +1005,13 @@ function MembersSection({
       ) : (
         <div>
           {members.map((member) => (
-            <MemberCard key={member.id} member={member} />
+            <MemberCard
+              key={member.id}
+              member={member}
+              isOwner={isOwner}
+              isSelf={member.professional_id === currentProfessionalId}
+              onRemove={onRemove}
+            />
           ))}
         </div>
       )}
@@ -1045,6 +1123,17 @@ function BarbershopContent({
                 : 'Eres miembro de esta barbería. El dueño gestiona la configuración y el equipo.'}
             </p>
           </div>
+          <div className="sm:col-span-2 pt-1">
+            <Link
+              href={`/barberia/${barbershop.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+            >
+              <TbBuildingStore className="h-4 w-4" />
+              Ver página de la barbería
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -1077,17 +1166,6 @@ function BarbershopContent({
         </div>
       )}
 
-      {/* Nota de funcionalidad futura (diferente para owner vs barber) */}
-      <div className="rounded-lg bg-blue-50 border border-blue-100 p-4 text-sm text-blue-700">
-        <div className="flex items-start gap-2">
-          <TbClock className="h-4 w-4 mt-0.5 flex-shrink-0" />
-          <p>
-            {isOwner
-              ? 'Próximamente podrás ver estadísticas del equipo, gestionar miembros activos y personalizar la página pública de la barbería.'
-              : 'Próximamente podrás ver las estadísticas de tu rendimiento dentro de la barbería.'}
-          </p>
-        </div>
-      </div>
     </div>
   );
 }
@@ -1117,6 +1195,7 @@ export default function BarbershopDashboardPage() {
   const {
     members,
     loading: membersLoading,
+    deactivateMember,
   } = useBarbershopMembers(barbershop?.id);
 
   if (loading) return <LoadingState />;
@@ -1152,13 +1231,37 @@ export default function BarbershopDashboardPage() {
               : `Formas parte de ${barbershop.name}`}
           </p>
         </div>
-        <button
-          onClick={refresh}
-          className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm text-sm font-medium text-gray-700"
-        >
-          <TbRefresh className="h-4 w-4 mr-2" />
-          Actualizar
-        </button>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          {/* CTA principal — ancho completo en móvil, automático en desktop */}
+          {isOwner && (
+            <Link
+              href="/dashboard/barberia/personalizar"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 w-full sm:w-auto bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-sm font-medium"
+            >
+              <TbEdit className="h-4 w-4" />
+              Editar página
+            </Link>
+          )}
+          {/* Acciones secundarias — 2 columnas en móvil, se disuelven en el flex en desktop */}
+          <div className="grid grid-cols-2 sm:contents gap-2">
+            <Link
+              href={`/barberia/${barbershop.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm text-sm font-medium text-gray-700"
+            >
+              <TbExternalLink className="h-4 w-4" />
+              Ver página pública
+            </Link>
+            <button
+              onClick={refresh}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm text-sm font-medium text-gray-700"
+            >
+              <TbRefresh className="h-4 w-4" />
+              Actualizar
+            </button>
+          </div>
+        </div>
       </motion.div>
 
       {/* Contenido */}
@@ -1174,10 +1277,13 @@ export default function BarbershopDashboardPage() {
           isOwner={isOwner}
         />
 
-        {/* Equipo: visible para owner y barbero */}
+        {/* Equipo: visible para owner y barbero. Gestión solo para owner. */}
         <MembersSection
           members={members}
           loading={membersLoading}
+          isOwner={isOwner}
+          currentProfessionalId={professional?.id ?? ''}
+          onRemove={deactivateMember}
         />
 
         {/* Invitaciones: solo el dueño puede gestionar */}
