@@ -1,6 +1,7 @@
 import { BarbershopPublicProfile } from '@/types';
 import { SocialButtons, SocialPlatform } from '@/components/ui/social-buttons';
 import { extractMapUrl } from '@/lib/utils';
+import { TbPhone, TbMapPin } from 'react-icons/tb';
 
 interface BarbershopInfoProps {
   barbershop: BarbershopPublicProfile;
@@ -8,20 +9,13 @@ interface BarbershopInfoProps {
 
 const getSocialUrl = (platform: string, value: string): string => {
   switch (platform) {
-    case 'instagram':
-      return `https://instagram.com/${value.replace('@', '')}`;
-    case 'whatsapp':
-      return `https://wa.me/${value.replace(/\D/g, '')}`;
-    case 'facebook':
-      return value.startsWith('http') ? value : `https://facebook.com/${value}`;
-    case 'tiktok':
-      return value.startsWith('http') ? value : `https://tiktok.com/@${value.replace('@', '')}`;
-    case 'youtube':
-      return value.startsWith('http') ? value : `https://youtube.com/@${value.replace('@', '')}`;
-    case 'twitter':
-      return value.startsWith('http') ? value : `https://twitter.com/${value.replace('@', '')}`;
-    default:
-      return '#';
+    case 'instagram': return `https://instagram.com/${value.replace('@', '')}`;
+    case 'whatsapp':  return `https://wa.me/${value.replace(/\D/g, '')}`;
+    case 'facebook':  return value.startsWith('http') ? value : `https://facebook.com/${value}`;
+    case 'tiktok':    return value.startsWith('http') ? value : `https://tiktok.com/@${value.replace('@', '')}`;
+    case 'youtube':   return value.startsWith('http') ? value : `https://youtube.com/@${value.replace('@', '')}`;
+    case 'twitter':   return value.startsWith('http') ? value : `https://twitter.com/${value.replace('@', '')}`;
+    default:          return '#';
   }
 };
 
@@ -30,79 +24,140 @@ const SOCIAL_PLATFORMS: SocialPlatform[] = [
 ];
 
 export default function BarbershopInfo({ barbershop }: BarbershopInfoProps) {
-  const socialLinks = barbershop.social_links ?? {};
+  const socialLinks  = barbershop.social_links ?? {};
   const activeSocials = SOCIAL_PLATFORMS.filter(
     (p) => !!(socialLinks as Record<SocialPlatform, string | undefined>)[p],
   );
-  const hasSocials = activeSocials.length > 0;
-  const hasPhone   = !!barbershop.phone;
-  const hasAddress = !!(barbershop.address || barbershop.location);
-  const hasMap     = !!barbershop.map_embed_url;
-  const hasContact = hasPhone || hasAddress;
-  const addressParts = [barbershop.city, barbershop.region].filter(Boolean);
+  const hasSocials    = activeSocials.length > 0;
+  const hasPhone      = !!barbershop.phone;
+  const hasAddress    = !!(barbershop.address || barbershop.location);
+  const hasMap        = !!barbershop.map_embed_url;
+  const hasContact    = hasPhone || hasAddress;
+  const addressParts  = [barbershop.city, barbershop.region].filter(Boolean);
 
   if (!hasSocials && !hasContact && !hasMap) return null;
 
   return (
-    <section id="info" className="py-16 px-4 sm:px-6 bg-white w-full">
-      <div className="max-w-4xl mx-auto w-full">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">
-          Información
-        </h2>
+    <section
+      id="info"
+      className="py-20 sm:py-24 px-6 w-full"
+      style={{ background: 'var(--bb-bg)' }}
+    >
+      <div className="max-w-5xl mx-auto">
 
-        {/* Grid: 1 col en mobile, 2 en md cuando hay ambos bloques */}
-        <div
-          className={`grid w-full gap-6 ${
-            hasContact && hasSocials ? 'md:grid-cols-2' : 'max-w-lg mx-auto'
-          }`}
-        >
-          {/* Contacto */}
-          {hasContact && (
-            <div className="space-y-3 min-w-0">
-              <h3 className="text-xl font-semibold text-gray-800">Contacto</h3>
+        {/* Header */}
+        <div className="mb-12">
+          <p
+            className="text-xs font-semibold tracking-[0.22em] uppercase mb-3"
+            style={{ color: 'var(--bb-accent)' }}
+          >
+            Visítanos
+          </p>
+          <h2
+            className="text-3xl sm:text-4xl font-bold"
+            style={{ color: 'var(--bb-text)' }}
+          >
+            Información
+          </h2>
+        </div>
 
-              {hasPhone && (
-                <a
-                  href={`tel:${barbershop.phone}`}
-                  className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-blue-50 transition-colors group w-full"
+        {/* Contact + Socials grid */}
+        {(hasContact || hasSocials) && (
+          <div
+            className={`grid gap-5 mb-8 ${
+              hasContact && hasSocials ? 'md:grid-cols-2' : 'max-w-lg'
+            }`}
+          >
+            {/* ── Contacto ─────────────────────────────────────────────── */}
+            {hasContact && (
+              <div
+                className="rounded-2xl p-6 border"
+                style={{ background: 'var(--bb-card)', borderColor: 'var(--bb-border)' }}
+              >
+                <h3
+                  className="text-xs font-semibold tracking-[0.18em] uppercase mb-5"
+                  style={{ color: 'var(--bb-accent)' }}
                 >
-                  {/* flex-shrink-0 evita que el emoji encoja y empuje el texto */}
-                  <span className="text-xl leading-none flex-shrink-0" aria-hidden="true">📞</span>
-                  {/* min-w-0 permite que el texto haga wrap dentro del flex */}
-                  <span className="text-gray-700 group-hover:text-blue-700 transition-colors min-w-0 break-words">
-                    {barbershop.phone}
-                  </span>
-                </a>
-              )}
+                  Contacto
+                </h3>
+                <div className="space-y-3">
 
-              {hasAddress && (
-                <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl w-full">
-                  <span className="text-xl leading-none mt-0.5 flex-shrink-0" aria-hidden="true">📍</span>
-                  {/* min-w-0 es crítico aquí: sin él, un address largo desborda el flex container */}
-                  <div className="min-w-0">
-                    {barbershop.address && (
-                      <p className="text-gray-700 break-words">{barbershop.address}</p>
-                    )}
-                    {!barbershop.address && barbershop.location && (
-                      <p className="text-gray-700 break-words">{barbershop.location}</p>
-                    )}
-                    {addressParts.length > 0 && (
-                      <p className="text-gray-400 text-sm mt-0.5 break-words">
-                        {addressParts.join(', ')}
-                      </p>
-                    )}
-                  </div>
+                  {hasPhone && (
+                    <a
+                      href={`tel:${barbershop.phone}`}
+                      className="flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-200 w-full border-[var(--bb-border)] hover:border-[var(--bb-accent-ring)]"
+                      style={{ background: 'var(--bb-bg)' }}
+                    >
+                      <span
+                        className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: 'var(--bb-accent-sub)' }}
+                      >
+                        <TbPhone className="w-5 h-5" style={{ color: 'var(--bb-accent)' }} />
+                      </span>
+                      <span
+                        className="text-sm min-w-0 break-words"
+                        style={{ color: 'var(--bb-muted)' }}
+                      >
+                        {barbershop.phone}
+                      </span>
+                    </a>
+                  )}
+
+                  {hasAddress && (
+                    <div
+                      className="flex items-start gap-3 p-3.5 rounded-xl border w-full border-[var(--bb-border)]"
+                      style={{ background: 'var(--bb-bg)' }}
+                    >
+                      <span
+                        className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+                        style={{ background: 'var(--bb-accent-sub)' }}
+                      >
+                        <TbMapPin className="w-5 h-5" style={{ color: 'var(--bb-accent)' }} />
+                      </span>
+                      <div className="min-w-0">
+                        {barbershop.address && (
+                          <p
+                            className="text-sm break-words"
+                            style={{ color: 'var(--bb-muted)' }}
+                          >
+                            {barbershop.address}
+                          </p>
+                        )}
+                        {!barbershop.address && barbershop.location && (
+                          <p
+                            className="text-sm break-words"
+                            style={{ color: 'var(--bb-muted)' }}
+                          >
+                            {barbershop.location}
+                          </p>
+                        )}
+                        {addressParts.length > 0 && (
+                          <p
+                            className="text-xs mt-1 break-words"
+                            style={{ color: 'var(--bb-muted)', opacity: 0.7 }}
+                          >
+                            {addressParts.join(', ')}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
 
-          {/* Redes sociales */}
-          {hasSocials && (
-            <div className="space-y-3 min-w-0">
-              <h3 className="text-xl font-semibold text-gray-800">Síguenos</h3>
-              {/* overflow-hidden protege el contenedor cuando los botones hacen wrap */}
-              <div className="p-4 bg-gray-50 rounded-xl overflow-hidden">
+            {/* ── Redes sociales ───────────────────────────────────────── */}
+            {hasSocials && (
+              <div
+                className="rounded-2xl p-6 border"
+                style={{ background: 'var(--bb-card)', borderColor: 'var(--bb-border)' }}
+              >
+                <h3
+                  className="text-xs font-semibold tracking-[0.18em] uppercase mb-5"
+                  style={{ color: 'var(--bb-accent)' }}
+                >
+                  Síguenos
+                </h3>
                 <SocialButtons
                   socials={activeSocials.map((p) => ({
                     platform: p,
@@ -112,34 +167,37 @@ export default function BarbershopInfo({ barbershop }: BarbershopInfoProps) {
                     ),
                   }))}
                   size="md"
-                  className="flex-wrap w-full"
+                  className="flex-wrap"
                 />
-                <p className="text-sm text-gray-400 mt-4">
-                  Mantente al día con nuestras novedades y promociones.
+                <p
+                  className="text-xs mt-5 leading-relaxed"
+                  style={{ color: 'var(--bb-muted)', opacity: 0.6 }}
+                >
+                  Síguenos para novedades y promociones exclusivas.
                 </p>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Mapa */}
         {hasMap && (
-          <div className="mt-10 w-full">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Ubicación en el mapa</h3>
-            {/* overflow-hidden en el wrapper asegura que el iframe no exceda el contenedor */}
-            <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-200 w-full">
-              <iframe
-                src={extractMapUrl(barbershop.map_embed_url!)}
-                width="100%"
-                height="320"
-                className="block w-full border-0"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title={`Mapa de ${barbershop.name}`}
-              />
-            </div>
+          <div
+            className="rounded-2xl overflow-hidden border"
+            style={{ borderColor: 'var(--bb-border)' }}
+          >
+            <iframe
+              src={extractMapUrl(barbershop.map_embed_url!)}
+              width="100%"
+              height="360"
+              className="block w-full border-0"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title={`Mapa de ${barbershop.name}`}
+            />
           </div>
         )}
+
       </div>
     </section>
   );
