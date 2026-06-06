@@ -121,6 +121,20 @@ export interface UnavailableDate {
 
 // ─── Barbershops ──────────────────────────────────────────────────────────────
 
+/**
+ * Visual theme identifier for a barbershop's public page.
+ * 'custom' is reserved for future per-barbershop color overrides.
+ * Validated in application code — no DB CHECK constraint — so new themes
+ * can be added without a migration.
+ */
+export type ThemeId =
+  | 'luxury-gold'
+  | 'minimal-white'
+  | 'urban-neon'
+  | 'vintage-barber'
+  | 'black-red'
+  | 'custom';
+
 export type BarbershopMemberRole   = 'owner' | 'barber';
 export type BarbershopMemberStatus = 'active' | 'inactive' | 'pending';
 export type InvitationStatus       = 'pending' | 'accepted' | 'expired' | 'cancelled';
@@ -159,6 +173,9 @@ export interface Barbershop {
   primary_color?: string;
   secondary_color?: string;
   gallery_images?: GalleryImage[];
+  // Tema visual (Sprint 4: barbershop_theme)
+  // Si theme === 'custom', primary_color y secondary_color actúan como overrides.
+  theme?: ThemeId;
   is_active: boolean;
   is_approved: boolean;
   created_at: string;
@@ -237,6 +254,8 @@ export interface BarbershopPublicProfile {
   primary_color?: string;
   secondary_color?: string;
   gallery_images?: GalleryImage[];
+  // Tema visual (Sprint 4)
+  theme?: ThemeId;
 }
 
 // Formulario de personalización de la página pública — usado en /dashboard/barberia/personalizar.
@@ -248,6 +267,8 @@ export interface BarbershopCustomizationForm {
   primary_color: string;
   secondary_color: string;
   gallery_images: GalleryImage[];
+  // Sprint 4: tema visual. 'custom' usa primary_color/secondary_color como overrides.
+  theme: ThemeId;
 }
 
 // Miembro del equipo para la página pública /barberia/[slug].

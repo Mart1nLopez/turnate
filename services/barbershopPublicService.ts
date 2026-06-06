@@ -10,7 +10,7 @@ export async function getBarbershopPublicProfile(
   const { data, error } = await supabase
     .from('barbershops')
     .select(
-      'id, name, slug, description, logo_url, phone, social_links, address, city, region, location, map_embed_url, cover_image_url, primary_color, secondary_color, gallery_images',
+      'id, name, slug, description, logo_url, phone, social_links, address, city, region, location, map_embed_url, cover_image_url, primary_color, secondary_color, gallery_images, theme',
     )
     .eq('slug', slug)
     .eq('is_active', true)
