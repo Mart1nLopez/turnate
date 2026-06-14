@@ -1,5 +1,3 @@
-import { TbUsers, TbCalendarCheck, TbPhone, TbMapPin } from 'react-icons/tb';
-import { IconType } from 'react-icons';
 import { BarbershopPublicProfile, TeamMember } from '@/types';
 
 interface TrustMetricsProps {
@@ -8,7 +6,6 @@ interface TrustMetricsProps {
 }
 
 interface Metric {
-  Icon: IconType;
   value: string;
   label: string;
 }
@@ -28,49 +25,55 @@ export default function TrustMetrics({ team, barbershop }: TrustMetricsProps) {
 
   const metrics: Metric[] = [
     {
-      Icon:  TbUsers,
       value: String(team.length),
       label: team.length === 1 ? 'Profesional' : 'Profesionales',
     },
     {
-      Icon:  TbCalendarCheck,
       value: 'Online',
       label: 'Reservas disponibles',
     },
     ...(hasContact
-      ? [{ Icon: TbPhone, value: '✓', label: 'Contacto disponible' } satisfies Metric]
+      ? [{ value: '24 h', label: 'Contacto disponible' } satisfies Metric]
       : []),
     ...(hasLocation
-      ? [{ Icon: TbMapPin, value: locationLabel ?? 'Ver mapa', label: 'Ubicación' } satisfies Metric]
+      ? [{ value: locationLabel ?? 'Ver mapa', label: 'Ubicación' } satisfies Metric]
       : []),
   ];
 
   return (
     <section
-      className="py-10 sm:py-12 px-6 w-full border-b"
+      className="py-12 sm:py-16 px-6 w-full border-b"
       style={{ background: 'var(--bb-bg)', borderColor: 'var(--bb-border)' }}
     >
       <div className="max-w-5xl mx-auto">
-        {/* Mobile: horizontal scroll · sm+: grid */}
-        <div className="flex gap-4 overflow-x-auto pb-1 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {metrics.map(({ Icon, value, label }) => (
-            <div
-              key={label}
-              className="flex-shrink-0 w-44 sm:w-auto rounded-2xl px-5 py-5 flex flex-col gap-3 border"
-              style={{ background: 'var(--bb-card)', borderColor: 'var(--bb-border)' }}
-            >
-              {/* Icon badge */}
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: 'var(--bb-accent-sub)' }}
-              >
-                <Icon className="w-5 h-5" style={{ color: 'var(--bb-accent)' }} />
-              </div>
+        {/*
+          Mobile: 2×2 grid with dividers.
+          Desktop: single row of 4 with dividers.
+          Border logic:
+            - Even items (0,2): left column — no left border.
+            - Odd items (1,3): right column — left border on mobile.
+            - All items except first: left border on desktop (md+).
+            - Top-row items (0,1) get bottom border on mobile when a second row exists.
+        */}
+        <div className="grid grid-cols-2 md:grid-cols-4">
+          {metrics.map(({ value, label }, i) => {
+            const isOdd        = i % 2 === 1;
+            const isTopRow     = i < 2 && metrics.length > 2;
+            const isFirstOnDt  = i === 0;
 
-              {/* Value + label */}
-              <div>
+            return (
+              <div
+                key={label}
+                className={[
+                  'px-6 py-8 text-center md:text-left',
+                  isOdd              ? 'border-l'            : '',
+                  isTopRow           ? 'border-b md:border-b-0' : '',
+                  !isFirstOnDt       ? 'md:border-l'         : '',
+                ].filter(Boolean).join(' ')}
+                style={{ borderColor: 'var(--bb-border)' }}
+              >
                 <p
-                  className="text-2xl font-bold leading-none mb-1 truncate"
+                  className="text-3xl sm:text-4xl font-bold leading-none mb-2 truncate"
                   style={{ color: 'var(--bb-accent)' }}
                 >
                   {value}
@@ -82,8 +85,8 @@ export default function TrustMetrics({ team, barbershop }: TrustMetricsProps) {
                   {label}
                 </p>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

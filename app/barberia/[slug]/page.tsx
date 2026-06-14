@@ -5,7 +5,7 @@ import BarbershopHero from '@/components/barbershopPage/BarbershopHero';
 import TrustMetrics from '@/components/barbershopPage/TrustMetrics';
 import TeamGrid from '@/components/barbershopPage/TeamGrid';
 import BarbershopInfo from '@/components/barbershopPage/BarbershopInfo';
-import Footer from '@/components/professionalPage/Footer';
+import BarbershopFooter from '@/components/barbershopPage/BarbershopFooter';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -34,7 +34,7 @@ export default async function BarbershopPublicPage({ params }: Props) {
       <TrustMetrics team={team} barbershop={barbershop} />
       <TeamGrid team={team} />
       <BarbershopInfo barbershop={barbershop} />
-      <Footer />
+      <BarbershopFooter />
     </div>
   );
 }

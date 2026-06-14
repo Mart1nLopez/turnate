@@ -2,6 +2,7 @@ import { BarbershopPublicProfile } from '@/types';
 import { SocialButtons, SocialPlatform } from '@/components/ui/social-buttons';
 import { extractMapUrl } from '@/lib/utils';
 import { TbPhone, TbMapPin } from 'react-icons/tb';
+import MapEmbed from './MapEmbed';
 
 interface BarbershopInfoProps {
   barbershop: BarbershopPublicProfile;
@@ -24,41 +25,47 @@ const SOCIAL_PLATFORMS: SocialPlatform[] = [
 ];
 
 export default function BarbershopInfo({ barbershop }: BarbershopInfoProps) {
-  const socialLinks  = barbershop.social_links ?? {};
+  const socialLinks   = barbershop.social_links ?? {};
   const activeSocials = SOCIAL_PLATFORMS.filter(
     (p) => !!(socialLinks as Record<SocialPlatform, string | undefined>)[p],
   );
-  const hasSocials    = activeSocials.length > 0;
-  const hasPhone      = !!barbershop.phone;
-  const hasAddress    = !!(barbershop.address || barbershop.location);
-  const hasMap        = !!barbershop.map_embed_url;
-  const hasContact    = hasPhone || hasAddress;
-  const addressParts  = [barbershop.city, barbershop.region].filter(Boolean);
+  const hasSocials   = activeSocials.length > 0;
+  const hasPhone     = !!barbershop.phone;
+  const hasAddress   = !!(barbershop.address || barbershop.location);
+  const hasMap       = !!barbershop.map_embed_url;
+  const hasContact   = hasPhone || hasAddress;
+  const addressParts = [barbershop.city, barbershop.region].filter(Boolean);
 
   if (!hasSocials && !hasContact && !hasMap) return null;
 
   return (
     <section
       id="info"
-      className="py-20 sm:py-24 px-6 w-full"
+      className="py-20 sm:py-28 px-6 w-full"
       style={{ background: 'var(--bb-bg)' }}
     >
       <div className="max-w-5xl mx-auto">
 
         {/* Header */}
-        <div className="mb-12">
+        <div className="mb-12 sm:mb-14">
           <p
-            className="text-xs font-semibold tracking-[0.22em] uppercase mb-3"
+            className="text-xs font-semibold tracking-[0.22em] uppercase mb-4"
             style={{ color: 'var(--bb-accent)' }}
           >
             Visítanos
           </p>
           <h2
-            className="text-3xl sm:text-4xl font-bold"
+            className="text-3xl sm:text-4xl font-bold mb-4"
             style={{ color: 'var(--bb-text)' }}
           >
-            Información
+            Encuéntranos
           </h2>
+          {/* Accent divider */}
+          <div
+            className="w-10 h-px"
+            style={{ background: 'var(--bb-accent)', opacity: 0.45 }}
+            aria-hidden="true"
+          />
         </div>
 
         {/* Contact + Socials grid */}
@@ -180,19 +187,14 @@ export default function BarbershopInfo({ barbershop }: BarbershopInfoProps) {
           </div>
         )}
 
-        {/* Mapa */}
+        {/* Mapa — MapEmbed se oculta automáticamente si el iframe lanza error */}
         {hasMap && (
           <div
             className="rounded-2xl overflow-hidden border"
             style={{ borderColor: 'var(--bb-border)' }}
           >
-            <iframe
+            <MapEmbed
               src={extractMapUrl(barbershop.map_embed_url!)}
-              width="100%"
-              height="360"
-              className="block w-full border-0"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
               title={`Mapa de ${barbershop.name}`}
             />
           </div>

@@ -10,7 +10,7 @@ export default function BarbershopHero({ barbershop }: BarbershopHeroProps) {
   const hasCover = !!barbershop.cover_image_url;
 
   return (
-    <section className="relative w-full min-h-[100dvh] overflow-hidden flex items-end">
+    <section className="relative w-full min-h-[70vh] overflow-hidden flex items-end">
 
       {/* ── Background ─────────────────────────────────────────────────────── */}
       {hasCover ? (
@@ -23,7 +23,7 @@ export default function BarbershopHero({ barbershop }: BarbershopHeroProps) {
             priority
             sizes="100vw"
           />
-          {/* Gradient overlay — theme-derived; dark themes go to ~opaque at bottom */}
+          {/* Overlay starts near the top so the image never dominates */}
           <div
             className="absolute inset-0"
             style={{ background: 'var(--bb-overlay)' }}
@@ -31,32 +31,30 @@ export default function BarbershopHero({ barbershop }: BarbershopHeroProps) {
           />
         </>
       ) : (
-        /* Elegant fallback — uses theme bg + subtle accent glows */
+        /* Elegant no-cover fallback with ambient accent glows */
         <div
           className="absolute inset-0"
           style={{ background: 'var(--bb-bg)' }}
           aria-hidden="true"
         >
-          {/* Top-left accent glow */}
           <div
             className="absolute inset-0"
             style={{
               background:
-                'radial-gradient(ellipse at 20% 25%, var(--bb-accent-sub) 0%, transparent 55%)',
+                'radial-gradient(ellipse at 15% 30%, var(--bb-accent-sub) 0%, transparent 50%)',
             }}
           />
-          {/* Bottom-right accent glow */}
           <div
             className="absolute inset-0"
             style={{
               background:
-                'radial-gradient(ellipse at 80% 80%, var(--bb-accent-sub) 0%, transparent 45%)',
-              opacity: 0.6,
+                'radial-gradient(ellipse at 85% 75%, var(--bb-accent-sub) 0%, transparent 45%)',
+              opacity: 0.55,
             }}
           />
-          {/* Very faint diagonal texture */}
+          {/* Subtle diagonal texture */}
           <div
-            className="absolute inset-0 opacity-[0.025]"
+            className="absolute inset-0 opacity-[0.02]"
             style={{
               backgroundImage:
                 'repeating-linear-gradient(45deg, var(--bb-accent) 0px, var(--bb-accent) 1px, transparent 1px, transparent 72px)',
@@ -66,36 +64,36 @@ export default function BarbershopHero({ barbershop }: BarbershopHeroProps) {
       )}
 
       {/* ── Content ────────────────────────────────────────────────────────── */}
-      <div className="relative z-10 w-full px-6 sm:px-10 md:px-16 pb-16 sm:pb-20 md:pb-28 max-w-5xl mx-auto">
+      <div className="relative z-10 w-full px-6 sm:px-10 md:px-16 pb-12 sm:pb-16 md:pb-20 pt-16 max-w-5xl mx-auto">
 
         {/* Logo / Initial badge */}
-        <div className="mb-6 sm:mb-8">
+        <div className="mb-6 sm:mb-7">
           {barbershop.logo_url ? (
             <div
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden flex-shrink-0"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden flex-shrink-0"
               style={{
-                boxShadow: '0 0 0 2px var(--bb-accent-ring), 0 16px 40px rgba(0,0,0,0.5)',
+                boxShadow: '0 0 0 2px var(--bb-accent-ring), 0 12px 32px rgba(0,0,0,0.5)',
               }}
             >
               <Image
                 src={barbershop.logo_url}
                 alt={`Logo de ${barbershop.name}`}
-                width={80}
-                height={80}
+                width={64}
+                height={64}
                 className="w-full h-full object-cover"
                 priority
               />
             </div>
           ) : (
             <div
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center flex-shrink-0"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
               style={{
-                background:  'var(--bb-card)',
-                boxShadow:   '0 0 0 2px var(--bb-accent-ring), 0 16px 40px rgba(0,0,0,0.5)',
+                background: 'var(--bb-card)',
+                boxShadow: '0 0 0 2px var(--bb-accent-ring), 0 12px 32px rgba(0,0,0,0.5)',
               }}
             >
               <span
-                className="text-2xl sm:text-3xl font-bold select-none"
+                className="text-xl sm:text-2xl font-bold select-none"
                 style={{ color: 'var(--bb-accent)' }}
               >
                 {initial}
@@ -106,15 +104,22 @@ export default function BarbershopHero({ barbershop }: BarbershopHeroProps) {
 
         {/* Eyebrow label */}
         <p
-          className="text-xs font-semibold tracking-[0.22em] uppercase mb-3"
+          className="text-xs font-semibold tracking-[0.22em] uppercase mb-4"
           style={{ color: 'var(--bb-accent)' }}
         >
           Barbería Premium
         </p>
 
+        {/* Thin accent divider — editorial signature */}
+        <div
+          className="w-10 h-px mb-5"
+          style={{ background: 'var(--bb-accent)', opacity: 0.55 }}
+          aria-hidden="true"
+        />
+
         {/* Barbershop name */}
         <h1
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.04] mb-5 break-words"
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.04] mb-4 break-words"
           style={{ color: 'var(--bb-text)' }}
         >
           {barbershop.name}
@@ -123,7 +128,7 @@ export default function BarbershopHero({ barbershop }: BarbershopHeroProps) {
         {/* Description */}
         {barbershop.description && (
           <p
-            className="text-base sm:text-lg leading-relaxed max-w-xl mb-10 break-words"
+            className="text-base sm:text-lg leading-relaxed max-w-lg mb-9 break-words"
             style={{ color: 'var(--bb-muted)' }}
           >
             {barbershop.description}
@@ -136,9 +141,9 @@ export default function BarbershopHero({ barbershop }: BarbershopHeroProps) {
             href="#equipo"
             className="inline-flex items-center justify-center px-7 py-3.5 text-sm font-semibold tracking-wide transition-all duration-200 hover:brightness-110 active:scale-[0.98]"
             style={{
-              background:    'var(--bb-accent)',
-              color:         'var(--bb-accent-fg)',
-              borderRadius:  'var(--bb-radius)',
+              background:   'var(--bb-accent)',
+              color:        'var(--bb-accent-fg)',
+              borderRadius: 'var(--bb-radius)',
             }}
           >
             Ver profesionales
@@ -159,13 +164,13 @@ export default function BarbershopHero({ barbershop }: BarbershopHeroProps) {
 
       {/* ── Scroll indicator ───────────────────────────────────────────────── */}
       <div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-bounce opacity-30"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 animate-bounce opacity-25"
         aria-hidden="true"
         style={{ color: 'var(--bb-text)' }}
       >
         <svg
-          width="18"
-          height="18"
+          width="16"
+          height="16"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"

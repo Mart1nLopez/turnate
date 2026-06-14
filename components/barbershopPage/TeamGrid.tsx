@@ -1,4 +1,3 @@
-import { TbUsers } from 'react-icons/tb';
 import { TeamMember } from '@/types';
 import ProfessionalTeamCard from './ProfessionalTeamCard';
 
@@ -10,29 +9,35 @@ export default function TeamGrid({ team }: TeamGridProps) {
   return (
     <section
       id="equipo"
-      className="py-20 sm:py-24 px-6 w-full"
+      className="py-20 sm:py-28 px-6 w-full"
       style={{ background: 'var(--bb-bg)' }}
     >
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
-        <div className="mb-12 sm:mb-14">
+        <div className="mb-14 sm:mb-16">
           <p
-            className="text-xs font-semibold tracking-[0.22em] uppercase mb-3"
+            className="text-xs font-semibold tracking-[0.22em] uppercase mb-4"
             style={{ color: 'var(--bb-accent)' }}
           >
             El equipo
           </p>
           <h2
-            className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight"
+            className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4"
             style={{ color: 'var(--bb-text)' }}
           >
             Profesionales que
             <br className="hidden sm:block" />
             {' '}cuidan tu estilo
           </h2>
+          {/* Accent divider under heading */}
+          <div
+            className="w-10 h-px mb-5"
+            style={{ background: 'var(--bb-accent)', opacity: 0.45 }}
+            aria-hidden="true"
+          />
           <p
-            className="text-base sm:text-lg mt-4 max-w-lg leading-relaxed"
+            className="text-base sm:text-lg max-w-md leading-relaxed"
             style={{ color: 'var(--bb-muted)' }}
           >
             Elige al profesional de tu preferencia y agenda en segundos.
@@ -40,28 +45,25 @@ export default function TeamGrid({ team }: TeamGridProps) {
         </div>
 
         {team.length === 0 ? (
-          /* Empty state */
-          <div
-            className="max-w-sm mx-auto rounded-2xl p-12 text-center border"
-            style={{ background: 'var(--bb-card)', borderColor: 'var(--bb-border)' }}
-          >
+          /* Empty state — minimal, unobtrusive */
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            {/* Single thin accent line as decorative element */}
             <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5"
-              style={{ background: 'var(--bb-accent-sub)' }}
-            >
-              <TbUsers className="w-7 h-7" style={{ color: 'var(--bb-accent)', opacity: 0.5 }} />
-            </div>
-            <h3
-              className="text-base font-semibold mb-2"
+              className="w-12 h-px mb-8"
+              style={{ background: 'var(--bb-accent)', opacity: 0.3 }}
+              aria-hidden="true"
+            />
+            <p
+              className="text-sm font-medium mb-1"
               style={{ color: 'var(--bb-muted)' }}
             >
-              Sin miembros activos
-            </h3>
+              Próximamente
+            </p>
             <p
-              className="text-sm leading-relaxed"
-              style={{ color: 'var(--bb-muted)', opacity: 0.6 }}
+              className="text-xs max-w-xs leading-relaxed"
+              style={{ color: 'var(--bb-muted)', opacity: 0.5 }}
             >
-              Esta barbería aún no ha agregado miembros a su equipo.
+              El equipo de profesionales estará disponible en breve.
             </p>
           </div>
         ) : (
