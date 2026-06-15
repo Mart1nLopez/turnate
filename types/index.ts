@@ -25,6 +25,7 @@ export interface Professional {
   google_refresh_token?: string | null;
   hide_reviews?: boolean;
   is_approved?: boolean;
+  theme?: ThemeId;
 }
 
 export interface Service {
@@ -284,4 +285,71 @@ export interface TeamMember {
     profileImage?: string;
     bio?: string;
   };
+}
+
+// ─── Analíticas de Barbería ───────────────────────────────────────────────────
+
+/** Rango de fechas para el filtro global de analíticas */
+export type AnalyticsDateRange = 'today' | '7d' | '30d' | '90d' | 'year' | 'custom';
+
+/** Resultado de get_barbershop_stats() — estadísticas globales de la barbería */
+export interface BarbershopGlobalStats {
+  total_members: number;
+  completed_appointments: number;
+  upcoming_appointments: number;
+  cancelled_appointments: number;
+  unique_clients: number;
+  avg_rating: number;
+  total_reviews: number;
+  total_revenue: number;
+}
+
+/** Resultado de get_barbershop_member_stats() — estadísticas por barbero */
+export interface BarbershopMemberStatsRow {
+  professional_id: string;
+  professional_name: string;
+  professional_slug: string;
+  profile_image: string | null;
+  role: BarbershopMemberRole;
+  completed_appointments: number;
+  cancelled_appointments: number;
+  avg_rating: number;
+  total_revenue: number;
+  unique_clients: number;
+  avg_ticket: number;
+  booked_hours: number;
+  available_hours: number;
+}
+
+/** Resultado de get_barbershop_monthly_trend() — tendencia mensual */
+export interface BarbershopMonthlyTrendRow {
+  period_start: string;
+  month_label: string;
+  appointments: number;
+  revenue: number;
+  unique_clients: number;
+}
+
+/** Resultado de get_barbershop_service_stats() — servicios más vendidos/rentables */
+export interface BarbershopServiceStatRow {
+  service_id: string;
+  service_name: string;
+  bookings: number;
+  revenue: number;
+}
+
+/** Resultado de get_barbershop_retention() — retención de clientes */
+export interface BarbershopRetentionStats {
+  unique_clients: number;
+  recurring_clients: number;
+  return_rate: number;
+}
+
+/** Resultado de get_barbershop_top_clients() — top clientes */
+export interface BarbershopTopClient {
+  client_name: string;
+  client_email: string;
+  visit_count: number;
+  total_spent: number;
+  last_visit: string;
 }

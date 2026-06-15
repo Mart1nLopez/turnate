@@ -19,6 +19,7 @@ import Hero from '@/components/professionalPage/Hero';
 import Services from '@/components/professionalPage/Services';
 import Reviews from '@/components/professionalPage/Reviews';
 import Footer from '@/components/professionalPage/Footer';
+import { getThemeById } from '@/lib/barbershopThemes';
 
 export default function ProfessionalPublicPage() {
   const params = useParams();
@@ -59,9 +60,27 @@ export default function ProfessionalPublicPage() {
     }
   }, [slug, loadProfessionalData]);
 
+  // Derive theme CSS vars from the professional's chosen theme.
+  // getThemeById falls back to 'luxury-gold' when professional is null (loading)
+  // or when theme is unset — so the loading skeleton and the page share the same palette.
+  const theme  = getThemeById(professional?.theme);
+  const ppVars = {
+    '--pp-bg':          theme.backgroundColor,
+    '--pp-surface':     theme.cardBackground,
+    '--pp-border':      theme.borderColor,
+    '--pp-text':        theme.textColor,
+    '--pp-muted':       theme.mutedColor,
+    '--pp-accent':      theme.accentColor,
+    '--pp-accent-fg':   theme.accentForeground,
+    '--pp-accent-sub':  theme.accentSubtle,
+    '--pp-accent-ring': theme.accentRing,
+    '--pp-overlay':     theme.heroOverlay,
+    '--pp-radius':      theme.buttonRadius,
+  } as React.CSSProperties;
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: theme.backgroundColor }}>
         <LoadingSpinner size="lg" text="Cargando perfil..." />
       </div>
     );
@@ -69,10 +88,14 @@ export default function ProfessionalPublicPage() {
 
   if (!professional) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Profesional no encontrado</h1>
-          <p className="text-gray-600 mb-4">El enlace que seguiste no es válido o el profesional no existe.</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: theme.backgroundColor }}>
+        <div className="text-center px-6">
+          <h1 className="text-2xl font-bold mb-4" style={{ color: '#F7F7F7' }}>
+            Profesional no encontrado
+          </h1>
+          <p className="mb-6" style={{ color: 'rgba(255,255,255,0.65)' }}>
+            El enlace que seguiste no es válido o el profesional no existe.
+          </p>
           <Link href="/">
             <Button>Volver al inicio</Button>
           </Link>
@@ -81,17 +104,18 @@ export default function ProfessionalPublicPage() {
     );
   }
 
-  // Lógica para determinar si se deben mostrar las secciones en el header
-  const hasReviews = reviews.length > 0 && !professional.hide_reviews;
-
-  const socialLinks = professional.social_links || {};
+  const hasReviews     = reviews.length > 0 && !professional.hide_reviews;
+  const socialLinks    = professional.social_links || {};
   const hasSocialLinks = Object.values(socialLinks).some((value) => value);
   const hasLocationInfo = professional.map_embed_url || professional.location;
-  const hasBio = professional.bio;
-  const hasContactInfo = !!(hasLocationInfo || hasSocialLinks || hasBio);
+  const hasBio          = professional.bio;
+  const hasContactInfo  = !!(hasLocationInfo || hasSocialLinks || hasBio);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div
+      className="min-h-screen"
+      style={{ background: theme.backgroundColor, ...ppVars }}
+    >
       <Header
         professional={professional}
         slug={slug}
@@ -99,7 +123,7 @@ export default function ProfessionalPublicPage() {
         hasContactInfo={hasContactInfo}
         barbershop={barbershop}
       />
-      <Hero professional={professional} />
+      <Hero professional={professional} slug={slug} />
       <Services services={services} slug={slug} />
       <Contacto professional={professional} />
       <Reviews reviews={reviews} averageRating={averageRating} hideReviews={professional.hide_reviews} />

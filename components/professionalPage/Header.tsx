@@ -19,64 +19,113 @@ export default function Header({
   hasContactInfo = true,
   barbershop = null,
 }: HeaderProps) {
+  const initial = professional.name?.charAt(0) || 'P';
+
   return (
-    <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-md">
-      <div className="container mx-auto flex items-center justify-between p-2 sm:p-2 md:py-3 lg:px-4">
-        <div className="flex items-center flex-1 min-w-0">
-          <a href="#hero" className="flex-shrink-0 mr-4">
-            {professional.profile_image ?
-              <div className="h-14 w-14 rounded-full overflow-hidden border-2 border-blue-600/20">
+    <header
+      className="sticky top-0 z-50 border-b backdrop-blur-md"
+      style={{
+        background: 'rgba(17,17,17,0.85)',
+        borderColor: 'var(--pp-border)',
+      }}
+    >
+      <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3 gap-4">
+
+        {/* ── Identity ── */}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <a href="#hero" className="flex-shrink-0">
+            {professional.profile_image ? (
+              <div
+                className="w-10 h-10 rounded-full overflow-hidden"
+                style={{ boxShadow: '0 0 0 1.5px var(--pp-accent-ring)' }}
+              >
                 <Image
                   src={professional.profile_image}
                   alt={`Foto de ${professional.name}`}
-                  width={100}
-                  height={100}
+                  width={40}
+                  height={40}
                   className="w-full h-full object-cover"
                 />
               </div>
-            : <div className="h-14 w-14 rounded-full bg-blue-600 flex items-center justify-center">
-                <span className="text-white font-medium text-sm">{professional.name?.charAt(0) || 'P'}</span>
+            ) : (
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: 'var(--pp-surface)',
+                  boxShadow: '0 0 0 1.5px var(--pp-accent-ring)',
+                }}
+              >
+                <span className="text-sm font-bold select-none" style={{ color: 'var(--pp-accent)' }}>
+                  {initial}
+                </span>
               </div>
-            }
+            )}
           </a>
+
           <div className="min-w-0">
             <a href="#hero" className="block">
-              <span className="text-xl sm:text-2xl font-bold truncate block">{professional.name}</span>
+              <span
+                className="text-base sm:text-lg font-bold truncate block leading-tight"
+                style={{ color: 'var(--pp-text)' }}
+              >
+                {professional.name}
+              </span>
             </a>
             {barbershop && (
               <Link
                 href={`/barberia/${barbershop.slug}`}
-                className="block text-sm text-blue-600 hover:underline leading-tight mt-0.5 truncate"
+                className="text-xs leading-tight hover:opacity-80 transition-opacity truncate block mt-0.5"
+                style={{ color: 'var(--pp-accent)' }}
               >
-                Trabaja en {barbershop.name}
+                {barbershop.name}
               </Link>
             )}
           </div>
         </div>
 
-        <nav className="nav">
-          <a href="#servicios" className="nav-underline">
+        {/* ── Nav ── */}
+        <nav className="hidden md:flex items-center gap-7">
+          <a
+            href="#servicios"
+            className="text-sm font-medium transition-colors duration-200 hover:opacity-100"
+            style={{ color: 'var(--pp-muted)', opacity: 0.85 }}
+          >
             Servicios
           </a>
           {hasContactInfo && (
-            <a href="#contactos" className="nav-underline">
+            <a
+              href="#contactos"
+              className="text-sm font-medium transition-colors duration-200 hover:opacity-100"
+              style={{ color: 'var(--pp-muted)', opacity: 0.85 }}
+            >
               Contacto
             </a>
           )}
           {hasReviews && (
-            <a href="#reseñas" className="nav-underline">
+            <a
+              href="#reseñas"
+              className="text-sm font-medium transition-colors duration-200 hover:opacity-100"
+              style={{ color: 'var(--pp-muted)', opacity: 0.85 }}
+            >
               Reseñas
             </a>
           )}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Link href={`/${slug}/agendar`}>
-            <span className="inline-block py-2 px-4 sm:py-3 sm:px-6 font-bold bg-blue-600 text-white no-underline rounded-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer text-sm sm:text-base">
-              ¡Reserva Ya!
-            </span>
-          </Link>
-        </div>
+        {/* ── CTA ── */}
+        <Link href={`/${slug}/agendar`} className="flex-shrink-0">
+          <span
+            className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 hover:brightness-110 active:scale-[0.97]"
+            style={{
+              background:   'var(--pp-accent)',
+              color:        'var(--pp-accent-fg)',
+              borderRadius: '8px',
+            }}
+          >
+            Reservar
+          </span>
+        </Link>
+
       </div>
     </header>
   );

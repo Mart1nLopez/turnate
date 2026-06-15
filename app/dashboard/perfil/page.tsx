@@ -8,6 +8,7 @@ import {
   TbQrcode,
   TbQrcodeOff,
   TbCopy,
+  TbPalette,
 } from 'react-icons/tb';
 import { FaInstagram, FaWhatsapp, FaSquareFacebook, FaTiktok, FaXTwitter, FaYoutube } from 'react-icons/fa6';
 import PhoneInput from '@/components/ui/phone-input';
@@ -21,6 +22,8 @@ import LoadingSpinner from '@/components/ui/loading-spinner';
 import { useProfile } from '@/hooks/useProfile';
 import { toast } from 'sonner';
 import QRCode from 'react-qr-code';
+import ThemeSelector from '@/components/barbershopCustomize/ThemeSelector';
+import { getThemeById } from '@/lib/barbershopThemes';
 
 export default function PerfilPage() {
   const {
@@ -47,10 +50,14 @@ export default function PerfilPage() {
     setShowQR,
     qrRef,
 
-
     // Cropper
     showCropper,
     setShowCropper,
+
+    // Tema visual
+    selectedTheme,
+    savingTheme,
+    handleThemeSelect,
 
     // Funciones
     handleInputChange,
@@ -62,6 +69,8 @@ export default function PerfilPage() {
     handleDownloadQR,
     handleCopyQR,
   } = useProfile();
+
+  const activeTheme = getThemeById(selectedTheme);
 
   if (loading) {
     return (
@@ -448,6 +457,49 @@ export default function PerfilPage() {
           </div>
         )}
       </form>
+
+      {/* Tema visual — outside the profile form, saves instantly on select */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Tema visual</CardTitle>
+          <CardDescription>
+            Elige el estilo visual de tu página pública. El cambio se aplica instantáneamente.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* Active theme indicator */}
+          <div className="flex items-center gap-2 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-200">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ background: activeTheme.backgroundColor }}
+            >
+              <TbPalette className="w-4 h-4" style={{ color: activeTheme.accentColor }} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{activeTheme.name}</p>
+              <p className="text-xs text-gray-500">{activeTheme.description}</p>
+            </div>
+            <div className="ml-auto flex gap-1">
+              <div
+                className="w-4 h-4 rounded-full border border-white shadow-sm"
+                style={{ background: activeTheme.backgroundColor }}
+                title="Fondo"
+              />
+              <div
+                className="w-4 h-4 rounded-full border border-white shadow-sm"
+                style={{ background: activeTheme.accentColor }}
+                title="Acento"
+              />
+            </div>
+          </div>
+
+          <ThemeSelector
+            selectedTheme={selectedTheme}
+            onSelect={handleThemeSelect}
+            saving={savingTheme}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,10 +1,9 @@
 'use client';
 
-import { useRef } from 'react';
-import { Service } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TbClock } from 'react-icons/tb';
+import { Service } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 
 interface ServicesProps {
@@ -13,70 +12,144 @@ interface ServicesProps {
 }
 
 export default function Services({ services, slug }: ServicesProps) {
-  const carouselRef = useRef<HTMLDivElement>(null);
-
-  // Determina si hay exactamente 3 servicios para centrar las cards
-  const isThreeServices = services.length === 3;
+  if (services.length === 0) return null;
 
   return (
-    <section id="servicios" className="py-16 px-6 text-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <h2 className="text-3xl md:text-4xl mb-8 font-bold text-gray-900">Servicios disponibles</h2>
-      <div className="relative max-w-6xl mx-auto">
-        <div
-          ref={carouselRef}
-          className={`flex gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory py-2 px-1 ${isThreeServices ? 'justify-center' : ''}`}
-          style={{ scrollBehavior: 'smooth' }}>
+    <section
+      id="servicios"
+      className="py-20 sm:py-28 px-6"
+      style={{ background: 'var(--pp-bg)' }}
+    >
+      <div className="max-w-6xl mx-auto">
+
+        {/* Section header */}
+        <div className="mb-14 sm:mb-16">
+          <p
+            className="text-xs font-semibold tracking-[0.22em] uppercase mb-4"
+            style={{ color: 'var(--pp-accent)' }}
+          >
+            Servicios
+          </p>
+          <h2
+            className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4"
+            style={{ color: 'var(--pp-text)' }}
+          >
+            Servicios disponibles
+          </h2>
+          <div
+            className="w-10 h-px mb-5"
+            style={{ background: 'var(--pp-accent)', opacity: 0.45 }}
+            aria-hidden="true"
+          />
+          <p
+            className="text-base sm:text-lg max-w-md leading-relaxed"
+            style={{ color: 'var(--pp-muted)' }}
+          >
+            Selecciona un servicio para agendar directamente.
+          </p>
+        </div>
+
+        {/* Service grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {services.map((service) => (
             <article
               key={service.id}
-              className="bg-white border border-gray-300 rounded-2xl p-6 shadow-sm hover:shadow-lg hover:shadow-blue-200 hover:scale-102 transition-all duration-200 ease-in-out cursor-pointer w-72 min-w-[18rem] max-w-[18rem] snap-center"
+              className="group rounded-2xl overflow-hidden border border-[var(--pp-border)] hover:border-[var(--pp-accent-ring)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_32px_-8px_var(--pp-accent-ring)] cursor-pointer"
+              style={{ background: 'var(--pp-surface)' }}
               onClick={() => {
                 window.location.href = `/${slug}/agendar?service=${service.id}`;
-              }}>
-              <figure className="mb-4">
-                <div className="relative w-44 h-44 mb-3 rounded-xl overflow-hidden bg-gray-200 flex items-center justify-center mx-auto">
-                  <Image
-                    src={service.image_url || '/img/appointments-default.svg'}
-                    alt={service.name}
-                    fill
-                    sizes="(max-width: 768px) 176px, 256px"
-                    className="object-cover p-1 rounded-2xl"
-                  />
-                </div>
-                <figcaption className="font-semibold mt-3 text-gray-900">{service.name}</figcaption>
-              </figure>
-              <div className="flex items-center justify-between mb-3">
-                <p className="font-bold text-green-600 flex items-center">{formatCurrency(service.price)}</p>
-                <div className="flex items-center text-gray-500">
-                  <TbClock className="h-4 w-4 mr-1" />
-                  <span className="text-sm">{service.duration_minutes} min</span>
+              }}
+            >
+              {/* Service image */}
+              <div
+                className="relative w-full overflow-hidden"
+                style={{ aspectRatio: '4/3', borderBottom: '1px solid var(--pp-border)' }}
+              >
+                <Image
+                  src={service.image_url || '/img/appointments-default.svg'}
+                  alt={service.name}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+
+              {/* Card body */}
+              <div className="p-6">
+
+                {/* Name */}
+                <h3
+                  className="text-lg font-bold leading-snug mb-2 break-words transition-colors duration-200 text-[var(--pp-text)] group-hover:text-[var(--pp-accent)]"
+                >
+                  {service.name}
+                </h3>
+
+                {/* Description */}
+                {service.description && (
+                  <p
+                    className="text-sm leading-relaxed line-clamp-2 mb-4 break-words"
+                    style={{ color: 'var(--pp-muted)' }}
+                  >
+                    {service.description}
+                  </p>
+                )}
+
+                {/* Meta row: duration + price */}
+                <div
+                  className="flex items-center justify-between pt-4 mt-auto"
+                  style={{ borderTop: '1px solid var(--pp-border)' }}
+                >
+                  {/* Duration — primary info */}
+                  <div className="flex items-center gap-1.5">
+                    <TbClock className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--pp-accent)' }} />
+                    <span className="text-sm font-medium" style={{ color: 'var(--pp-text)' }}>
+                      {service.duration_minutes} min
+                    </span>
+                  </div>
+
+                  {/* Price — secondary info */}
+                  <span
+                    className="text-sm font-semibold tabular-nums"
+                    style={{ color: 'var(--pp-muted)' }}
+                  >
+                    {formatCurrency(service.price)}
+                  </span>
                 </div>
               </div>
-              {service.description && (
-                <p className="text-sm text-gray-600 mt-2 line-clamp-2 text-balance">{service.description}</p>
-              )}
             </article>
           ))}
         </div>
-        {services.length > 4 && (
-          <div className="mt-8">
-            <Link href={`/${slug}/agendar`}>
-              <span className="inline-block py-3 px-6 font-bold bg-blue-600 text-white no-underline rounded-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer">
-                Ver todos los servicios
-              </span>
-            </Link>
-          </div>
-        )}
-      </div>
-      {services.length <= 4 && (
-        <div className="mt-10 -mb-5">
+
+        {/* CTA */}
+        <div className="mt-14 flex justify-center">
           <Link href={`/${slug}/agendar`}>
-            <span className="inline-block py-3 px-6 font-bold bg-blue-600 text-white no-underline rounded-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer">
-              ¡Reserva aquí!
+            <span
+              className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-semibold tracking-wide transition-all duration-200 hover:brightness-110 active:scale-[0.98]"
+              style={{
+                background:   'var(--pp-accent)',
+                color:        'var(--pp-accent-fg)',
+                borderRadius: 'var(--pp-radius)',
+              }}
+            >
+              Ver disponibilidad y agendar
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
             </span>
           </Link>
         </div>
-      )}
+
+      </div>
     </section>
   );
 }

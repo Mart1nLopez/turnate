@@ -10,7 +10,8 @@ import {
 } from '@/services/professionalService';
 import { deleteMultipleImages, deleteImageFromStorage, uploadCarouselImages, uploadProfileImage } from '@/lib/storage';
 import { generateSlugWithRandomSuffix } from '@/lib/utils';
-import { Professional } from '@/types';
+import { Professional, ThemeId } from '@/types';
+import { getThemeById } from '@/lib/barbershopThemes';
 
 interface ProfileForm {
   name: string;
@@ -60,10 +61,14 @@ interface UseProfileReturn {
   setShowQR: React.Dispatch<React.SetStateAction<boolean>>;
   qrRef: React.RefObject<HTMLDivElement | null>;
 
-
   // Cropper
   showCropper: boolean;
   setShowCropper: React.Dispatch<React.SetStateAction<boolean>>;
+
+  // Tema visual
+  selectedTheme: ThemeId;
+  savingTheme: boolean;
+  handleThemeSelect: (themeId: ThemeId) => Promise<void>;
 
   // Funciones
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -125,6 +130,9 @@ export function useProfile(): UseProfileReturn {
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  // Tema visual
+  const [selectedTheme, setSelectedTheme] = useState<ThemeId>('luxury-gold');
+  const [savingTheme, setSavingTheme] = useState(false);
 
   // Formulario
   const [formData, setFormData] = useState<ProfileForm>({
@@ -182,6 +190,7 @@ export function useProfile(): UseProfileReturn {
       });
       setImages(professional.carrusel_images || []);
       setCurrentProfileImageUrl(professional.profile_image);
+      setSelectedTheme((professional.theme as ThemeId | undefined) ?? 'luxury-gold');
     } catch (error) {
       console.error('Error loading professional:', error);
       toast.error('Error al cargar el perfil');
@@ -472,6 +481,24 @@ export function useProfile(): UseProfileReturn {
     img.src = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(svgString)));
   };
 
+  // Tema visual — guarda instantáneamente al seleccionar
+  const handleThemeSelect = useCallback(async (themeId: ThemeId) => {
+    if (themeId === selectedTheme || savingTheme || !professional) return;
+    const previous = selectedTheme;
+    setSelectedTheme(themeId); // optimistic
+    setSavingTheme(true);
+    try {
+      await updateProfessionalProfile(professional.id, { theme: themeId });
+      setProfessional((prev) => prev ? { ...prev, theme: themeId } : null);
+      toast.success(`Tema "${getThemeById(themeId).name}" guardado`);
+    } catch {
+      setSelectedTheme(previous);
+      toast.error('No se pudo guardar el tema');
+    } finally {
+      setSavingTheme(false);
+    }
+  }, [selectedTheme, savingTheme, professional]);
+
   // Copiar QR al portapapeles
   const handleCopyQR = async () => {
     if (!qrRef.current) return;
@@ -535,6 +562,11 @@ export function useProfile(): UseProfileReturn {
     // Cropper
     showCropper,
     setShowCropper,
+
+    // Tema visual
+    selectedTheme,
+    savingTheme,
+    handleThemeSelect,
 
     // Funciones
     handleInputChange,
