@@ -136,7 +136,7 @@ export type ThemeId =
   | 'black-red'
   | 'custom';
 
-export type BarbershopMemberRole   = 'owner' | 'barber';
+export type BarbershopMemberRole   = 'owner' | 'admin' | 'barber';
 export type BarbershopMemberStatus = 'active' | 'inactive' | 'pending';
 export type InvitationStatus       = 'pending' | 'accepted' | 'expired' | 'cancelled';
 

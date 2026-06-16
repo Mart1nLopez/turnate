@@ -362,7 +362,7 @@ function IndividualAnalytics({
 
 export default function AnalyticsPage() {
   // ── Barbería ──
-  const { barbershop, isOwner, loading: barbershopLoading } = useBarbershop();
+  const { barbershop, canManage, loading: barbershopLoading } = useBarbershop();
 
   // ── Tab activo ──
   const [activeTab, setActiveTab] = useState<AnalyticsTab>('individual');
@@ -405,7 +405,7 @@ export default function AnalyticsPage() {
 
   // ── Cargar analíticas de barbería ──
   const loadBarbershop = useCallback(async () => {
-    if (!barbershop || !isOwner) return;
+    if (!barbershop || !canManage) return;
     setBarbershopLoading2(true);
     setBarbershopError(null);
     try {
@@ -423,7 +423,7 @@ export default function AnalyticsPage() {
     } finally {
       setBarbershopLoading2(false);
     }
-  }, [barbershop, isOwner, dateRange, customStart, customEnd]);
+  }, [barbershop, canManage, dateRange, customStart, customEnd]);
 
   // ── Efectos de carga ──
   useEffect(() => {
@@ -431,10 +431,10 @@ export default function AnalyticsPage() {
   }, [loadIndividual]);
 
   useEffect(() => {
-    if (activeTab === 'barbershop' && isOwner && barbershop) {
+    if (activeTab === 'barbershop' && canManage && barbershop) {
       loadBarbershop();
     }
-  }, [activeTab, loadBarbershop, isOwner, barbershop]);
+  }, [activeTab, loadBarbershop, canManage, barbershop]);
 
   // ── Aplicar rango personalizado ──
   const applyCustomRange = () => {
@@ -469,7 +469,7 @@ export default function AnalyticsPage() {
   }
 
   // ── Si es owner de barbería, mostrar las tabs ──
-  const showTabs = isOwner && barbershop !== null;
+  const showTabs = canManage && barbershop !== null;
 
   return (
     <div className="space-y-6">
@@ -561,7 +561,7 @@ export default function AnalyticsPage() {
         <IndividualAnalytics stats={individualStats} loading={individualLoading} />
       )}
 
-      {activeTab === 'barbershop' && isOwner && barbershop && (
+      {activeTab === 'barbershop' && canManage && barbershop && (
         <>
           {barbershopLoading2 && (
             <LoadingSpinner size="lg" text="Cargando analíticas de la barbería..." />

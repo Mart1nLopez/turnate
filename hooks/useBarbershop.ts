@@ -12,6 +12,9 @@ interface UseBarbershopReturn {
   barbershop: Barbershop | null;
   membership: BarbershopMember | null;
   isOwner: boolean;
+  isAdmin: boolean;
+  /** true when role is 'owner' OR 'admin' — can edit info, appearance, invite, view analytics */
+  canManage: boolean;
   isMember: boolean;
   role: BarbershopMemberRole | null;
   loading: boolean;
@@ -79,15 +82,19 @@ export function useBarbershop(): UseBarbershopReturn {
     [barbershop],
   );
 
-  const isOwner  = membership?.role === 'owner';
-  const isMember = membership !== null;
-  const role     = membership?.role ?? null;
+  const isOwner   = membership?.role === 'owner';
+  const isAdmin   = membership?.role === 'admin';
+  const canManage = isOwner || isAdmin;
+  const isMember  = membership !== null;
+  const role      = membership?.role ?? null;
 
   return {
     professional,
     barbershop,
     membership,
     isOwner,
+    isAdmin,
+    canManage,
     isMember,
     role,
     loading,

@@ -36,41 +36,40 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Extrae la URL src de un iframe de Google Maps
- * Si el input ya es una URL válida, la devuelve tal como está
- * Si es un iframe completo, extrae el atributo src
+ * Extrae la URL src de un iframe de Google Maps.
+ * - Si ya es una URL embed válida, la devuelve tal como está.
+ * - Si es un iframe HTML, extrae el src y decodifica entidades HTML (&amp; → &).
  */
 export function extractMapUrl(input: string): string {
-  // Si el input está vacío, devolver string vacío
   if (!input || typeof input !== 'string') {
     return '';
   }
 
-  // Limpiar espacios en blanco
   const cleanInput = input.trim();
 
-  // Si ya es una URL válida (comienza con http), devolverla tal como está
-  if (cleanInput.startsWith('http')) {
-    return cleanInput;
-  }
+  console.log('[MapEmbed] URL original:', cleanInput.substring(0, 400));
 
-  // Si contiene un iframe, extraer el src
+  let result: string;
+
   if (cleanInput.includes('<iframe') && cleanInput.includes('src=')) {
-    // Buscar el atributo src usando regex
+    // Iframe HTML: extraer src y decodificar entidades HTML
     const srcMatch = cleanInput.match(/src="([^"]+)"/);
-    if (srcMatch && srcMatch[1]) {
-      return srcMatch[1];
+    if (srcMatch?.[1]) {
+      result = srcMatch[1].replace(/&amp;/g, '&');
+    } else {
+      const srcMatchSingle = cleanInput.match(/src='([^']+)'/);
+      result = srcMatchSingle?.[1]?.replace(/&amp;/g, '&') ?? cleanInput;
     }
-
-    // Intentar con comillas simples también
-    const srcMatchSingle = cleanInput.match(/src='([^']+)'/);
-    if (srcMatchSingle && srcMatchSingle[1]) {
-      return srcMatchSingle[1];
-    }
+  } else if (cleanInput.startsWith('http')) {
+    // URL directa: devolver tal como está
+    result = cleanInput;
+  } else {
+    result = cleanInput;
   }
 
-  // Si no se pudo extraer nada, devolver el input original
-  return cleanInput;
+  console.log('[MapEmbed] URL transformada:', result.substring(0, 400));
+
+  return result;
 }
 
 /**

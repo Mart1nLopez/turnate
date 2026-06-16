@@ -8,6 +8,7 @@ interface ProfessionalTeamCardProps {
 
 const ROLE_LABELS: Record<BarbershopMemberRole, string> = {
   owner:  'Fundador',
+  admin:  'Barbero',
   barber: 'Barbero',
 };
 

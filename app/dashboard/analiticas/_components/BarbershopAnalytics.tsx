@@ -17,6 +17,7 @@ import {
   TbChartBar,
   TbAlertTriangle,
   TbClock,
+  TbShieldCheck,
 } from 'react-icons/tb';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
@@ -49,12 +50,20 @@ function Avatar({ name, imageUrl, size = 'sm' }: { name: string; imageUrl: strin
   );
 }
 
-function RoleBadge({ role }: { role: 'owner' | 'barber' }) {
+function RoleBadge({ role }: { role: 'owner' | 'admin' | 'barber' }) {
   if (role === 'owner') {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
         <TbCrown className="h-3 w-3" />
         Dueño
+      </span>
+    );
+  }
+  if (role === 'admin') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+        <TbShieldCheck className="h-3 w-3" />
+        Admin
       </span>
     );
   }
