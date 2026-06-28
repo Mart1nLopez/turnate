@@ -11,6 +11,7 @@ import { useBarbershopCustomization } from '@/hooks/useBarbershopCustomization';
 import { useBarbershopMembers } from '@/hooks/useBarbershopMembers';
 import { useBarbershopInvitations } from '@/hooks/useBarbershopInvitations';
 import { supabase } from '@/lib/supabase';
+import { extractMapUrl } from '@/lib/utils';
 import {
   createBarbershopForProfessional,
   checkBarbershopSlugAvailability,
@@ -806,7 +807,7 @@ function InformacionTab({ barbershop, canManage, updateBarbershop, uploadLogo, u
   const handleSaveLocation = async () => {
     setSavingLocation(true);
     try {
-      await updateBarbershop({ address: address.trim(), city: city.trim(), region: region.trim(), location: location.trim(), map_embed_url: mapEmbedUrl.trim() });
+      await updateBarbershop({ address: address.trim(), city: city.trim(), region: region.trim(), location: location.trim(), map_embed_url: extractMapUrl(mapEmbedUrl) || undefined });
       toast.success('Ubicación guardada');
     } catch (err) { toast.error(err instanceof Error ? err.message : 'Error al guardar'); }
     finally { setSavingLocation(false); }

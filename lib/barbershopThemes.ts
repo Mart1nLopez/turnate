@@ -11,20 +11,20 @@ export interface BarbershopTheme {
   // All values are pre-baked strings (hex, rgba, or gradient).
   // CSS vars are injected once at the page root; every component inherits them.
 
-  backgroundColor:  string; // --bb-bg        page background
-  cardBackground:   string; // --bb-card       card / section background
-  accentColor:      string; // --bb-accent     primary brand accent (solid hex)
-  accentForeground: string; // --bb-accent-fg  text color ON accent bg (button label)
-  accentSubtle:     string; // --bb-accent-sub accent at ~10% opacity (icon badges, subtle fills)
-  accentRing:       string; // --bb-accent-ring accent at ~40% opacity (avatar / logo ring)
-  textColor:        string; // --bb-text       primary body text (solid hex)
-  mutedColor:       string; // --bb-muted      secondary / placeholder text (pre-baked rgba)
-  borderColor:      string; // --bb-border     subtle borders (pre-baked rgba)
-  ghostBorder:      string; // --bb-ghost-br   secondary button border (pre-baked rgba)
-  ghostBackground:  string; // --bb-ghost-bg   secondary button resting background (pre-baked rgba)
-  ghostHover:       string; // --bb-ghost-hv   secondary button hover background (pre-baked rgba)
-  heroOverlay:      string; // --bb-overlay    CSS gradient for cover image overlay
-  buttonRadius:     string; // --bb-radius     border-radius for CTAs (px value as string)
+  backgroundColor:  string; // --theme-bg          page background
+  cardBackground:   string; // --theme-surface     card / section background
+  accentColor:      string; // --theme-accent      primary brand accent (solid hex)
+  accentForeground: string; // --theme-accent-fg   text color ON accent bg (button label)
+  accentSubtle:     string; // --theme-accent-sub  accent at ~10% opacity (icon badges, subtle fills)
+  accentRing:       string; // --theme-accent-ring accent at ~40% opacity (avatar / logo ring)
+  textColor:        string; // --theme-text        primary body text (solid hex)
+  mutedColor:       string; // --theme-muted       secondary / placeholder text (pre-baked rgba)
+  borderColor:      string; // --theme-border      subtle borders (pre-baked rgba)
+  ghostBorder:      string; // --theme-ghost-br    secondary button border (pre-baked rgba)
+  ghostBackground:  string; // --theme-ghost-bg    secondary button resting background (pre-baked rgba)
+  ghostHover:       string; // --theme-ghost-hv    secondary button hover background (pre-baked rgba)
+  heroOverlay:      string; // --theme-overlay     CSS gradient for cover image overlay
+  buttonRadius:     string; // --theme-radius      border-radius for CTAs (px value as string)
 }
 
 // ─── Theme registry ──────────────────────────────────────────────────────────
@@ -158,19 +158,19 @@ export function getThemeById(id?: string | null): BarbershopTheme {
  */
 export function getThemeCssVars(theme: BarbershopTheme): Record<string, string> {
   return {
-    '--bb-bg':          theme.backgroundColor,
-    '--bb-card':        theme.cardBackground,
-    '--bb-accent':      theme.accentColor,
-    '--bb-accent-fg':   theme.accentForeground,
-    '--bb-accent-sub':  theme.accentSubtle,
-    '--bb-accent-ring': theme.accentRing,
-    '--bb-text':        theme.textColor,
-    '--bb-muted':       theme.mutedColor,
-    '--bb-border':      theme.borderColor,
-    '--bb-ghost-br':    theme.ghostBorder,
-    '--bb-ghost-bg':    theme.ghostBackground,
-    '--bb-ghost-hv':    theme.ghostHover,
-    '--bb-overlay':     theme.heroOverlay,
-    '--bb-radius':      theme.buttonRadius,
+    '--theme-bg':          theme.backgroundColor,
+    '--theme-surface':     theme.cardBackground,
+    '--theme-accent':      theme.accentColor,
+    '--theme-accent-fg':   theme.accentForeground,
+    '--theme-accent-sub':  theme.accentSubtle,
+    '--theme-accent-ring': theme.accentRing,
+    '--theme-text':        theme.textColor,
+    '--theme-muted':       theme.mutedColor,
+    '--theme-border':      theme.borderColor,
+    '--theme-ghost-br':    theme.ghostBorder,
+    '--theme-ghost-bg':    theme.ghostBackground,
+    '--theme-ghost-hv':    theme.ghostHover,
+    '--theme-overlay':     theme.heroOverlay,
+    '--theme-radius':      theme.buttonRadius,
   };
 }

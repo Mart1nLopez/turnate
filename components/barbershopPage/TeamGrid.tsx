@@ -10,7 +10,7 @@ export default function TeamGrid({ team }: TeamGridProps) {
     <section
       id="equipo"
       className="py-20 sm:py-28 px-6 w-full"
-      style={{ background: 'var(--bb-bg)' }}
+      style={{ background: 'var(--theme-bg)' }}
     >
       <div className="max-w-6xl mx-auto">
 
@@ -18,13 +18,13 @@ export default function TeamGrid({ team }: TeamGridProps) {
         <div className="mb-14 sm:mb-16">
           <p
             className="text-xs font-semibold tracking-[0.22em] uppercase mb-4"
-            style={{ color: 'var(--bb-accent)' }}
+            style={{ color: 'var(--theme-accent)' }}
           >
             El equipo
           </p>
           <h2
             className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4"
-            style={{ color: 'var(--bb-text)' }}
+            style={{ color: 'var(--theme-text)' }}
           >
             Profesionales que
             <br className="hidden sm:block" />
@@ -33,12 +33,12 @@ export default function TeamGrid({ team }: TeamGridProps) {
           {/* Accent divider under heading */}
           <div
             className="w-10 h-px mb-5"
-            style={{ background: 'var(--bb-accent)', opacity: 0.45 }}
+            style={{ background: 'var(--theme-accent)', opacity: 0.45 }}
             aria-hidden="true"
           />
           <p
             className="text-base sm:text-lg max-w-md leading-relaxed"
-            style={{ color: 'var(--bb-muted)' }}
+            style={{ color: 'var(--theme-muted)' }}
           >
             Elige al profesional de tu preferencia y agenda en segundos.
           </p>
@@ -50,18 +50,18 @@ export default function TeamGrid({ team }: TeamGridProps) {
             {/* Single thin accent line as decorative element */}
             <div
               className="w-12 h-px mb-8"
-              style={{ background: 'var(--bb-accent)', opacity: 0.3 }}
+              style={{ background: 'var(--theme-accent)', opacity: 0.3 }}
               aria-hidden="true"
             />
             <p
               className="text-sm font-medium mb-1"
-              style={{ color: 'var(--bb-muted)' }}
+              style={{ color: 'var(--theme-muted)' }}
             >
               Próximamente
             </p>
             <p
               className="text-xs max-w-xs leading-relaxed"
-              style={{ color: 'var(--bb-muted)', opacity: 0.5 }}
+              style={{ color: 'var(--theme-muted)', opacity: 0.5 }}
             >
               El equipo de profesionales estará disponible en breve.
             </p>

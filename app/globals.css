@@ -261,6 +261,49 @@ html {
   }
 }
 
+/* ── Turnate public profile motion system ───────────────────────── */
+@keyframes turnate-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes turnate-scale-settle {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes turnate-expand {
+  from { width: 0; }
+  to   { width: 40px; }
+}
+
+.turnate-animate {
+  opacity: 0;
+  animation: turnate-fade-up 500ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+.turnate-scale {
+  opacity: 0;
+  animation: turnate-scale-settle 400ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+.turnate-expand {
+  width: 0;
+  animation: turnate-expand 500ms ease-out forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turnate-animate,
+  .turnate-scale {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .turnate-expand {
+    animation: none !important;
+    width: 40px !important;
+  }
+}
+
 /* Efectos 3D para dashboard mockup */
 .perspective-1000 {
   perspective: 1000px;

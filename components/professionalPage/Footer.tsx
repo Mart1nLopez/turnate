@@ -7,7 +7,7 @@ export default function Footer() {
   return (
     <footer
       className="py-6 px-6 border-t"
-      style={{ background: 'var(--pp-surface)', borderColor: 'var(--pp-border)' }}
+      style={{ background: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}
     >
       <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
 
@@ -27,7 +27,7 @@ export default function Footer() {
           />
           <span
             className="text-xs font-semibold tracking-[0.15em] uppercase"
-            style={{ color: 'var(--pp-text)' }}
+            style={{ color: 'var(--theme-text)' }}
           >
             Powered by Turnate
           </span>
@@ -36,7 +36,7 @@ export default function Footer() {
         {/* Copyright */}
         <p
           className="text-xs"
-          style={{ color: 'var(--pp-muted)', opacity: 0.5 }}
+          style={{ color: 'var(--theme-muted)', opacity: 0.5 }}
         >
           &copy; {new Date().getFullYear()} Todos los derechos reservados
         </p>

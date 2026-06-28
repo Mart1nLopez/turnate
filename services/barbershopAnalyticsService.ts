@@ -72,8 +72,9 @@ const ALL_TIME_START = '2000-01-01T00:00:00.000Z';
 
 export async function getBarbershopAllTimeStats(
   barbershopId: string,
+  professionalId?: string | null,
 ): Promise<BarbershopGlobalStats> {
-  return getBarbershopGlobalStats(barbershopId, ALL_TIME_START, new Date().toISOString());
+  return getBarbershopGlobalStats(barbershopId, ALL_TIME_START, new Date().toISOString(), professionalId);
 }
 
 // ─── Estadísticas globales (período) ─────────────────────────────────────────
@@ -82,11 +83,13 @@ export async function getBarbershopGlobalStats(
   barbershopId: string,
   startDate: string,
   endDate: string,
+  professionalId?: string | null,
 ): Promise<BarbershopGlobalStats> {
   const { data, error } = await supabase.rpc('get_barbershop_stats', {
     p_barbershop_id: barbershopId,
     p_start_date:    startDate,
     p_end_date:      endDate,
+    ...(professionalId ? { p_professional_id: professionalId } : {}),
   });
   if (error) throw error;
 
@@ -109,11 +112,13 @@ export async function getBarbershopMemberStats(
   barbershopId: string,
   startDate: string,
   endDate: string,
+  professionalId?: string | null,
 ): Promise<BarbershopMemberStatsRow[]> {
   const { data, error } = await supabase.rpc('get_barbershop_member_stats', {
     p_barbershop_id: barbershopId,
     p_start_date:    startDate,
     p_end_date:      endDate,
+    ...(professionalId ? { p_professional_id: professionalId } : {}),
   });
   if (error) throw error;
 
@@ -141,10 +146,12 @@ export async function getBarbershopMemberStats(
 export async function getBarbershopMonthlyTrend(
   barbershopId: string,
   months: number = 12,
+  professionalId?: string | null,
 ): Promise<BarbershopMonthlyTrendRow[]> {
   const { data, error } = await supabase.rpc('get_barbershop_monthly_trend', {
     p_barbershop_id: barbershopId,
     p_months:        months,
+    ...(professionalId ? { p_professional_id: professionalId } : {}),
   });
   if (error) throw error;
 
@@ -165,11 +172,13 @@ export async function getBarbershopServiceStats(
   barbershopId: string,
   startDate: string,
   endDate: string,
+  professionalId?: string | null,
 ): Promise<BarbershopServiceStatRow[]> {
   const { data, error } = await supabase.rpc('get_barbershop_service_stats', {
     p_barbershop_id: barbershopId,
     p_start_date:    startDate,
     p_end_date:      endDate,
+    ...(professionalId ? { p_professional_id: professionalId } : {}),
   });
   if (error) throw error;
 
@@ -189,11 +198,13 @@ export async function getBarbershopRetention(
   barbershopId: string,
   startDate: string,
   endDate: string,
+  professionalId?: string | null,
 ): Promise<BarbershopRetentionStats> {
   const { data, error } = await supabase.rpc('get_barbershop_retention', {
     p_barbershop_id: barbershopId,
     p_start_date:    startDate,
     p_end_date:      endDate,
+    ...(professionalId ? { p_professional_id: professionalId } : {}),
   });
   if (error) throw error;
 
@@ -212,12 +223,14 @@ export async function getBarbershopTopClients(
   startDate: string,
   endDate: string,
   limit: number = 10,
+  professionalId?: string | null,
 ): Promise<BarbershopTopClient[]> {
   const { data, error } = await supabase.rpc('get_barbershop_top_clients', {
     p_barbershop_id: barbershopId,
     p_start_date:    startDate,
     p_end_date:      endDate,
     p_limit:         limit,
+    ...(professionalId ? { p_professional_id: professionalId } : {}),
   });
   if (error) throw error;
 
@@ -248,16 +261,17 @@ export async function loadBarbershopAnalytics(
   barbershopId: string,
   startDate: string,
   endDate: string,
+  professionalId?: string | null,
 ): Promise<BarbershopAnalyticsData> {
   const [allTimeStats, periodStats, memberStats, monthlyTrend, serviceStats, retention, topClients] =
     await Promise.all([
-      getBarbershopAllTimeStats(barbershopId),
-      getBarbershopGlobalStats(barbershopId, startDate, endDate),
-      getBarbershopMemberStats(barbershopId, startDate, endDate),
-      getBarbershopMonthlyTrend(barbershopId, 12),
-      getBarbershopServiceStats(barbershopId, startDate, endDate),
-      getBarbershopRetention(barbershopId, startDate, endDate),
-      getBarbershopTopClients(barbershopId, startDate, endDate, 10),
+      getBarbershopAllTimeStats(barbershopId, professionalId),
+      getBarbershopGlobalStats(barbershopId, startDate, endDate, professionalId),
+      getBarbershopMemberStats(barbershopId, startDate, endDate, professionalId),
+      getBarbershopMonthlyTrend(barbershopId, 12, professionalId),
+      getBarbershopServiceStats(barbershopId, startDate, endDate, professionalId),
+      getBarbershopRetention(barbershopId, startDate, endDate, professionalId),
+      getBarbershopTopClients(barbershopId, startDate, endDate, 10, professionalId),
     ]);
 
   return { allTimeStats, periodStats, memberStats, monthlyTrend, serviceStats, retention, topClients };

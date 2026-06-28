@@ -36,40 +36,38 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Extrae la URL src de un iframe de Google Maps.
- * - Si ya es una URL embed válida, la devuelve tal como está.
- * - Si es un iframe HTML, extrae el src y decodifica entidades HTML (&amp; → &).
+ * Extrae la URL de Google Maps a partir de un iframe HTML o URL directa.
+ *
+ * Cuando el input es HTML de iframe (copiado desde Google Maps "Compartir → Incorporar"),
+ * el atributo src puede contener entidades HTML (&#39; para ', &amp; para &, etc.).
+ * El navegador las decodifica al parsear HTML, pero como nosotros extraemos con regex
+ * sobre texto plano, debemos decodificarlas manualmente para que la URL sea válida.
  */
 export function extractMapUrl(input: string): string {
-  if (!input || typeof input !== 'string') {
+  if (!input || typeof input !== 'string') return '';
+
+  const trimmed = input.trim();
+
+  if (trimmed.includes('<iframe')) {
+    const match = trimmed.match(/src=["']([^"']+)["']/);
+    if (match?.[1]) {
+      return decodeHtmlEntities(match[1]);
+    }
     return '';
   }
 
-  const cleanInput = input.trim();
-
-  console.log('[MapEmbed] URL original:', cleanInput.substring(0, 400));
-
-  let result: string;
-
-  if (cleanInput.includes('<iframe') && cleanInput.includes('src=')) {
-    // Iframe HTML: extraer src y decodificar entidades HTML
-    const srcMatch = cleanInput.match(/src="([^"]+)"/);
-    if (srcMatch?.[1]) {
-      result = srcMatch[1].replace(/&amp;/g, '&');
-    } else {
-      const srcMatchSingle = cleanInput.match(/src='([^']+)'/);
-      result = srcMatchSingle?.[1]?.replace(/&amp;/g, '&') ?? cleanInput;
-    }
-  } else if (cleanInput.startsWith('http')) {
-    // URL directa: devolver tal como está
-    result = cleanInput;
-  } else {
-    result = cleanInput;
+  if (trimmed.startsWith('http')) {
+    return trimmed;
   }
 
-  console.log('[MapEmbed] URL transformada:', result.substring(0, 400));
+  return '';
+}
 
-  return result;
+function decodeHtmlEntities(str: string): string {
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(parseInt(code, 10)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, code) => String.fromCharCode(parseInt(code, 16)));
 }
 
 /**

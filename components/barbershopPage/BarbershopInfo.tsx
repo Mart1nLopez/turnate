@@ -32,7 +32,8 @@ export default function BarbershopInfo({ barbershop }: BarbershopInfoProps) {
   const hasSocials   = activeSocials.length > 0;
   const hasPhone     = !!barbershop.phone;
   const hasAddress   = !!(barbershop.address || barbershop.location);
-  const hasMap       = !!barbershop.map_embed_url;
+  const mapUrl       = barbershop.map_embed_url ? extractMapUrl(barbershop.map_embed_url) : '';
+  const hasMap       = !!mapUrl;
   const hasContact   = hasPhone || hasAddress;
   const addressParts = [barbershop.city, barbershop.region].filter(Boolean);
 
@@ -42,7 +43,7 @@ export default function BarbershopInfo({ barbershop }: BarbershopInfoProps) {
     <section
       id="info"
       className="py-20 sm:py-28 px-6 w-full"
-      style={{ background: 'var(--bb-bg)' }}
+      style={{ background: 'var(--theme-bg)' }}
     >
       <div className="max-w-5xl mx-auto">
 
@@ -50,20 +51,20 @@ export default function BarbershopInfo({ barbershop }: BarbershopInfoProps) {
         <div className="mb-12 sm:mb-14">
           <p
             className="text-xs font-semibold tracking-[0.22em] uppercase mb-4"
-            style={{ color: 'var(--bb-accent)' }}
+            style={{ color: 'var(--theme-accent)' }}
           >
             Visítanos
           </p>
           <h2
             className="text-3xl sm:text-4xl font-bold mb-4"
-            style={{ color: 'var(--bb-text)' }}
+            style={{ color: 'var(--theme-text)' }}
           >
             Encuéntranos
           </h2>
           {/* Accent divider */}
           <div
             className="w-10 h-px"
-            style={{ background: 'var(--bb-accent)', opacity: 0.45 }}
+            style={{ background: 'var(--theme-accent)', opacity: 0.45 }}
             aria-hidden="true"
           />
         </div>
@@ -79,11 +80,11 @@ export default function BarbershopInfo({ barbershop }: BarbershopInfoProps) {
             {hasContact && (
               <div
                 className="rounded-2xl p-6 border"
-                style={{ background: 'var(--bb-card)', borderColor: 'var(--bb-border)' }}
+                style={{ background: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}
               >
                 <h3
                   className="text-xs font-semibold tracking-[0.18em] uppercase mb-5"
-                  style={{ color: 'var(--bb-accent)' }}
+                  style={{ color: 'var(--theme-accent)' }}
                 >
                   Contacto
                 </h3>
@@ -92,18 +93,18 @@ export default function BarbershopInfo({ barbershop }: BarbershopInfoProps) {
                   {hasPhone && (
                     <a
                       href={`tel:${barbershop.phone}`}
-                      className="flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-200 w-full border-[var(--bb-border)] hover:border-[var(--bb-accent-ring)]"
-                      style={{ background: 'var(--bb-bg)' }}
+                      className="flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-200 w-full border-[var(--theme-border)] hover:border-[var(--theme-accent-ring)]"
+                      style={{ background: 'var(--theme-bg)' }}
                     >
                       <span
                         className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ background: 'var(--bb-accent-sub)' }}
+                        style={{ background: 'var(--theme-accent-sub)' }}
                       >
-                        <TbPhone className="w-5 h-5" style={{ color: 'var(--bb-accent)' }} />
+                        <TbPhone className="w-5 h-5" style={{ color: 'var(--theme-accent)' }} />
                       </span>
                       <span
                         className="text-sm min-w-0 break-words"
-                        style={{ color: 'var(--bb-muted)' }}
+                        style={{ color: 'var(--theme-muted)' }}
                       >
                         {barbershop.phone}
                       </span>
@@ -112,20 +113,20 @@ export default function BarbershopInfo({ barbershop }: BarbershopInfoProps) {
 
                   {hasAddress && (
                     <div
-                      className="flex items-start gap-3 p-3.5 rounded-xl border w-full border-[var(--bb-border)]"
-                      style={{ background: 'var(--bb-bg)' }}
+                      className="flex items-start gap-3 p-3.5 rounded-xl border w-full border-[var(--theme-border)]"
+                      style={{ background: 'var(--theme-bg)' }}
                     >
                       <span
                         className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                        style={{ background: 'var(--bb-accent-sub)' }}
+                        style={{ background: 'var(--theme-accent-sub)' }}
                       >
-                        <TbMapPin className="w-5 h-5" style={{ color: 'var(--bb-accent)' }} />
+                        <TbMapPin className="w-5 h-5" style={{ color: 'var(--theme-accent)' }} />
                       </span>
                       <div className="min-w-0">
                         {barbershop.address && (
                           <p
                             className="text-sm break-words"
-                            style={{ color: 'var(--bb-muted)' }}
+                            style={{ color: 'var(--theme-muted)' }}
                           >
                             {barbershop.address}
                           </p>
@@ -133,7 +134,7 @@ export default function BarbershopInfo({ barbershop }: BarbershopInfoProps) {
                         {!barbershop.address && barbershop.location && (
                           <p
                             className="text-sm break-words"
-                            style={{ color: 'var(--bb-muted)' }}
+                            style={{ color: 'var(--theme-muted)' }}
                           >
                             {barbershop.location}
                           </p>
@@ -141,7 +142,7 @@ export default function BarbershopInfo({ barbershop }: BarbershopInfoProps) {
                         {addressParts.length > 0 && (
                           <p
                             className="text-xs mt-1 break-words"
-                            style={{ color: 'var(--bb-muted)', opacity: 0.7 }}
+                            style={{ color: 'var(--theme-muted)', opacity: 0.7 }}
                           >
                             {addressParts.join(', ')}
                           </p>
@@ -157,11 +158,11 @@ export default function BarbershopInfo({ barbershop }: BarbershopInfoProps) {
             {hasSocials && (
               <div
                 className="rounded-2xl p-6 border"
-                style={{ background: 'var(--bb-card)', borderColor: 'var(--bb-border)' }}
+                style={{ background: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}
               >
                 <h3
                   className="text-xs font-semibold tracking-[0.18em] uppercase mb-5"
-                  style={{ color: 'var(--bb-accent)' }}
+                  style={{ color: 'var(--theme-accent)' }}
                 >
                   Síguenos
                 </h3>
@@ -178,7 +179,7 @@ export default function BarbershopInfo({ barbershop }: BarbershopInfoProps) {
                 />
                 <p
                   className="text-xs mt-5 leading-relaxed"
-                  style={{ color: 'var(--bb-muted)', opacity: 0.6 }}
+                  style={{ color: 'var(--theme-muted)', opacity: 0.6 }}
                 >
                   Síguenos para novedades y promociones exclusivas.
                 </p>
@@ -191,10 +192,10 @@ export default function BarbershopInfo({ barbershop }: BarbershopInfoProps) {
         {hasMap && (
           <div
             className="rounded-2xl overflow-hidden border"
-            style={{ borderColor: 'var(--bb-border)' }}
+            style={{ borderColor: 'var(--theme-border)' }}
           >
             <MapEmbed
-              src={extractMapUrl(barbershop.map_embed_url!)}
+              src={mapUrl}
               title={`Mapa de ${barbershop.name}`}
             />
           </div>

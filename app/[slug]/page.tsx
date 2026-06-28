@@ -19,7 +19,7 @@ import Hero from '@/components/professionalPage/Hero';
 import Services from '@/components/professionalPage/Services';
 import Reviews from '@/components/professionalPage/Reviews';
 import Footer from '@/components/professionalPage/Footer';
-import { getThemeById } from '@/lib/barbershopThemes';
+import { getThemeById, getThemeCssVars } from '@/lib/barbershopThemes';
 
 export default function ProfessionalPublicPage() {
   const params = useParams();
@@ -63,20 +63,8 @@ export default function ProfessionalPublicPage() {
   // Derive theme CSS vars from the professional's chosen theme.
   // getThemeById falls back to 'luxury-gold' when professional is null (loading)
   // or when theme is unset — so the loading skeleton and the page share the same palette.
-  const theme  = getThemeById(professional?.theme);
-  const ppVars = {
-    '--pp-bg':          theme.backgroundColor,
-    '--pp-surface':     theme.cardBackground,
-    '--pp-border':      theme.borderColor,
-    '--pp-text':        theme.textColor,
-    '--pp-muted':       theme.mutedColor,
-    '--pp-accent':      theme.accentColor,
-    '--pp-accent-fg':   theme.accentForeground,
-    '--pp-accent-sub':  theme.accentSubtle,
-    '--pp-accent-ring': theme.accentRing,
-    '--pp-overlay':     theme.heroOverlay,
-    '--pp-radius':      theme.buttonRadius,
-  } as React.CSSProperties;
+  const theme    = getThemeById(professional?.theme);
+  const themeVars = getThemeCssVars(theme) as unknown as React.CSSProperties;
 
   if (loading) {
     return (
@@ -114,7 +102,7 @@ export default function ProfessionalPublicPage() {
   return (
     <div
       className="min-h-screen"
-      style={{ background: theme.backgroundColor, ...ppVars }}
+      style={{ background: theme.backgroundColor, ...themeVars }}
     >
       <Header
         professional={professional}
@@ -123,7 +111,13 @@ export default function ProfessionalPublicPage() {
         hasContactInfo={hasContactInfo}
         barbershop={barbershop}
       />
-      <Hero professional={professional} slug={slug} />
+      <Hero
+        professional={professional}
+        slug={slug}
+        averageRating={averageRating}
+        reviewCount={reviews.length}
+        servicesCount={services.length}
+      />
       <Services services={services} slug={slug} />
       <Contacto professional={professional} />
       <Reviews reviews={reviews} averageRating={averageRating} hideReviews={professional.hide_reviews} />

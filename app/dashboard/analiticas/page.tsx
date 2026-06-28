@@ -24,7 +24,9 @@ import {
   getDateRangeParams,
   BarbershopAnalyticsData,
 } from '@/services/barbershopAnalyticsService';
+import { getMembersByBarbershopId } from '@/services/barbershopMemberService';
 import BarbershopAnalytics from './_components/BarbershopAnalytics';
+import ProfessionalFilter, { ProfessionalOption } from '@/components/ProfessionalFilter';
 import { AnalyticsDateRange } from '@/types';
 
 // ─── Tipos de tab ─────────────────────────────────────────────────────────────
@@ -382,6 +384,10 @@ export default function AnalyticsPage() {
   const [barbershopLoading2, setBarbershopLoading2] = useState(false);
   const [barbershopError,   setBarbershopError]   = useState<string | null>(null);
 
+  // ── Filtro por barbero ──
+  const [selectedProfessionalId, setSelectedProfessionalId] = useState<string | null>(null);
+  const [professionals,          setProfessionals]          = useState<ProfessionalOption[]>([]);
+
   // ── Cargar analíticas individuales ──
   const loadIndividual = useCallback(async () => {
     setIndividualLoading(true);
@@ -403,6 +409,20 @@ export default function AnalyticsPage() {
     }
   }, [dateRange, customStart, customEnd]);
 
+  // ── Cargar miembros de la barbería (para el filtro) ──
+  useEffect(() => {
+    if (!barbershop) return;
+    getMembersByBarbershopId(barbershop.id)
+      .then((members) =>
+        setProfessionals(
+          members
+            .filter((m) => m.professional)
+            .map((m) => ({ id: m.professional_id, name: m.professional!.name })),
+        ),
+      )
+      .catch(() => setProfessionals([]));
+  }, [barbershop]);
+
   // ── Cargar analíticas de barbería ──
   const loadBarbershop = useCallback(async () => {
     if (!barbershop || !canManage) return;
@@ -414,7 +434,7 @@ export default function AnalyticsPage() {
           ? { start: customStart, end: customEnd }
           : undefined;
       const { start, end } = getDateRangeParams(dateRange, custom);
-      const data = await loadBarbershopAnalytics(barbershop.id, start, end);
+      const data = await loadBarbershopAnalytics(barbershop.id, start, end, selectedProfessionalId);
       setBarbershopData(data);
     } catch (err) {
       const e = err as Record<string, unknown>;
@@ -423,7 +443,7 @@ export default function AnalyticsPage() {
     } finally {
       setBarbershopLoading2(false);
     }
-  }, [barbershop, canManage, dateRange, customStart, customEnd]);
+  }, [barbershop, canManage, dateRange, customStart, customEnd, selectedProfessionalId]);
 
   // ── Efectos de carga ──
   useEffect(() => {
@@ -508,7 +528,7 @@ export default function AnalyticsPage() {
           </div>
         )}
 
-        {/* ── Filtros de fecha ── */}
+        {/* ── Filtros de fecha + barbero ── */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
             {DATE_RANGE_OPTIONS.map((opt) => (
@@ -525,6 +545,15 @@ export default function AnalyticsPage() {
               </button>
             ))}
           </div>
+
+          {activeTab === 'barbershop' && canManage && (
+            <ProfessionalFilter
+              professionals={professionals}
+              value={selectedProfessionalId}
+              onChange={setSelectedProfessionalId}
+              disabled={barbershopLoading2}
+            />
+          )}
 
           {/* Selector de rango personalizado */}
           {showCustom && (
@@ -581,6 +610,11 @@ export default function AnalyticsPage() {
             <BarbershopAnalytics
               data={barbershopData}
               barbershopName={barbershop.name}
+              selectedProfessionalName={
+                selectedProfessionalId
+                  ? professionals.find((p) => p.id === selectedProfessionalId)?.name
+                  : null
+              }
             />
           )}
         </>

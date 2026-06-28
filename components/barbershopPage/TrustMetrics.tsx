@@ -43,7 +43,7 @@ export default function TrustMetrics({ team, barbershop }: TrustMetricsProps) {
   return (
     <section
       className="py-12 sm:py-16 px-6 w-full border-b"
-      style={{ background: 'var(--bb-bg)', borderColor: 'var(--bb-border)' }}
+      style={{ background: 'var(--theme-bg)', borderColor: 'var(--theme-border)' }}
     >
       <div className="max-w-5xl mx-auto">
         {/*
@@ -70,17 +70,17 @@ export default function TrustMetrics({ team, barbershop }: TrustMetricsProps) {
                   isTopRow           ? 'border-b md:border-b-0' : '',
                   !isFirstOnDt       ? 'md:border-l'         : '',
                 ].filter(Boolean).join(' ')}
-                style={{ borderColor: 'var(--bb-border)' }}
+                style={{ borderColor: 'var(--theme-border)' }}
               >
                 <p
                   className="text-3xl sm:text-4xl font-bold leading-none mb-2 truncate"
-                  style={{ color: 'var(--bb-accent)' }}
+                  style={{ color: 'var(--theme-accent)' }}
                 >
                   {value}
                 </p>
                 <p
                   className="text-sm leading-snug"
-                  style={{ color: 'var(--bb-muted)' }}
+                  style={{ color: 'var(--theme-muted)' }}
                 >
                   {label}
                 </p>

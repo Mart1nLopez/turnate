@@ -729,9 +729,10 @@ function TopClientsSection({
 interface BarbershopAnalyticsProps {
   data: BarbershopAnalyticsData;
   barbershopName: string;
+  selectedProfessionalName?: string | null;
 }
 
-export default function BarbershopAnalytics({ data, barbershopName }: BarbershopAnalyticsProps) {
+export default function BarbershopAnalytics({ data, barbershopName, selectedProfessionalName }: BarbershopAnalyticsProps) {
   const { allTimeStats, periodStats, memberStats, monthlyTrend, serviceStats, retention, topClients } = data;
 
   // Cards summary — combinamos all-time (para "Totales") con period (para comparación)
@@ -761,7 +762,11 @@ export default function BarbershopAnalytics({ data, barbershopName }: Barbershop
         <TbBuildingStore className="h-5 w-5 text-blue-600" />
         <div>
           <p className="text-sm font-medium text-gray-900">{barbershopName}</p>
-          <p className="text-xs text-gray-400">Analíticas globales del equipo</p>
+          <p className="text-xs text-gray-400">
+            {selectedProfessionalName
+              ? `Analíticas de ${selectedProfessionalName}`
+              : 'Analíticas globales del equipo'}
+          </p>
         </div>
       </div>
 

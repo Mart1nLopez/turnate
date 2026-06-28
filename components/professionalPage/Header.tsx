@@ -26,7 +26,7 @@ export default function Header({
       className="sticky top-0 z-50 border-b backdrop-blur-md"
       style={{
         background: 'rgba(17,17,17,0.85)',
-        borderColor: 'var(--pp-border)',
+        borderColor: 'var(--theme-border)',
       }}
     >
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3 gap-4">
@@ -37,7 +37,7 @@ export default function Header({
             {professional.profile_image ? (
               <div
                 className="w-10 h-10 rounded-full overflow-hidden"
-                style={{ boxShadow: '0 0 0 1.5px var(--pp-accent-ring)' }}
+                style={{ boxShadow: '0 0 0 1.5px var(--theme-accent-ring)' }}
               >
                 <Image
                   src={professional.profile_image}
@@ -51,11 +51,11 @@ export default function Header({
               <div
                 className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{
-                  background: 'var(--pp-surface)',
-                  boxShadow: '0 0 0 1.5px var(--pp-accent-ring)',
+                  background: 'var(--theme-surface)',
+                  boxShadow: '0 0 0 1.5px var(--theme-accent-ring)',
                 }}
               >
-                <span className="text-sm font-bold select-none" style={{ color: 'var(--pp-accent)' }}>
+                <span className="text-sm font-bold select-none" style={{ color: 'var(--theme-accent)' }}>
                   {initial}
                 </span>
               </div>
@@ -66,7 +66,7 @@ export default function Header({
             <a href="#hero" className="block">
               <span
                 className="text-base sm:text-lg font-bold truncate block leading-tight"
-                style={{ color: 'var(--pp-text)' }}
+                style={{ color: 'var(--theme-text)' }}
               >
                 {professional.name}
               </span>
@@ -75,7 +75,7 @@ export default function Header({
               <Link
                 href={`/barberia/${barbershop.slug}`}
                 className="text-xs leading-tight hover:opacity-80 transition-opacity truncate block mt-0.5"
-                style={{ color: 'var(--pp-accent)' }}
+                style={{ color: 'var(--theme-accent)' }}
               >
                 {barbershop.name}
               </Link>
@@ -88,7 +88,7 @@ export default function Header({
           <a
             href="#servicios"
             className="text-sm font-medium transition-colors duration-200 hover:opacity-100"
-            style={{ color: 'var(--pp-muted)', opacity: 0.85 }}
+            style={{ color: 'var(--theme-muted)', opacity: 0.85 }}
           >
             Servicios
           </a>
@@ -96,7 +96,7 @@ export default function Header({
             <a
               href="#contactos"
               className="text-sm font-medium transition-colors duration-200 hover:opacity-100"
-              style={{ color: 'var(--pp-muted)', opacity: 0.85 }}
+              style={{ color: 'var(--theme-muted)', opacity: 0.85 }}
             >
               Contacto
             </a>
@@ -105,7 +105,7 @@ export default function Header({
             <a
               href="#reseñas"
               className="text-sm font-medium transition-colors duration-200 hover:opacity-100"
-              style={{ color: 'var(--pp-muted)', opacity: 0.85 }}
+              style={{ color: 'var(--theme-muted)', opacity: 0.85 }}
             >
               Reseñas
             </a>
@@ -117,8 +117,8 @@ export default function Header({
           <span
             className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold tracking-wide transition-all duration-200 hover:brightness-110 active:scale-[0.97]"
             style={{
-              background:   'var(--pp-accent)',
-              color:        'var(--pp-accent-fg)',
+              background:   'var(--theme-accent)',
+              color:        'var(--theme-accent-fg)',
               borderRadius: '8px',
             }}
           >

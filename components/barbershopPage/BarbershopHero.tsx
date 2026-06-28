@@ -1,185 +1,138 @@
-import Image from 'next/image';
-import { BarbershopPublicProfile } from '@/types';
+'use client';
 
-interface BarbershopHeroProps {
+import { BarbershopPublicProfile, TeamMember } from '@/types';
+import { useParallax } from '@/hooks/useParallax';
+import { PUBLIC_TEXT, pluralize } from '@/lib/vocabulary';
+import HeroBackground from '@/components/hero/HeroBackground';
+import HeroOverlay from '@/components/hero/HeroOverlay';
+import HeroAvatar from '@/components/hero/HeroAvatar';
+import AccentRule from '@/components/hero/AccentRule';
+import HeroActions from '@/components/hero/HeroActions';
+import StackedAvatars from '@/components/hero/StackedAvatars';
+
+interface Props {
   barbershop: BarbershopPublicProfile;
+  team: TeamMember[];
 }
 
-export default function BarbershopHero({ barbershop }: BarbershopHeroProps) {
-  const initial  = barbershop.name.charAt(0).toUpperCase();
-  const hasCover = !!barbershop.cover_image_url;
+export default function BarbershopHero({ barbershop, team }: Props) {
+  const hasCover    = !!barbershop.cover_image_url;
+  const parallaxRef = useParallax(hasCover);
+
+  const locationParts = [barbershop.city, barbershop.region].filter(Boolean);
+  const locationLabel =
+    locationParts.join(', ') || barbershop.address || barbershop.location || null;
+  const hasLocation = !!locationLabel;
+  const hasMapUrl   = !!barbershop.map_embed_url;
+  const hasTeam     = team.length > 0;
+  const hasMetadata = hasTeam || hasLocation;
+
+  const avatarMembers = team.map((m) => ({
+    id:       m.memberId,
+    name:     m.professional.name,
+    imageUrl: m.professional.profileImage,
+  }));
 
   return (
-    <section className="relative w-full min-h-[70vh] overflow-hidden flex items-end">
+    <section
+      id="hero"
+      className="relative w-full min-h-[65vh] sm:min-h-[70vh] overflow-hidden flex items-end"
+    >
+      <HeroBackground
+        coverUrl={barbershop.cover_image_url ?? null}
+        parallaxRef={parallaxRef}
+      />
+      <HeroOverlay visible={hasCover} />
 
-      {/* ── Background ─────────────────────────────────────────────────────── */}
-      {hasCover ? (
-        <>
-          <Image
-            src={barbershop.cover_image_url!}
-            alt=""
-            fill
-            className="object-cover object-center"
-            priority
-            sizes="100vw"
-          />
-          {/* Overlay starts near the top so the image never dominates */}
-          <div
-            className="absolute inset-0"
-            style={{ background: 'var(--bb-overlay)' }}
-            aria-hidden="true"
-          />
-        </>
-      ) : (
-        /* Elegant no-cover fallback with ambient accent glows */
-        <div
-          className="absolute inset-0"
-          style={{ background: 'var(--bb-bg)' }}
-          aria-hidden="true"
-        >
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'radial-gradient(ellipse at 15% 30%, var(--bb-accent-sub) 0%, transparent 50%)',
-            }}
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'radial-gradient(ellipse at 85% 75%, var(--bb-accent-sub) 0%, transparent 45%)',
-              opacity: 0.55,
-            }}
-          />
-          {/* Subtle diagonal texture */}
-          <div
-            className="absolute inset-0 opacity-[0.02]"
-            style={{
-              backgroundImage:
-                'repeating-linear-gradient(45deg, var(--bb-accent) 0px, var(--bb-accent) 1px, transparent 1px, transparent 72px)',
-            }}
-          />
-        </div>
-      )}
-
-      {/* ── Content ────────────────────────────────────────────────────────── */}
-      <div className="relative z-10 w-full px-6 sm:px-10 md:px-16 pb-12 sm:pb-16 md:pb-20 pt-16 max-w-5xl mx-auto">
-
-        {/* Logo / Initial badge */}
-        <div className="mb-6 sm:mb-7">
-          {barbershop.logo_url ? (
-            <div
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden flex-shrink-0"
-              style={{
-                boxShadow: '0 0 0 2px var(--bb-accent-ring), 0 12px 32px rgba(0,0,0,0.5)',
-              }}
-            >
-              <Image
-                src={barbershop.logo_url}
-                alt={`Logo de ${barbershop.name}`}
-                width={64}
-                height={64}
-                className="w-full h-full object-cover"
-                priority
-              />
-            </div>
-          ) : (
-            <div
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
-              style={{
-                background: 'var(--bb-card)',
-                boxShadow: '0 0 0 2px var(--bb-accent-ring), 0 12px 32px rgba(0,0,0,0.5)',
-              }}
-            >
-              <span
-                className="text-xl sm:text-2xl font-bold select-none"
-                style={{ color: 'var(--bb-accent)' }}
-              >
-                {initial}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Eyebrow label */}
-        <p
-          className="text-xs font-semibold tracking-[0.22em] uppercase mb-4"
-          style={{ color: 'var(--bb-accent)' }}
-        >
-          Barbería Premium
-        </p>
-
-        {/* Thin accent divider — editorial signature */}
-        <div
-          className="w-10 h-px mb-5"
-          style={{ background: 'var(--bb-accent)', opacity: 0.55 }}
-          aria-hidden="true"
+      <div className="relative z-10 w-full px-6 sm:px-10 md:px-16 pb-10 sm:pb-14 md:pb-20 pt-28 max-w-5xl mx-auto">
+        <HeroAvatar
+          imageUrl={barbershop.logo_url ?? undefined}
+          name={barbershop.name}
+          shape="rounded"
+          sizeClass="w-11 h-11 sm:w-13 sm:h-13"
         />
 
-        {/* Barbershop name */}
         <h1
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.04] mb-4 break-words"
-          style={{ color: 'var(--bb-text)' }}
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.04] mb-4 break-words turnate-animate"
+          style={
+            { color: 'var(--theme-text)', '--delay': '80ms' } as React.CSSProperties
+          }
         >
           {barbershop.name}
         </h1>
 
-        {/* Description */}
-        {barbershop.description && (
-          <p
-            className="text-base sm:text-lg leading-relaxed max-w-lg mb-9 break-words"
-            style={{ color: 'var(--bb-muted)' }}
+        <AccentRule />
+
+        {hasTeam && (
+          <div
+            className="flex items-center gap-3 mb-1.5 turnate-animate"
+            style={
+              {
+                color: 'var(--theme-muted)',
+                '--delay': '160ms',
+              } as React.CSSProperties
+            }
           >
-            {barbershop.description}
+            <p className="text-sm">
+              <span style={{ color: 'var(--theme-accent)' }}>
+                {team.length}
+              </span>{' '}
+              {pluralize(team.length, PUBLIC_TEXT.units.professional)}
+            </p>
+
+            <StackedAvatars members={avatarMembers} />
+
+            <span
+              className="hidden md:inline text-sm"
+              style={{ color: 'var(--theme-muted)' }}
+            >
+              {team
+                .slice(0, 3)
+                .map((m) => m.professional.name.split(' ')[0])
+                .join(', ')}
+              {team.length > 3 && ` +${team.length - 3}`}
+            </span>
+          </div>
+        )}
+
+        {hasLocation && (
+          <p
+            className="text-sm turnate-animate"
+            style={
+              {
+                color: 'var(--theme-muted)',
+                '--delay': '220ms',
+              } as React.CSSProperties
+            }
+          >
+            📍 {locationLabel}
+            {hasMapUrl && (
+              <>
+                {' · '}
+                <a
+                  href="#info"
+                  className="transition-opacity hover:opacity-80"
+                  style={{ color: 'var(--theme-accent)' }}
+                >
+                  {PUBLIC_TEXT.hero.viewMap} →
+                </a>
+              </>
+            )}
           </p>
         )}
 
-        {/* CTAs */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <a
-            href="#equipo"
-            className="inline-flex items-center justify-center px-7 py-3.5 text-sm font-semibold tracking-wide transition-all duration-200 hover:brightness-110 active:scale-[0.98]"
-            style={{
-              background:   'var(--bb-accent)',
-              color:        'var(--bb-accent-fg)',
-              borderRadius: 'var(--bb-radius)',
-            }}
-          >
-            Ver profesionales
-          </a>
-          <a
-            href="#info"
-            className="inline-flex items-center justify-center px-7 py-3.5 text-sm font-semibold tracking-wide transition-all duration-200 active:scale-[0.98] bg-[var(--bb-ghost-bg)] hover:bg-[var(--bb-ghost-hv)]"
-            style={{
-              border:       '1px solid var(--bb-ghost-br)',
-              color:        'var(--bb-text)',
-              borderRadius: 'var(--bb-radius)',
-            }}
-          >
-            Información
-          </a>
-        </div>
-      </div>
-
-      {/* ── Scroll indicator ───────────────────────────────────────────────── */}
-      <div
-        className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 animate-bounce opacity-25"
-        aria-hidden="true"
-        style={{ color: 'var(--bb-text)' }}
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
+        <HeroActions
+          primary={{
+            label: PUBLIC_TEXT.hero.viewProfessionals,
+            href: '#equipo',
+          }}
+          secondary={{
+            label: PUBLIC_TEXT.hero.contact,
+            href: '#info',
+          }}
+          microcopy={PUBLIC_TEXT.hero.microcopy.barbershop}
+          hasMetadata={hasMetadata}
+        />
       </div>
     </section>
   );

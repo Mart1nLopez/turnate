@@ -25,8 +25,8 @@ export default function ProfessionalTeamCard({ member }: ProfessionalTeamCardPro
         Glow on hover via shadow-[...] with CSS var — supported in Tailwind v4.
       */}
       <article
-        className="rounded-2xl p-7 h-full flex flex-col border border-[var(--bb-border)] hover:border-[var(--bb-accent-ring)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_32px_-8px_var(--bb-accent-ring)]"
-        style={{ background: 'var(--bb-card)' }}
+        className="rounded-2xl p-7 h-full flex flex-col border border-[var(--theme-border)] hover:border-[var(--theme-accent-ring)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_32px_-8px_var(--theme-accent-ring)]"
+        style={{ background: 'var(--theme-surface)' }}
       >
         {/* ── Top row: avatar + role badge ───────────────────────────────── */}
         <div className="flex items-start justify-between mb-5">
@@ -35,7 +35,7 @@ export default function ProfessionalTeamCard({ member }: ProfessionalTeamCardPro
           {professional.profileImage ? (
             <div
               className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0"
-              style={{ boxShadow: '0 0 0 2px var(--bb-accent-ring)' }}
+              style={{ boxShadow: '0 0 0 2px var(--theme-accent-ring)' }}
             >
               <Image
                 src={professional.profileImage}
@@ -49,13 +49,13 @@ export default function ProfessionalTeamCard({ member }: ProfessionalTeamCardPro
             <div
               className="w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0"
               style={{
-                background: 'var(--bb-bg)',
-                boxShadow:  '0 0 0 2px var(--bb-accent-ring)',
+                background: 'var(--theme-bg)',
+                boxShadow:  '0 0 0 2px var(--theme-accent-ring)',
               }}
             >
               <span
                 className="text-2xl font-bold select-none"
-                style={{ color: 'var(--bb-accent)' }}
+                style={{ color: 'var(--theme-accent)' }}
               >
                 {initial}
               </span>
@@ -66,9 +66,9 @@ export default function ProfessionalTeamCard({ member }: ProfessionalTeamCardPro
           <span
             className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium mt-1"
             style={{
-              background: 'var(--bb-accent-sub)',
-              color:      'var(--bb-accent)',
-              border:     '1px solid var(--bb-accent-ring)',
+              background: 'var(--theme-accent-sub)',
+              color:      'var(--theme-accent)',
+              border:     '1px solid var(--theme-accent-ring)',
             }}
           >
             {roleLabel}
@@ -76,7 +76,7 @@ export default function ProfessionalTeamCard({ member }: ProfessionalTeamCardPro
         </div>
 
         {/* Name */}
-        <h3 className="text-xl font-bold leading-snug mb-2 break-words transition-colors duration-200 text-[var(--bb-text)] group-hover:text-[var(--bb-accent)]">
+        <h3 className="text-xl font-bold leading-snug mb-2 break-words transition-colors duration-200 text-[var(--theme-text)] group-hover:text-[var(--theme-accent)]">
           {professional.name}
         </h3>
 
@@ -84,7 +84,7 @@ export default function ProfessionalTeamCard({ member }: ProfessionalTeamCardPro
         {professional.bio ? (
           <p
             className="text-sm line-clamp-2 flex-1 mb-6 break-words leading-relaxed"
-            style={{ color: 'var(--bb-muted)' }}
+            style={{ color: 'var(--theme-muted)' }}
           >
             {professional.bio}
           </p>
@@ -95,14 +95,14 @@ export default function ProfessionalTeamCard({ member }: ProfessionalTeamCardPro
         {/* CTA */}
         <div
           className="border-t pt-5"
-          style={{ borderColor: 'var(--bb-border)' }}
+          style={{ borderColor: 'var(--theme-border)' }}
         >
           <span
             className="flex items-center justify-between w-full py-2.5 px-4 text-sm font-semibold tracking-wide transition-all duration-200 group-hover:brightness-110"
             style={{
-              background:   'var(--bb-accent)',
-              color:        'var(--bb-accent-fg)',
-              borderRadius: 'var(--bb-radius)',
+              background:   'var(--theme-accent)',
+              color:        'var(--theme-accent-fg)',
+              borderRadius: 'var(--theme-radius)',
             }}
           >
             Reservar

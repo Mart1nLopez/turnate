@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { extractMapUrl } from '@/lib/utils';
 import { Professional } from '@/types';
 import { SocialButtons, SocialPlatform } from '@/components/ui/social-buttons';
-import { TbMapPin } from 'react-icons/tb';
+import { TbMapPin, TbMapOff } from 'react-icons/tb';
 
 interface ContactoProps {
   professional: Professional;
@@ -29,11 +29,12 @@ const PLATFORMS: SocialPlatform[] = [
 export default function Contacto({ professional }: ContactoProps) {
   const [mapError, setMapError] = useState(false);
 
-  const socialLinks   = professional.social_links || {};
+  const socialLinks    = professional.social_links || {};
   const hasSocialLinks = Object.values(socialLinks).some((v) => v);
-  const hasMap         = !!professional.map_embed_url && !mapError;
-  const hasTextLocation = !professional.map_embed_url && !!professional.location;
-  const hasLocationInfo = !!professional.map_embed_url || !!professional.location;
+  const mapUrl         = professional.map_embed_url ? extractMapUrl(professional.map_embed_url) : '';
+  const hasMap         = !!mapUrl && !mapError;
+  const hasTextLocation = !hasMap && !!professional.location;
+  const hasLocationInfo = hasMap || !!professional.location;
   const hasBio         = !!professional.bio;
 
   if (!hasLocationInfo && !hasSocialLinks && !hasBio) return null;
@@ -49,7 +50,7 @@ export default function Contacto({ professional }: ContactoProps) {
     <section
       id="contactos"
       className="py-20 sm:py-28 px-6"
-      style={{ background: 'var(--pp-bg)' }}
+      style={{ background: 'var(--theme-bg)' }}
     >
       <div className="max-w-5xl mx-auto">
 
@@ -57,19 +58,19 @@ export default function Contacto({ professional }: ContactoProps) {
         <div className="mb-12 sm:mb-14">
           <p
             className="text-xs font-semibold tracking-[0.22em] uppercase mb-4"
-            style={{ color: 'var(--pp-accent)' }}
+            style={{ color: 'var(--theme-accent)' }}
           >
             Encuéntranos
           </p>
           <h2
             className="text-3xl sm:text-4xl font-bold mb-4"
-            style={{ color: 'var(--pp-text)' }}
+            style={{ color: 'var(--theme-text)' }}
           >
             Contacto
           </h2>
           <div
             className="w-10 h-px"
-            style={{ background: 'var(--pp-accent)', opacity: 0.45 }}
+            style={{ background: 'var(--theme-accent)', opacity: 0.45 }}
             aria-hidden="true"
           />
         </div>
@@ -82,22 +83,22 @@ export default function Contacto({ professional }: ContactoProps) {
             <div className="space-y-5">
               <h3
                 className="text-xs font-semibold tracking-[0.18em] uppercase"
-                style={{ color: 'var(--pp-accent)' }}
+                style={{ color: 'var(--theme-accent)' }}
               >
                 Ubicación
               </h3>
 
-              {/* Map embed — hides itself via onError */}
-              {professional.map_embed_url && hasMap && (
+              {hasMap && (
                 <div
                   className="rounded-2xl overflow-hidden"
-                  style={{ border: '1px solid var(--pp-border)' }}
+                  style={{ border: '1px solid var(--theme-border)' }}
                 >
                   <iframe
-                    src={extractMapUrl(professional.map_embed_url)}
+                    src={mapUrl}
                     width="100%"
-                    height="300"
+                    height="400"
                     className="block w-full border-0"
+                    style={{ border: 0 }}
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                     title="Mapa de ubicación"
@@ -107,21 +108,32 @@ export default function Contacto({ professional }: ContactoProps) {
                 </div>
               )}
 
-              {/* Text location fallback */}
+              {!hasMap && professional.map_embed_url && !professional.location && (
+                <div
+                  className="flex items-center gap-3 p-6 rounded-2xl border"
+                  style={{ background: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}
+                >
+                  <TbMapOff className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--theme-muted)' }} />
+                  <p className="text-sm" style={{ color: 'var(--theme-muted)' }}>
+                    Ubicación no disponible
+                  </p>
+                </div>
+              )}
+
               {(hasTextLocation || (mapError && professional.location)) && (
                 <div
                   className="flex items-start gap-3 p-4 rounded-2xl border"
-                  style={{ background: 'var(--pp-surface)', borderColor: 'var(--pp-border)' }}
+                  style={{ background: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}
                 >
                   <span
                     className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ background: 'var(--pp-accent-sub)' }}
+                    style={{ background: 'var(--theme-accent-sub)' }}
                   >
-                    <TbMapPin className="w-5 h-5" style={{ color: 'var(--pp-accent)' }} />
+                    <TbMapPin className="w-5 h-5" style={{ color: 'var(--theme-accent)' }} />
                   </span>
                   <p
                     className="text-sm leading-relaxed break-words"
-                    style={{ color: 'var(--pp-muted)' }}
+                    style={{ color: 'var(--theme-muted)' }}
                   >
                     {professional.location}
                   </p>
@@ -138,7 +150,7 @@ export default function Contacto({ professional }: ContactoProps) {
                 <div>
                   <h3
                     className="text-xs font-semibold tracking-[0.18em] uppercase mb-5"
-                    style={{ color: 'var(--pp-accent)' }}
+                    style={{ color: 'var(--theme-accent)' }}
                   >
                     Síguenos
                   </h3>
@@ -155,7 +167,7 @@ export default function Contacto({ professional }: ContactoProps) {
                   />
                   <p
                     className="text-xs mt-5 leading-relaxed"
-                    style={{ color: 'var(--pp-muted)', opacity: 0.65 }}
+                    style={{ color: 'var(--theme-muted)', opacity: 0.65 }}
                   >
                     Mantente al día con novedades y promociones exclusivas.
                   </p>
@@ -166,13 +178,13 @@ export default function Contacto({ professional }: ContactoProps) {
                 <div>
                   <h3
                     className="text-xs font-semibold tracking-[0.18em] uppercase mb-4"
-                    style={{ color: 'var(--pp-accent)' }}
+                    style={{ color: 'var(--theme-accent)' }}
                   >
                     Sobre mí
                   </h3>
                   <p
                     className="text-base leading-relaxed break-words"
-                    style={{ color: 'var(--pp-muted)' }}
+                    style={{ color: 'var(--theme-muted)' }}
                   >
                     {professional.bio}
                   </p>

@@ -30,7 +30,7 @@ export default async function BarbershopPublicPage({ params }: Props) {
       className="min-h-screen"
       style={{ backgroundColor: theme.backgroundColor, ...(cssVars as React.CSSProperties) }}
     >
-      <BarbershopHero barbershop={barbershop} />
+      <BarbershopHero barbershop={barbershop} team={team} />
       <TrustMetrics team={team} barbershop={barbershop} />
       <TeamGrid team={team} />
       <BarbershopInfo barbershop={barbershop} />

@@ -9,7 +9,7 @@ import {
   checkSlugAvailability as checkSlugAvailabilityService,
 } from '@/services/professionalService';
 import { deleteMultipleImages, deleteImageFromStorage, uploadCarouselImages, uploadProfileImage } from '@/lib/storage';
-import { generateSlugWithRandomSuffix } from '@/lib/utils';
+import { generateSlugWithRandomSuffix, extractMapUrl } from '@/lib/utils';
 import { Professional, ThemeId } from '@/types';
 import { getThemeById } from '@/lib/barbershopThemes';
 
@@ -375,7 +375,7 @@ export function useProfile(): UseProfileReturn {
         bio: formData.bio || undefined,
         phone: formData.phone,
         location: formData.location || undefined,
-        map_embed_url: formData.map_embed_url || undefined,
+        map_embed_url: extractMapUrl(formData.map_embed_url) || undefined,
         profile_image: finalProfileImageUrl,
         social_links: {
           instagram: formData.instagram || undefined,
