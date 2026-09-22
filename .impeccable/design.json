@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-22T00:00:00Z",
+  "title": "Design System: Turnate",
+  "extensions": {
+    "colorMeta": {
+      "dashboard-primary": {
+        "role": "primary",
+        "displayName": "Azul Turnate",
+        "canonical": "#3b5fe2",
+        "tonalRamp": ["#0d1a4d", "#152a7a", "#1e3ba3", "#2a4bc4", "#3b5fe2", "#5f7ce8", "#8ba1ee", "#c2d0f7"]
+      },
+      "dashboard-primary-dark": {
+        "role": "primary",
+        "displayName": "Azul Turnate (oscuro)",
+        "canonical": "#60a5fa",
+        "tonalRamp": ["#0c2a4d", "#123d6e", "#1a5391", "#2f75bd", "#60a5fa", "#8cc0fb", "#b6d9fd", "#e0f0fe"]
+      },
+      "dashboard-bg": {
+        "role": "neutral",
+        "displayName": "Fondo claro",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#0f172a", "#334155", "#64748b", "#94a3b8", "#cbd5e1", "#e2e8f0", "#f1f5f9", "#ffffff"]
+      },
+      "destructive": {
+        "role": "feedback",
+        "displayName": "Rojo destructivo",
+        "canonical": "#e11d48",
+        "tonalRamp": ["#4c0519", "#7c0a2b", "#a8123e", "#c81551", "#e11d48", "#ea5578", "#f18ba3", "#f9c7d3"]
+      },
+      "theme-luxury-gold-accent": {
+        "role": "tenant-accent",
+        "displayName": "Dorado Luxury Gold",
+        "canonical": "#D4AF37",
+        "tonalRamp": ["#3d3110", "#5c4a18", "#7d6420", "#a4842c", "#D4AF37", "#e0c364", "#ecd995", "#f7ecc7"]
+      },
+      "theme-minimal-white-accent": {
+        "role": "tenant-accent",
+        "displayName": "Negro Minimal White",
+        "canonical": "#111111",
+        "tonalRamp": ["#000000", "#111111", "#2a2a2a", "#454545", "#616161", "#8a8a8a", "#bdbdbd", "#eeeeee"]
+      },
+      "theme-urban-neon-accent": {
+        "role": "tenant-accent",
+        "displayName": "Verde Urban Neon",
+        "canonical": "#00FF87",
+        "tonalRamp": ["#00301a", "#004d2a", "#006b3a", "#00994f", "#00FF87", "#5cffb0", "#9fffd0", "#d6ffec"]
+      },
+      "theme-vintage-barber-accent": {
+        "role": "tenant-accent",
+        "displayName": "Cobre Vintage Barber",
+        "canonical": "#C8874A",
+        "tonalRamp": ["#3a2513", "#5a3a1d", "#7c5028", "#a06a36", "#C8874A", "#d6a575", "#e5c4a2", "#f2e2d0"]
+      },
+      "theme-black-red-accent": {
+        "role": "tenant-accent",
+        "displayName": "Rojo Black Red",
+        "canonical": "#DC2626",
+        "tonalRamp": ["#3f0a0a", "#651111", "#8c1818", "#b71f1f", "#DC2626", "#e6595a", "#f08e8e", "#f9c6c6"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Nombre de barbería/profesional en el hero de perfil público." },
+      "title": { "displayName": "Title", "purpose": "Títulos de card y encabezados de sección del dashboard." },
+      "body": { "displayName": "Body", "purpose": "Contenido general, descripciones de servicio." },
+      "label": { "displayName": "Label", "purpose": "Labels de formulario, badges, metadatos." }
+    },
+    "shadows": [
+      { "name": "dashboard-rest", "value": "0 1px 2px 0 rgba(0,0,0,0.05)", "purpose": "shadow-sm en reposo para cards del dashboard." },
+      { "name": "public-hover-glow", "value": "0 8px 32px -8px var(--theme-accent-ring)", "purpose": "Glow de acento del tema activo en hover de cards de perfil público." }
+    ],
+    "motion": [
+      { "name": "duration-standard", "value": "300ms", "purpose": "Transiciones de color, hover de cards y subrayado de navegación." },
+      { "name": "ease-standard", "value": "ease-in-out", "purpose": "Curva por defecto para transition-all/transition-colors." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Acción principal del dashboard; un único primario por pantalla.",
+      "html": "<button class=\"ds-btn-primary\">Guardar cambios</button>",
+      "css": ".ds-btn-primary { background: #3b5fe2; color: #ffffff; padding: 8px 16px; height: 40px; border-radius: 8px; font-size: 14px; font-weight: 500; border: none; transition: background-color 0.2s ease-in-out; } .ds-btn-primary:hover { background: rgba(59,95,226,0.9); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #94a3b8; } .ds-btn-primary:disabled { pointer-events: none; opacity: 0.5; }"
+    },
+    {
+      "name": "Destructive Button",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "Acciones irreversibles: cancelar cita, eliminar servicio.",
+      "html": "<button class=\"ds-btn-destructive\">Cancelar cita</button>",
+      "css": ".ds-btn-destructive { background: #e11d48; color: #ffffff; padding: 8px 16px; height: 40px; border-radius: 8px; font-size: 14px; font-weight: 500; border: none; transition: background-color 0.2s ease-in-out; } .ds-btn-destructive:hover { background: rgba(225,29,72,0.9); }"
+    },
+    {
+      "name": "Dashboard Card",
+      "kind": "card",
+      "refersTo": "card-dashboard",
+      "description": "Contenedor estándar del dashboard: sombra sutil en reposo, sin animación de hover.",
+      "html": "<div class=\"ds-card-dashboard\"><h3 class=\"ds-card-title\">Ingresos del mes</h3><p class=\"ds-card-body\">$1.240.000</p></div>",
+      "css": ".ds-card-dashboard { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); padding: 24px; } .ds-card-title { font-size: 24px; font-weight: 600; line-height: 1; letter-spacing: -0.01em; color: #1a1523; margin: 0 0 8px 0; } .ds-card-body { font-size: 14px; color: #64748b; margin: 0; }"
+    },
+    {
+      "name": "Public Profile Card",
+      "kind": "card",
+      "refersTo": "card-public",
+      "description": "Card de servicio/equipo en perfil público; plana en reposo, glow de acento del tema en hover.",
+      "html": "<div class=\"ds-card-public\"><h3 class=\"ds-card-public-title\">Corte + Barba</h3><p class=\"ds-card-public-body\">45 min · $15.000</p></div>",
+      "css": ".ds-card-public { border: 1px solid var(--theme-border, rgba(255,255,255,0.08)); border-radius: 16px; padding: 28px; transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; } .ds-card-public:hover { transform: translateY(-2px); border-color: var(--theme-accent-ring, rgba(212,175,55,0.4)); box-shadow: 0 8px 32px -8px var(--theme-accent-ring, rgba(212,175,55,0.4)); } .ds-card-public-title { font-size: 18px; font-weight: 600; color: var(--theme-text, #F5F5F5); margin: 0 0 4px 0; } .ds-card-public-body { font-size: 14px; color: var(--theme-muted, rgba(245,245,245,0.5)); margin: 0; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo de formulario estándar del dashboard y flujo de agendamiento.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Nombre completo\" />",
+      "css": ".ds-input { height: 40px; width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; background: #ffffff; padding: 8px 12px; font-size: 14px; color: #1a1523; } .ds-input::placeholder { color: #64748b; } .ds-input:focus-visible { outline: none; box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #94a3b8; } .ds-input:disabled { cursor: not-allowed; opacity: 0.5; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El Asistente de Confianza",
+    "overview": "El dashboard es el asistente diario del dueño y su equipo: neutral, preciso, cálido en el trato pero nunca decorativo — una herramienta en la que se confía porque no estorba. Se ve y se comporta igual todos los días: mismo azul, mismo ritmo de espaciado, mismos componentes shadcn (\"new-york\"). Sobre esa base estable, cada barbería elige la \"personalidad\" que muestra a sus clientes en su perfil público a través de uno de cinco temas (Luxury Gold, Minimal White, Urban Neon, Vintage Barber, Black Red) inyectados como variables CSS en la raíz de la página. El sistema es, a la vez, una sola herramienta confiable y cinco vestidos distintos para la cara pública de cada negocio.\n\nEsto no es un CRUD tradicional ni un panel de administración genérico: la referencia de calidad es Stripe, Linear, Apple, Airbnb — claridad, mucho espacio en blanco, densidad baja, tipografía como jerarquía principal (no color). El rechazo explícito es a la estética \"sistema de administración antiguo\": tablas densas sin aire, sombras duras, exceso de bordes y colores compitiendo entre sí.",
+    "keyCharacteristics": [
+      "Dos capas de identidad: chrome de producto (fijo, neutral, confiable) y piel del tenant (elegida, expresiva, por barbería).",
+      "Mobile-first en todo: el flujo de reserva del cliente final vive principalmente en el móvil.",
+      "Plano en reposo; la profundidad aparece solo como respuesta a la interacción (hover/focus).",
+      "Un solo acento por pantalla — nunca dos colores de marca compitiendo en la misma vista."
+    ],
+    "rules": [
+      { "name": "The One Brand Accent Rule", "body": "El chrome de producto (dashboard, marketing de Turnate) usa un único acento de marca — el azul — y nunca lo mezcla con los acentos de los temas de tenant.", "section": "colors" },
+      { "name": "The Single Theme Rule", "body": "Una página pública renderiza exactamente un tema a la vez, aplicado en la raíz; ningún componente hijo redefine su propio acento por fuera de las variables --theme-* heredadas.", "section": "colors" },
+      { "name": "The No Small-Text Overload Rule", "body": "Nunca abusar de text-sm/text-xs; el texto secundario debe seguir siendo cómodo de leer, no reducirse solo para \"caber\".", "section": "typography" },
+      { "name": "The Rest-Is-Flat Rule", "body": "En reposo, ninguna superficie compite visualmente por elevación; la sombra es siempre una señal de \"esto es interactivo\", nunca decoración ambiental.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do mantener el dashboard en su única paleta azul/neutral fija — es la base de confianza sobre la que los temas de tenant se apoyan.",
+      "Do aplicar el tema de tenant una sola vez en la raíz de la página pública y dejar que los hijos hereden vía --theme-*.",
+      "Do usar sombra/glow solo como respuesta a hover/focus, nunca en reposo.",
+      "Do usar un único botón primario por sección/pantalla.",
+      "Do priorizar Skeleton sobre pantallas vacías durante carga."
+    ],
+    "donts": [
+      "Don't introducir un segundo acento de marca en el chrome del dashboard — el azul es el único.",
+      "Don't mezclar el acento de un tema de tenant con el azul de Turnate en la misma vista.",
+      "Don't usar sombras duras u opacas en reposo; toda profundidad es sutil y contextual a la interacción.",
+      "Don't tratar .claude/design-system.md como si describiera un único sistema oscuro/neón global: esa paleta corresponde al preset \"Urban Neon\" del sistema de temas de tenant, no a la identidad fija de Turnate.",
+      "Don't usar tablas en móvil; usar cards."
+    ]
+  }
+}
