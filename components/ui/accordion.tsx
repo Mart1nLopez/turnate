@@ -15,16 +15,17 @@ interface AccordionItemProps {
 
 export function AccordionItem({ title, children, isOpen, onToggle, className }: AccordionItemProps) {
   return (
-    <div className={cn('border-b border-gray-200 last:border-none', className)}>
+    <div className={cn('border-b border-border last:border-none', className)}>
       <button
         onClick={onToggle}
-        className="flex w-full items-center justify-between py-4 text-left font-medium transition-all hover:text-primary focus:outline-none"
+        aria-expanded={isOpen}
+        className="flex w-full items-center justify-between py-4 text-left font-medium transition-all hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
       >
-        <span className="text-lg text-gray-900">{title}</span>
+        <span className="text-lg text-foreground">{title}</span>
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          className="ml-4 text-gray-500"
+          className="ml-4 text-muted-foreground"
         >
           <LuChevronDown className="h-5 w-5" />
         </motion.span>
@@ -38,7 +39,7 @@ export function AccordionItem({ title, children, isOpen, onToggle, className }: 
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="pb-4 pt-0 text-gray-600 leading-relaxed md:pr-12">
+            <div className="pb-4 pt-0 text-muted-foreground leading-relaxed md:pr-12">
               {children}
             </div>
           </motion.div>
