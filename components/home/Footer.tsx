@@ -14,7 +14,7 @@ export default function Footer() {
           </div>
           <div className="flex gap-6">
             <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary transition">
-              Términos
+              Términos y Condiciones
             </Link>
             <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition">
               Privacidad
