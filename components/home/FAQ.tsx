@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Accordion, AccordionItem } from '@/components/ui/accordion';
+import ScrollReveal from '@/components/home/ScrollReveal';
 
 const faqs = [
   {
@@ -40,16 +41,16 @@ export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section className="py-16 md:py-24 bg-white">
-      <div className="container mx-auto px-4 max-w-3xl">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Preguntas Frecuentes</h2>
-          <p className="text-gray-600 text-lg">
+    <section className="py-20 lg:py-28">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-balance mb-4">Preguntas frecuentes</h2>
+          <p className="text-muted-foreground text-lg">
             Todo lo que necesitas saber para empezar a gestionar tu negocio con Turnate
           </p>
-        </div>
+        </ScrollReveal>
 
-        <div className="bg-gray-50 rounded-2xl px-6 py-3 md:px-8 md:py-4 shadow-sm border border-gray-100">
+        <ScrollReveal delay={0.1} className="bg-muted/50 rounded-2xl px-6 py-3 md:px-8 md:py-4 border border-border">
           <Accordion>
             {faqs.map((faq, index) => (
               <AccordionItem
@@ -62,7 +63,7 @@ export default function FAQ() {
               </AccordionItem>
             ))}
           </Accordion>
-        </div>
+        </ScrollReveal>
       </div>
     </section>
   );

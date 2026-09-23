@@ -45,7 +45,14 @@ export function useAuth() {
     }
   };
 
-  const register = async (data: { name: string; email: string; password: string; rut: string; phone: string }) => {
+  const register = async (data: {
+    name: string;
+    email: string;
+    password: string;
+    rut: string;
+    phone: string;
+    termsVersion: string;
+  }) => {
     setIsLoading(true);
     setError(null);
 
@@ -58,6 +65,9 @@ export function useAuth() {
       console.log('Creando usuario en Auth...');
       const { data: authData, error: authError } = await AuthService.signUp(data.email, data.password, {
         name: data.name,
+        // Registro de aceptación de Términos y Condiciones
+        terms_version: data.termsVersion,
+        terms_accepted_at: new Date().toISOString(),
       });
 
       if (authError) {

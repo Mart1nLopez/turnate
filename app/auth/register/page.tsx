@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { validateRut, formatRutOnInput } from '@/lib/rut-validator';
 import { validatePassword } from '@/lib/passwordValidator';
 import { checkEmailAvailability, checkRutAvailability } from '@/services/professionalService';
+import { TERMS_VERSION } from '@/lib/legal';
 
 export default function RegisterPage() {
   const [rutValidation, setRutValidation] = useState<{ isValid: boolean; error?: string } | null>(null);
@@ -19,6 +20,7 @@ export default function RegisterPage() {
 
   const { register, isLoading, error: authError } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -168,6 +170,10 @@ export default function RegisterPage() {
       }
     }
 
+    if (!acceptedTerms) {
+      errors.push('Debes aceptar los Términos y Condiciones');
+    }
+
     return {
       isValid: errors.length === 0,
       errors,
@@ -193,6 +199,7 @@ export default function RegisterPage() {
         password: formData.password,
         rut: formData.rut,
         phone: formData.phone,
+        termsVersion: TERMS_VERSION,
       });
     } catch (error) {
       // Error is handled in useAuth and exposed via authError state
@@ -367,6 +374,32 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
+                {/* Términos y Condiciones */}
+                <label htmlFor="acceptTerms" className="flex items-start gap-3 cursor-pointer select-none">
+                  <input
+                    id="acceptTerms"
+                    name="acceptTerms"
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => {
+                      setAcceptedTerms(e.target.checked);
+                      if (formError) setFormError(null);
+                    }}
+                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-gray-300 accent-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    required
+                  />
+                  <span className="text-sm leading-5 text-gray-600">
+                    He leído y acepto los{' '}
+                    <Link href="/terms" target="_blank" className="text-blue-600 hover:underline">
+                      Términos y Condiciones
+                    </Link>{' '}
+                    y la{' '}
+                    <Link href="/privacy" target="_blank" className="text-blue-600 hover:underline">
+                      Política de Privacidad
+                    </Link>
+                  </span>
+                </label>
+
                 {/* Error Message */}
                 {(formError || authError) && (
                   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
@@ -378,6 +411,7 @@ export default function RegisterPage() {
                   type="submit"
                   disabled={
                     isLoading ||
+                    !acceptedTerms ||
                     (emailValidation !== null && !emailValidation.isValid) ||
                     (rutAvailability !== null && !rutAvailability.isValid)
                   }
@@ -410,16 +444,6 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="text-center mt-6 text-xs text-gray-500">
-            Al registrarte, aceptas nuestros{' '}
-            <Link href="/terms" className="text-blue-600 hover:underline">
-              Términos de Servicio
-            </Link>{' '}
-            y{' '}
-            <Link href="/privacy" className="text-blue-600 hover:underline">
-              Política de Privacidad
-            </Link>
-          </div>
         </div>
       </main>
       <BasicFooter />
