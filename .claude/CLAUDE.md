@@ -65,4 +65,34 @@ Toda modificación debe mejorar:
 - claridad
 - velocidad
 - conversión
-- estética  
+- estética
+
+---
+
+## Commits
+
+Usar Conventional Commits: `tipo(área): descripción corta en imperativo`.
+
+Un commit = un tema. No mezclar rediseños visuales con lógica o features distintas.
+
+Tipos:
+
+- `feat` — funcionalidad nueva
+- `fix` — corrección de un error
+- `style` — cambios visuales sin lógica nueva
+- `refactor` — reorganizar código sin cambiar comportamiento
+- `chore` — mantenimiento, configuración, dependencias
+- `docs` — solo documentación
+
+Áreas sugeridas: `home`, `auth`, `legal`, `dashboard`, `public-profiles`, `agenda`, `design`.
+
+Si el título no explica el cambio por sí solo, agregar debajo el qué y el porqué:
+
+```
+feat(legal): add terms checkbox on signup
+
+- Require accepting Términos y Condiciones before creating an account
+- Store terms_version and terms_accepted_at in user metadata
+```
+
+Ramas con el mismo estilo: `feature/…`, `fix/…`, `chore/…`.
