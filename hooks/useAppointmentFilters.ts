@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, type Dispatch, type SetStateAction } from 'react';
 import { Appointment, Service, Client } from '@/types';
 import { parseISO, startOfDay, addDays, isSameDay, isWithinInterval, getHours, endOfDay } from 'date-fns';
 
@@ -21,7 +21,7 @@ export interface AdvancedFilters {
   maxDuration: string;
 }
 
-const defaultFilters: AdvancedFilters = {
+export const defaultAppointmentFilters: AdvancedFilters = {
   search: '',
   status: 'all',
   dateRange: 'today',
@@ -35,8 +35,67 @@ const defaultFilters: AdvancedFilters = {
   maxDuration: '',
 };
 
-export function useAppointmentFilters(appointments: AppointmentWithDetails[]) {
-  const [filters, setFilters] = useState<AdvancedFilters>(defaultFilters);
+const DATE_RANGE_VALUES: AdvancedFilters['dateRange'][] = ['next_30_days', 'today', 'tomorrow', 'custom'];
+
+function getFiltersStorageKey(professionalId: string): string {
+  return `turnate:citas:filters:${professionalId}`;
+}
+
+// Último filtro guardado por el barbero (persistente entre sesiones).
+// Si nunca guardó uno, devuelve null: la vista inicial pasa a ser las "10 próximas citas".
+export function getSavedAppointmentFilters(professionalId: string): AdvancedFilters | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(getFiltersStorageKey(professionalId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || !DATE_RANGE_VALUES.includes(parsed.dateRange)) return null;
+    return { ...defaultAppointmentFilters, ...parsed };
+  } catch (error) {
+    console.error('Error leyendo el filtro guardado de citas:', error);
+    return null;
+  }
+}
+
+function saveAppointmentFilters(professionalId: string, filters: AdvancedFilters): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(getFiltersStorageKey(professionalId), JSON.stringify(filters));
+  } catch (error) {
+    console.error('Error guardando el filtro de citas:', error);
+  }
+}
+
+export function useAppointmentFilters(appointments: AppointmentWithDetails[], professionalId?: string | null) {
+  const [filters, setFiltersState] = useState<AdvancedFilters>(defaultAppointmentFilters);
+  const [hasStoredFilter, setHasStoredFilter] = useState(false);
+
+  // Al conocer al profesional, hidratar con su último filtro guardado (si existe)
+  useEffect(() => {
+    if (!professionalId) return;
+    const saved = getSavedAppointmentFilters(professionalId);
+    if (saved) {
+      setFiltersState(saved);
+      setHasStoredFilter(true);
+    }
+  }, [professionalId]);
+
+  // Cualquier cambio explícito de filtro (desde Filtros Avanzados o clearFilters)
+  // se persiste como el último filtro usado por este barbero
+  const setFilters = useCallback<Dispatch<SetStateAction<AdvancedFilters>>>(
+    (value) => {
+      setFiltersState((prev) => {
+        const next =
+          typeof value === 'function' ? (value as (prev: AdvancedFilters) => AdvancedFilters)(prev) : value;
+        if (professionalId) {
+          saveAppointmentFilters(professionalId, next);
+        }
+        setHasStoredFilter(true);
+        return next;
+      });
+    },
+    [professionalId],
+  );
 
   const filteredAppointments = useMemo(() => {
     let filtered = appointments;
@@ -88,7 +147,9 @@ export function useAppointmentFilters(appointments: AppointmentWithDetails[]) {
     const today = startOfDay(now);
     const tomorrow = addDays(today, 1);
 
-    if (filters.dateRange !== 'next_30_days') {
+    // Sin filtro guardado, `appointments` ya es la vista especial de "10 próximas citas"
+    // (futuras, ordenadas ascendentemente): no se le vuelve a aplicar un rango de fecha.
+    if (hasStoredFilter && filters.dateRange !== 'next_30_days') {
       filtered = filtered.filter((appointment) => {
         const appointmentDate = parseISO(appointment.start_time);
 
@@ -128,15 +189,18 @@ export function useAppointmentFilters(appointments: AppointmentWithDetails[]) {
     }
 
     return filtered;
-  }, [appointments, filters]);
+  }, [appointments, filters, hasStoredFilter]);
 
   const clearFilters = useCallback(() => {
-    setFilters(defaultFilters);
-  }, []);
+    setFilters(defaultAppointmentFilters);
+  }, [setFilters]);
 
-  const updateFilter = useCallback((key: keyof AdvancedFilters, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  }, []);
+  const updateFilter = useCallback(
+    (key: keyof AdvancedFilters, value: string) => {
+      setFilters((prev) => ({ ...prev, [key]: value }));
+    },
+    [setFilters],
+  );
 
   const getActiveFiltersCount = useCallback(() => {
     let count = 0;
@@ -151,6 +215,10 @@ export function useAppointmentFilters(appointments: AppointmentWithDetails[]) {
   }, [filters]);
 
   const getFilterDescription = useCallback(() => {
+    if (!hasStoredFilter) {
+      return 'Próximas 10 citas';
+    }
+
     const parts: string[] = [];
 
     // Descripción del rango de fecha
@@ -197,7 +265,7 @@ export function useAppointmentFilters(appointments: AppointmentWithDetails[]) {
     }
 
     return parts.length > 0 ? parts.join(', ') : 'Período seleccionado';
-  }, [filters]);
+  }, [filters, hasStoredFilter]);
 
   return {
     filters,
@@ -207,5 +275,6 @@ export function useAppointmentFilters(appointments: AppointmentWithDetails[]) {
     updateFilter,
     getActiveFiltersCount,
     getFilterDescription,
+    hasStoredFilter,
   };
 }

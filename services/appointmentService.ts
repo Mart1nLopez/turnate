@@ -183,6 +183,26 @@ export async function getAppointmentsByProfessionalId(
   return data || [];
 }
 
+// Obtener las próximas N citas futuras del profesional, ordenadas de la más próxima a la más
+// lejana. Es la vista inicial especial de "Citas" cuando el barbero nunca configuró un filtro:
+// no es equivalente al filtro "Hoy" ni está acotada a una ventana fija de días.
+export async function getUpcomingAppointmentsByProfessionalId(
+  professionalId: string,
+  limit: number = 10,
+): Promise<AppointmentWithDetails[]> {
+  const { data, error } = await supabase
+    .from('appointments')
+    .select(
+      `*, service:services(name, price, duration_minutes, description), client:clients(name, email, phone), professional:professionals(name, email)`,
+    )
+    .eq('professional_id', professionalId)
+    .gte('start_time', new Date().toISOString())
+    .order('start_time', { ascending: true })
+    .limit(limit);
+  if (error) throw error;
+  return data || [];
+}
+
 export async function getAppointmentByCancellationToken(token: string): Promise<AppointmentWithDetails | null> {
   const { data, error } = await supabase
     .from('appointments')

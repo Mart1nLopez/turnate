@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import { Service } from '@/types';
 import {
   getServicesByProfessionalId,
   getAppointmentsByProfessionalId,
+  getUpcomingAppointmentsByProfessionalId,
   getTotalAppointmentsCount,
   getAppointmentCountsByStatus,
   cancelAppointmentByProfessionalAndSync,
@@ -21,7 +22,9 @@ import {
 import AppointmentsByDay from '@/components/dashboard/AppointmentsByDay';
 import AdvancedFiltersComponent from '@/components/dashboard/AdvancedFilters';
 import AppointmentStats from '@/components/dashboard/AppointmentStats';
-import { useAppointmentFilters } from '@/hooks/useAppointmentFilters';
+import { useAppointmentFilters, getSavedAppointmentFilters } from '@/hooks/useAppointmentFilters';
+
+const UPCOMING_APPOINTMENTS_LIMIT = 10;
 
 export default function CitasPage() {
   const router = useRouter();
@@ -29,6 +32,8 @@ export default function CitasPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtersCollapsed, setFiltersCollapsed] = useState(true);
+  const [professionalId, setProfessionalId] = useState<string | null>(null);
+  const [isRefreshingAppointments, setIsRefreshingAppointments] = useState(false);
   const [totalAppointmentsCount, setTotalAppointmentsCount] = useState<number | undefined>(undefined);
   const [appointmentCounts, setAppointmentCounts] = useState<
     | {
@@ -41,18 +46,42 @@ export default function CitasPage() {
   >(undefined);
   const { confirm, ConfirmDialog } = useConfirmDialog();
 
-  // Usar el hook personalizado para filtros
-  const { filters, filteredAppointments, setFilters, clearFilters, getActiveFiltersCount, getFilterDescription } =
-    useAppointmentFilters(appointments);
+  // Usar el hook personalizado para filtros (hidrata y persiste el último filtro por profesional)
+  const {
+    filters,
+    filteredAppointments,
+    setFilters,
+    clearFilters,
+    getActiveFiltersCount,
+    getFilterDescription,
+    hasStoredFilter,
+  } = useAppointmentFilters(appointments, professionalId);
 
-  // Cargar citas de los próximos 30 días
+  // Cargar citas dentro de la ventana estándar de 30 días (cuando ya hay un filtro guardado)
   const loadAppointmentsBasedOnDateFilter = useCallback(async () => {
     try {
       const { professional } = await getCurrentProfessional();
       if (!professional) return;
 
-      // Cargar citas desde hoy hasta 30 días (comportamiento por defecto)
       const appointmentsData = await getAppointmentsByProfessionalId(professional.id);
+
+      setAppointments(appointmentsData || []);
+    } catch (error) {
+      console.error('Error loading appointments:', error);
+      toast.error('Error al cargar las citas');
+    }
+  }, []);
+
+  // Cargar las próximas 10 citas futuras (vista inicial cuando el barbero nunca configuró un filtro)
+  const loadUpcomingAppointments = useCallback(async () => {
+    try {
+      const { professional } = await getCurrentProfessional();
+      if (!professional) return;
+
+      const appointmentsData = await getUpcomingAppointmentsByProfessionalId(
+        professional.id,
+        UPCOMING_APPOINTMENTS_LIMIT,
+      );
 
       setAppointments(appointmentsData || []);
     } catch (error) {
@@ -65,6 +94,7 @@ export default function CitasPage() {
     try {
       const { professional } = await getCurrentProfessional();
       if (!professional) return;
+      setProfessionalId(professional.id);
 
       // Cargar servicios y conteos (siempre necesarios)
       const [servicesData, totalCount, statusCounts] = await Promise.all([
@@ -77,28 +107,47 @@ export default function CitasPage() {
       setTotalAppointmentsCount(totalCount);
       setAppointmentCounts(statusCounts);
 
-      // Cargar citas iniciales (próximos 30 días)
-      await loadAppointmentsBasedOnDateFilter();
+      // La carga inicial depende de si este barbero ya tiene un filtro guardado:
+      // si nunca configuró uno, la vista inicial son sus 10 próximas citas.
+      const savedFilters = getSavedAppointmentFilters(professional.id);
+      if (savedFilters) {
+        await loadAppointmentsBasedOnDateFilter();
+      } else {
+        await loadUpcomingAppointments();
+      }
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Error al cargar los datos');
     } finally {
       setLoading(false);
     }
-  }, [loadAppointmentsBasedOnDateFilter]);
+  }, [loadAppointmentsBasedOnDateFilter, loadUpcomingAppointments]);
 
   // Efecto inicial para cargar datos
   useEffect(() => {
     loadAppointments();
   }, [loadAppointments]);
 
-  // Efecto que reacciona cuando cambia el filtro de fechas
+  // Si el barbero configura su primer filtro durante la sesión (todavía estaba en la vista de
+  // "10 próximas citas"), cargar la ventana completa para que el filtro recién elegido se
+  // aplique sobre todas las citas correspondientes, no solo sobre esas 10.
+  const hadStoredFilterRef = useRef(false);
+  useEffect(() => {
+    if (!hadStoredFilterRef.current && hasStoredFilter && !loading) {
+      setIsRefreshingAppointments(true);
+      loadAppointmentsBasedOnDateFilter().finally(() => setIsRefreshingAppointments(false));
+    }
+    hadStoredFilterRef.current = hasStoredFilter;
+  }, [hasStoredFilter, loading, loadAppointmentsBasedOnDateFilter]);
+
+  // Efecto que reacciona cuando cambia el filtro de fechas a "próximos 30 días"
   useEffect(() => {
     // Solo recargar para next_30_days ya que los otros filtros se procesan localmente
-    if (filters.dateRange === 'next_30_days') {
-      loadAppointmentsBasedOnDateFilter();
+    if (hasStoredFilter && filters.dateRange === 'next_30_days' && !loading) {
+      setIsRefreshingAppointments(true);
+      loadAppointmentsBasedOnDateFilter().finally(() => setIsRefreshingAppointments(false));
     }
-  }, [filters.dateRange, loadAppointmentsBasedOnDateFilter]);
+  }, [hasStoredFilter, filters.dateRange, loading, loadAppointmentsBasedOnDateFilter]);
 
   const cancelAppointment = async (appointmentId: string) => {
     const confirmed = await confirm({
@@ -191,8 +240,8 @@ export default function CitasPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gestión de Citas</h1>
           <p className="text-gray-600">
-            Administra tus citas. Por defecto se muestran las citas de los próximos 30 días. Usa los filtros para buscar
-            fechas específicas.
+            Administra tus citas. Por defecto se muestran tus próximas 10 citas. Usa los filtros avanzados para buscar
+            por fecha, estado u otros criterios.
           </p>
         </div>
       </div>
@@ -213,6 +262,7 @@ export default function CitasPage() {
         isCollapsed={filtersCollapsed}
         onToggleCollapse={() => setFiltersCollapsed(!filtersCollapsed)}
         getActiveFiltersCount={getActiveFiltersCount}
+        hasStoredFilter={hasStoredFilter}
       />
 
       {/* Lista de citas */}
@@ -227,19 +277,26 @@ export default function CitasPage() {
             )}
           </CardTitle>
           <CardDescription>
-            {filteredAppointments.length === 0 ?
+            {isRefreshingAppointments ?
+              'Actualizando citas...'
+            : filteredAppointments.length === 0 ?
               'No se encontraron citas con los filtros aplicados'
-            : `Mostrando ${filteredAppointments.length} ${filteredAppointments.length === 1 ? 'cita' : 'citas'} del período seleccionado`
+            : `Mostrando ${filteredAppointments.length} ${filteredAppointments.length === 1 ? 'cita' : 'citas'} — ${getFilterDescription()}`
             }
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <AppointmentsByDay
-            appointments={filteredAppointments}
-            onViewDetails={(id) => router.push(`/dashboard/citas/${id}`)}
-            onCancelAppointment={cancelAppointment}
-            onCompleteAppointment={completeAppointmentHandler}
-          />
+          {isRefreshingAppointments ?
+            <div className="flex items-center justify-center py-12">
+              <LoadingSpinner size="md" text="Actualizando citas..." />
+            </div>
+          : <AppointmentsByDay
+              appointments={filteredAppointments}
+              onViewDetails={(id) => router.push(`/dashboard/citas/${id}`)}
+              onCancelAppointment={cancelAppointment}
+              onCompleteAppointment={completeAppointmentHandler}
+            />
+          }
         </CardContent>
       </Card>
 
