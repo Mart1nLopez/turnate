@@ -21,4 +21,4 @@ Formato de commits: ver "Convención de commits" en `.claude/CLAUDE.md`.
 - Estilos alineados al design system: tokens de color, espaciados y bordes redondeados.
 
 ### Documentación
-- Se agrega este `CHANGELOG.md` y la convención de commits en `.claude/CLAUDE.md`.
+- Se agrega este `CHANGELOG.md` y la regla de documentar cambios en `.claude/CLAUDE.md` (junto a la convención de commits).

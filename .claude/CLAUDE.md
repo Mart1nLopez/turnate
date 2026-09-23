@@ -98,27 +98,6 @@ feat(legal): add terms checkbox on signup
 Ramas con el mismo estilo: `feature/…`, `fix/…`, `chore/…`.
 ---
 
-## Convención de commits
-
-Usar Conventional Commits:
-
-```
-tipo(área): descripción corta en imperativo
-
-- Qué cambió
-- Por qué, si no es obvio
-```
-
-Tipos: `feat` (funcionalidad nueva), `fix` (corrección), `style` (cambios visuales), `refactor` (reorganizar sin cambiar comportamiento), `chore` (mantenimiento/config), `docs` (documentación).
-
-Áreas: `home`, `auth`, `legal`, `dashboard`, `public-profiles`, `agenda`, `design`.
-
-Reglas:
-
-- Un commit = un tema. No mezclar cambios no relacionados.
-- Título de menos de ~70 caracteres.
-- Ramas: `feature/…`, `fix/…`, `chore/…`.
-
 ## Documentar cambios
 
 Todo cambio relevante debe registrarse en `CHANGELOG.md` (fecha, rama y resumen por área) en el mismo commit o en uno `docs` inmediatamente después.
