@@ -237,9 +237,7 @@ export default function AppointmentStats({
       <Card>
         <CardHeader>
           <CardTitle>Desglose por Estado - Período Actual</CardTitle>
-          <p className="text-sm text-gray-600">
-            Estadísticas basadas en las citas del período mostrado (desde hoy hasta fin de mes)
-          </p>
+          <p className="text-sm text-gray-600">Estadísticas basadas en las citas mostradas actualmente</p>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

@@ -6,20 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Service } from '@/types';
+import { AdvancedFilters, defaultAppointmentFilters } from '@/hooks/useAppointmentFilters';
 
-export interface AdvancedFilters {
-  search: string;
-  status: 'all' | 'confirmed' | 'completed' | 'cancelled_by_pro' | 'cancelled_by_client';
-  dateRange: 'next_30_days' | 'today' | 'tomorrow' | 'custom';
-  customDateFrom: string;
-  customDateTo: string;
-  timeOfDay: 'all' | 'morning' | 'afternoon' | 'evening';
-  serviceId: string;
-  minPrice: string;
-  maxPrice: string;
-  minDuration: string;
-  maxDuration: string;
-}
+export type { AdvancedFilters };
 
 interface AdvancedFiltersComponentProps {
   filters: AdvancedFilters;
@@ -28,6 +17,10 @@ interface AdvancedFiltersComponentProps {
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   getActiveFiltersCount: () => number;
+  // true si el barbero ya configuró y guardó un filtro alguna vez. Mientras sea false, la vista
+  // muestra las "10 próximas citas" (no un filtro real), así que el selector de período no debe
+  // sugerir que "Hoy" está seleccionado.
+  hasStoredFilter?: boolean;
 }
 
 export default function AdvancedFiltersComponent({
@@ -37,6 +30,7 @@ export default function AdvancedFiltersComponent({
   isCollapsed = false,
   onToggleCollapse,
   getActiveFiltersCount,
+  hasStoredFilter = true,
 }: AdvancedFiltersComponentProps) {
   const [localFilters, setLocalFilters] = useState<AdvancedFilters>(filters);
 
@@ -51,22 +45,11 @@ export default function AdvancedFiltersComponent({
   };
 
   const clearAllFilters = () => {
-    const clearedFilters: AdvancedFilters = {
-      search: '',
-      status: 'all',
-      dateRange: 'today',
-      customDateFrom: '',
-      customDateTo: '',
-      timeOfDay: 'all',
-      serviceId: '',
-      minPrice: '',
-      maxPrice: '',
-      minDuration: '',
-      maxDuration: '',
-    };
-    setLocalFilters(clearedFilters);
-    onFiltersChange(clearedFilters);
+    setLocalFilters(defaultAppointmentFilters);
+    onFiltersChange(defaultAppointmentFilters);
   };
+
+  const periodSelectValue = hasStoredFilter ? localFilters.dateRange : 'upcoming';
 
   return (
     <Card>
@@ -131,9 +114,14 @@ export default function AdvancedFiltersComponent({
                 Período
               </label>
               <select
-                value={localFilters.dateRange}
+                value={periodSelectValue}
                 onChange={(e) => handleFilterChange('dateRange', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                {!hasStoredFilter && (
+                  <option value="upcoming" disabled>
+                    Próximas 10 citas
+                  </option>
+                )}
                 <option value="next_30_days">Próximos 30 días</option>
                 <option value="today">Solo hoy</option>
                 <option value="tomorrow">Solo mañana</option>
